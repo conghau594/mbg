@@ -1,0 +1,41 @@
+# .gitignore for C++ + CMake + VS Code project
+
+# Ignore build output folders
+/build/
+/out/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.sln
+*.vcxproj*
+*.ninja
+compile_commands.json
+
+# Ignore binary files
+*.exe
+*.out
+*.dll
+*.lib
+*.pdb
+*.obj
+*.o
+
+# Ignore VS Code settings except essentials
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# Ignore user/system-specific files
+*.log
+*.DS_Store
+*.user
+*.suo
+*.swp
+*.bak
+*.tmp
+
+# Ignore Python venvs if used
+venv/
+__pycache__/
