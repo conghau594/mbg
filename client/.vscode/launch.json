@@ -5,26 +5,28 @@
       "name": "launch-debug",
       "type": "cppvsdbg", // for Visual Studio debugger
       "request": "launch",
-      "program": "${env:BUILD_ROOT}/mbg/client/msvc2022/DEBUG/mbgclient.exe", // <-- full path to binary
+      "program": "${env:BUILD_ROOT}/mbg/client/msvc2022/bin/DEBUG/mbgclient.exe", // <-- full path to binary
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
-      "externalConsole": true,
+      //"externalConsole": true,
       "preLaunchTask": "build-debug-with-preset", // <-- task to build the project
-
+      "console": "integratedTerminal",
+      
     },
     {
       "name": "launch-release",
       "type": "cppvsdbg", // for Visual Studio debugger
       "request": "launch",
-      "program": "${env:BUILD_ROOT}/mbg/client/msvc2022/RELEASE/mbgclient.exe", // <-- full path to binary
+      "program": "${env:BUILD_ROOT}/mbg/client/msvc2022/bin/RELEASE/mbgclient.exe", // <-- full path to binary
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
-      "externalConsole": true,
-      "preLaunchTask": "build-release-with-preset" // <-- task to build the project
+      //"externalConsole": true,
+      "preLaunchTask": "build-release-with-preset", // <-- task to build the project
+      "console": "integratedTerminal",
     }
   ]
 }
