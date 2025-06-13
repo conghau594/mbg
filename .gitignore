@@ -39,3 +39,7 @@ compile_commands.json
 # Ignore Python venvs if used
 venv/
 __pycache__/
+
+
+# Ignore ImGui.ini
+imgui.ini
