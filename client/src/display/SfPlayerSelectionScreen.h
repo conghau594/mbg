@@ -1,17 +1,18 @@
-// SfGameSelectionScreen.h
+// SfPlayerSelectionScreen.h
 #pragma once
 
 #include "SfBaseScreen.h"
 
 namespace iab
 {
-  class SfGameSelectionScreen final : public SfBaseScreen
+  class SfPlayerSelectionScreen final : public SfBaseScreen
   {
     sf::Time elapsedTime_;
+    ImFont *smallFont_;
     int pressedButtonIndex_;
 
   public:
-    SfGameSelectionScreen(
+    SfPlayerSelectionScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameDisplay> displayContext) noexcept;
 

@@ -1,6 +1,6 @@
 #include "SignalHub.h"
 
-namespace iac
+namespace iab
 {
   void SignalHub::run()
   {

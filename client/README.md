@@ -1,1 +1,1 @@
-`iac` = Intelligent Agent Combats
+`iab` = Intelligent Agent Battles

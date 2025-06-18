@@ -116,6 +116,7 @@
     "xtr1common": "cpp",
     "xtree": "cpp",
     "string_view": "cpp",
-    "slist": "cpp"
+    "slist": "cpp",
+    "*.rh": "cpp"
   }
 }

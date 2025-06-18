@@ -7,7 +7,7 @@
 #include "connect/ServerConnector.h"
 #include "display/GameDisplay.h"
 
-namespace iac
+namespace iab
 {
   class GameDisplay;
   class ServerConnector;

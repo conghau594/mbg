@@ -1,7 +1,7 @@
 // GameScreen.h
 #pragma once
 
-namespace iac
+namespace iab
 {
   class GameScreen
   {

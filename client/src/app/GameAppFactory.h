@@ -1,7 +1,7 @@
 // GameAppFactory.h
 #pragma once
 
-namespace iac
+namespace iab
 {
   class GameApp;
 
@@ -11,4 +11,4 @@ namespace iac
     virtual ~GameAppFactory() = default;
     virtual GameApp createGameApp() = 0;
   };
-} // namespace iac
+} // namespace iab

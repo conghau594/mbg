@@ -3,7 +3,7 @@
 
 #include "ServerConnector.h"
 
-namespace iac
+namespace iab
 {
   class SimpleServerConnector : public ServerConnector
   {
@@ -14,4 +14,4 @@ namespace iac
     }
   };
 
-} // namespace iac
+} // namespace iab

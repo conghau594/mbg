@@ -11,7 +11,7 @@
 
 #include "SfPauseScreen.h"
 
-namespace iac
+namespace iab
 {
   SfPauseScreen::SfPauseScreen(
       std::shared_ptr<sf::RenderWindow> window,
@@ -36,15 +36,25 @@ namespace iac
       buttonCallbacks_[pressedButtonIndex_]();
       pressedButtonIndex_ = -1; // Reset after executing the callback
     }
+
     auto event = window_->pollEvent();
     if (event)
     {
       ImGui::SFML::ProcessEvent(*window_, *event);
     }
 
-    sf::Time elapsedTime = clock_->restart();
-    ImGui::SFML::Update(*window_, elapsedTime);
-    render();
+    elapsedTime_ += clock_->restart();
+    if (elapsedTime_ == sf::Time::Zero)
+    {
+      return;
+    }
+
+    ImGui::SFML::Update(*window_, elapsedTime_);
+    drawDialog();
+    window_->clear();
+    ImGui::SFML::Render(*window_);
+    window_->display();
+    elapsedTime_ = sf::Time::Zero;
   }
 
   void SfPauseScreen::onEnter() noexcept
@@ -63,6 +73,8 @@ namespace iac
       ImGui::Text(errorMsg.c_str());
       ImGui::End();
     }
+
+    clock_->restart();
   }
 
   void SfPauseScreen::onExit() noexcept
@@ -78,7 +90,7 @@ namespace iac
 
     ImVec2 const ITEM_SPACING = style.ItemSpacing;
     ImVec2 const WINDOW_PADDING = style.WindowPadding;
-    float const TITLE_BAR_HEIGHT = ImGui::GetFontSize() + style.FramePadding.y * 2.0f;
+    // float const TITLE_BAR_HEIGHT = ImGui::GetFontSize() + style.FramePadding.y * 2.0f;
     ImVec2 constexpr DUMMY_SIZE(0.0f, 8.0f);
 
     float const WINDOW_WIDTH = TEXT_SIZE.x + WINDOW_PADDING.x * 2.0f + 100.0f;
@@ -87,7 +99,7 @@ namespace iac
     ImVec2 BUTTON_SIZE(BUTTON_WIDTH, BUTTON_HEIGHT);
 
     // change window size
-    float const WINDOW_HEIGHT = TITLE_BAR_HEIGHT + WINDOW_PADDING.y * 2.0f +
+    float const WINDOW_HEIGHT = /*TITLE_BAR_HEIGHT +*/ WINDOW_PADDING.y * 2.0f +
                                 TEXT_SIZE.y + BUTTON_HEIGHT + ITEM_SPACING.y * 2.0f +
                                 DUMMY_SIZE.y;
 
@@ -99,6 +111,7 @@ namespace iac
 
     // begin ImGui window
     int constexpr IM_GUI_FLAGS =
+        ImGuiWindowFlags_NoTitleBar |
         // ImGuiWindowFlags_NoBackground |
         ImGuiWindowFlags_NoSavedSettings |
         ImGuiWindowFlags_NoResize |
@@ -106,34 +119,21 @@ namespace iac
         // ImGuiWindowFlags_NoDecoration |
         ImGuiWindowFlags_AlwaysAutoResize |
         ImGuiWindowFlags_NoMove;
-    ImGui::Begin("!", nullptr, IM_GUI_FLAGS);
+    ImGui::Begin("Pause Dialog", nullptr, IM_GUI_FLAGS);
 
     ImGui::Text(message_.c_str());
 
     ImGui::Dummy(DUMMY_SIZE);
 
-    bool pressed = false;
     for (int i = 0; i < (const int)(buttonLabels_.size()); ++i)
     {
-      if (ImGui::Button(buttonLabels_[i].c_str(), BUTTON_SIZE) && !pressed)
+      if (ImGui::Button(buttonLabels_[i].c_str(), BUTTON_SIZE) && pressedButtonIndex_ < 0)
       {
-        pressedButtonIndex_ = i;
-        pressed = true; // Only allow one button to be pressed at a time
+        pressedButtonIndex_ = i; // Only allow one button to be pressed at a time
       }
       ImGui::SameLine();
     }
 
     ImGui::End();
-  }
-
-  void SfPauseScreen::render() noexcept
-  {
-    drawDialog();
-
-    window_->clear();
-
-    ImGui::SFML::Render(*window_);
-
-    window_->display();
   }
 }

@@ -19,7 +19,7 @@ namespace sf
   class Clock;
 }
 
-namespace iac
+namespace iab
 {
   class SfPauseScreen final : public GameScreen
   {
@@ -28,6 +28,7 @@ namespace iac
     std::vector<std::function<void()>> buttonCallbacks_;
     std::shared_ptr<sf::RenderWindow> window_;
     std::shared_ptr<sf::Clock> clock_;
+    sf::Time elapsedTime_;
     int pressedButtonIndex_;
 
   public:
@@ -44,7 +45,6 @@ namespace iac
 
   private:
     void drawDialog() noexcept;
-    void render() noexcept;
   };
 
 }

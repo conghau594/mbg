@@ -18,17 +18,14 @@
 #include <iostream>
 
 // #endif
-namespace iac
+namespace iab
 {
   SfBaseScreen::SfBaseScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameDisplay> displayContext,
-      size_t updatePeriod) noexcept
+      std::shared_ptr<GameDisplay> displayContext) noexcept
       : window_(window),
         clock_(new sf::Clock),
-        displayContext_(displayContext),
-        lag_(0),
-        UPDATE_PERIOD_(updatePeriod)
+        displayContext_(displayContext)
   {
     BOOST_ASSERT_MSG(window, "`window_` of `SfBaseScreen` cannot be null.");
     BOOST_ASSERT_MSG(displayContext, "`displayContext_` of `SfBaseScreen` cannot be null.");
@@ -36,41 +33,13 @@ namespace iac
 
   void SfBaseScreen::update()
   {
-    sf::Time elapsedTime = clock_->restart();
-    lag_ += elapsedTime.asMicroseconds();
-
-    while (lag_ >= UPDATE_PERIOD_)
-    {
-      onPeriodicUpdate();
-      lag_ -= UPDATE_PERIOD_;
-
-      // #ifdef _DEBUG
-
-      // std::cout << "\nlag = " << lag_;
-      //  #endif
-    }
+    onTimeElapsed();
 
     while (const auto event = window_->pollEvent())
     {
       if (event->is<sf::Event::Closed>())
       {
-        std::vector<std::string> &&buttonLabels{"Yes", "No"};
-        std::vector<std::function<void()>> &&buttonCallbacks{
-            [this]()
-            {
-              window_->close();
-            },
-            [this]()
-            {
-              displayContext_->popScreen();
-            }};
-
-        std::shared_ptr<GameScreen>
-            pauseScreen(new SfPauseScreen(
-                window_, "Do you want to exit?", buttonLabels, buttonCallbacks));
-
-        displayContext_->pushScreen(pauseScreen);
-        lag_ += clock_->reset().asMicroseconds();
+        askExitConfirmation();
       }
       else
       {
@@ -78,10 +47,24 @@ namespace iac
         onEvent(event);
       }
     }
-
-    ImGui::SFML::Update(*window_, elapsedTime);
-
-    render();
   }
 
+  void SfBaseScreen::askExitConfirmation() noexcept
+  {
+    std::vector<std::string> &&buttonLabels{"Yes", "No"};
+    std::vector<std::function<void()>> &&buttonCallbacks{
+        [this]()
+        {
+          window_->close();
+        },
+        [this]()
+        {
+          displayContext_->popScreen();
+        }};
+
+    std::shared_ptr<GameScreen> pauseScreen(new SfPauseScreen(
+        window_, "Do you want to exit?", buttonLabels, buttonCallbacks));
+
+    displayContext_->pushScreen(pauseScreen);
+  }
 }

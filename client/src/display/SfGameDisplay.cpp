@@ -13,7 +13,7 @@
 #include "GameScreen.h"
 #include "SfGameDisplay.h"
 
-namespace iac
+namespace iab
 {
   SfGameDisplay::SfGameDisplay(std::shared_ptr<sf::RenderWindow> window)
       : window_(window)
@@ -34,8 +34,13 @@ namespace iac
   {
     while (window_->isOpen())
     {
-      auto currentScreen = screenStack_.back();
-      currentScreen->update();
+      if (screenStack_.empty())
+      {
+        // TODO: Need to add a default/empty screen instread of exiting the app
+        break;
+      }
+      lastScreen_ = screenStack_.back();
+      lastScreen_->update();
     }
   }
 

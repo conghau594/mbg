@@ -7,7 +7,7 @@ namespace std
   class shared_ptr;
 }
 
-namespace iac
+namespace iab
 {
   class GameScreen;
 
@@ -21,4 +21,4 @@ namespace iac
     virtual void changeScreen(std::shared_ptr<GameScreen> newScreen) = 0;
   };
 
-} // namespace iac
+} // namespace iab
