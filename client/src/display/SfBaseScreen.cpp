@@ -12,7 +12,7 @@
 
 #include "GameDisplay.h"
 #include "SfBaseScreen.h"
-#include "SfPauseScreen.h"
+#include "SfBlockingScreen.h"
 
 // #ifdef _DEBUG
 #include <iostream>
@@ -62,7 +62,7 @@ namespace iab
           displayContext_->popScreen();
         }};
 
-    std::shared_ptr<GameScreen> pauseScreen(new SfPauseScreen(
+    std::shared_ptr<GameScreen> pauseScreen(new SfBlockingScreen(
         window_, "Do you want to exit?", buttonLabels, buttonCallbacks));
 
     displayContext_->pushScreen(pauseScreen);

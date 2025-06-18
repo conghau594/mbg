@@ -20,10 +20,10 @@ namespace iab
 
   private:
     void onTimeElapsed() noexcept override;
-    void onEvent(std::optional<sf::Event> event) noexcept override;
+    void onEvent(std::optional<sf::Event> const &event) noexcept override;
 
     void drawMenu() noexcept;
-    void update(sf::Time elapsedTime) noexcept;
+    void update(sf::Time const &elapsedTime) noexcept;
   };
 
 } // namespace iab

@@ -17,7 +17,7 @@ namespace iab
   {
     std::shared_ptr<sf::RenderWindow> window_;
     std::list<std::shared_ptr<GameScreen>> screenStack_;
-    std::shared_ptr<GameScreen> lastScreen_;
+    std::shared_ptr<GameScreen> currentScreen_;
 
   public:
     SfGameDisplay(std::shared_ptr<sf::RenderWindow> window);

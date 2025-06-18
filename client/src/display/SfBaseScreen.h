@@ -36,7 +36,7 @@ namespace iab
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameDisplay> displayContext) noexcept;
     virtual void onTimeElapsed() = 0;
-    virtual void onEvent(std::optional<sf::Event> event) = 0;
+    virtual void onEvent(std::optional<sf::Event> const &event) = 0;
 
     auto window() noexcept -> std::shared_ptr<sf::RenderWindow> const & { return window_; }
     auto clock() noexcept -> std::shared_ptr<sf::Clock> const & { return clock_; }

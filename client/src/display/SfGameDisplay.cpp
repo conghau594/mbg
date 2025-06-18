@@ -16,7 +16,7 @@
 namespace iab
 {
   SfGameDisplay::SfGameDisplay(std::shared_ptr<sf::RenderWindow> window)
-      : window_(window)
+      : window_(window), currentScreen_(nullptr)
   {
     BOOST_ASSERT_MSG(window, "`window_` of `SfGameDisplay` cannot be null.");
     if (!ImGui::SFML::Init(*window_))
@@ -39,8 +39,8 @@ namespace iab
         // TODO: Need to add a default/empty screen instread of exiting the app
         break;
       }
-      lastScreen_ = screenStack_.back();
-      lastScreen_->update();
+      currentScreen_ = screenStack_.back();
+      currentScreen_->update();
     }
   }
 

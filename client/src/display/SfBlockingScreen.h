@@ -1,4 +1,4 @@
-// SfPauseScreen.h
+// SfBlockingScreen.h
 #pragma once
 
 #include <memory>
@@ -21,7 +21,7 @@ namespace sf
 
 namespace iab
 {
-  class SfPauseScreen final : public GameScreen
+  class SfBlockingScreen final : public GameScreen
   {
     std::string message_;
     std::vector<std::string> buttonLabels_;
@@ -32,12 +32,12 @@ namespace iab
     int pressedButtonIndex_;
 
   public:
-    SfPauseScreen(
+    SfBlockingScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::string message,
         std::vector<std::string> buttonLabels,
         std::vector<std::function<void()>> buttonCallbacks) noexcept;
-    //~SfPauseScreen();
+    //~SfBlockingScreen();
 
     void update() noexcept override;
     void onEnter() noexcept override;

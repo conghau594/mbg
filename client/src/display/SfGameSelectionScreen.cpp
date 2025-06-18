@@ -8,6 +8,8 @@
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 #include <imgui_internal.h>
 
+#include "model/GameType.h"
+
 #include "SfGameDisplay.h"
 #include "SfBaseScreen.h"
 #include "SfGameSelectionScreen.h"
@@ -39,8 +41,9 @@ namespace iab
     ImGuiIO &io = ImGui::GetIO();
     io.Fonts->Clear();
 
-    const char FONT_PATH[] = "resource/VeniteAdoremus-rgRBA.ttf";
-    io.Fonts->AddFontFromFileTTF(FONT_PATH, 36.0f);
+    char constexpr FONT_PATH[] = "resource/VeniteAdoremus-rgRBA.ttf";
+    float constexpr FONT_SIZE = 36.0f;
+    io.Fonts->AddFontFromFileTTF(FONT_PATH, FONT_SIZE);
     if (!ImGui::SFML::UpdateFontTexture())
     {
       // TODO: Handle the error more gracefully, e.g., log it or show a message to the user
@@ -73,16 +76,18 @@ namespace iab
 
     ImGui::Begin("Select Game", nullptr, IM_GUI_FLAGS);
 
-    if (ImGui::Button("Western Chess", BUTTON_SIZE) && pressedButtonIndex_ < 0)
+    if (ImGui::Button(GameType::toString(GameType::WESTERN_CHESS).value().c_str(), BUTTON_SIZE) &&
+        pressedButtonIndex_ < 0)
     {
-      pressedButtonIndex_ = 0; // Only allow one button to be pressed at a time
+      pressedButtonIndex_ = GameType::WESTERN_CHESS; // Only allow one button to be pressed at a time
     }
 
     ImGui::Dummy(DUMMY_SIZE);
 
-    if (ImGui::Button("Chinese Chess", BUTTON_SIZE) && pressedButtonIndex_ < 0)
+    if (ImGui::Button(GameType::toString(GameType::CHINESE_CHESS).value().c_str(), BUTTON_SIZE) &&
+        pressedButtonIndex_ < 0)
     {
-      pressedButtonIndex_ = 1; // Only allow one button to be pressed at a time
+      pressedButtonIndex_ = GameType::CHINESE_CHESS; // Only allow one button to be pressed at a time
     }
 
     ImGui::Dummy(DUMMY_SIZE);
@@ -108,19 +113,12 @@ namespace iab
 
     switch (pressedButtonIndex_)
     {
-    case 0:
+    case GameType::WESTERN_CHESS:
+    case GameType::CHINESE_CHESS:
     {
+      int gameType = pressedButtonIndex_;
       std::shared_ptr<GameScreen> playerSelectionScreen(new SfPlayerSelectionScreen(
-          window(), gameDisplay()));
-
-      gameDisplay()->pushScreen(playerSelectionScreen);
-      break;
-    }
-
-    case 1:
-    {
-      std::shared_ptr<GameScreen> playerSelectionScreen(new SfPlayerSelectionScreen(
-          window(), gameDisplay()));
+          window(), gameDisplay(), gameType));
 
       gameDisplay()->pushScreen(playerSelectionScreen);
       break;
@@ -138,11 +136,11 @@ namespace iab
     elapsedTime_ = sf::Time::Zero;
   }
 
-  void SfGameSelectionScreen::onEvent(std::optional<sf::Event> event) noexcept
+  void SfGameSelectionScreen::onEvent(std::optional<sf::Event> const &) noexcept
   {
   }
 
-  void SfGameSelectionScreen::update(sf::Time elapsedTime) noexcept
+  void SfGameSelectionScreen::update(sf::Time const &elapsedTime) noexcept
   {
     ImGui::SFML::Update(*window(), elapsedTime);
     drawMenu();

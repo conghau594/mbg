@@ -8,19 +8,24 @@
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 #include <imgui_internal.h>
 
-#include "SfPlayerSelectionScreen.h"
+#include "model/PlayerType.h"
+
 #include "SfBaseScreen.h"
+#include "SfPlayerSelectionScreen.h"
+#include "SfBlockingScreen.h"
 #include "GameDisplay.h"
 
 namespace iab
 {
   SfPlayerSelectionScreen::SfPlayerSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameDisplay> displayContext) noexcept
+      std::shared_ptr<GameDisplay> displayContext,
+      int gameType) noexcept
       : SfBaseScreen(window, displayContext),
         elapsedTime_(sf::Time::Zero),
         smallFont_(nullptr),
-        pressedButtonIndex_(-1)
+        pressedButtonIndex_(-1),
+        gameType_(gameType)
   {
   }
 
@@ -83,25 +88,28 @@ namespace iab
 
     ImGui::Dummy(DUMMY_SIZE);
 
-    if (ImGui::Button("Human", BUTTON_SIZE) && pressedButtonIndex_ < 0)
+    if (ImGui::Button(PlayerType::toString(PlayerType::HUMAN).value().c_str(), BUTTON_SIZE) &&
+        pressedButtonIndex_ < 0)
     {
-      pressedButtonIndex_ = 0; // Only allow one button to be pressed at a time
+      pressedButtonIndex_ = PlayerType::HUMAN; // Only allow one button to be pressed at a time
     }
 
     ImGui::Dummy(DUMMY_SIZE);
 
-    if (ImGui::Button("ChatGPT", BUTTON_SIZE) && pressedButtonIndex_ < 0)
+    if (ImGui::Button(PlayerType::toString(PlayerType::CHATGPT).value().c_str(), BUTTON_SIZE) && pressedButtonIndex_ < 0)
     {
-      pressedButtonIndex_ = 1; // Only allow one button to be pressed at a time
+      pressedButtonIndex_ = PlayerType::CHATGPT; // Only allow one button to be pressed at a time
     }
     ImGui::Dummy(DUMMY_SIZE);
 
-    if (ImGui::Button("Gemini", BUTTON_SIZE) && pressedButtonIndex_ < 0)
+    if (ImGui::Button(PlayerType::toString(PlayerType::GEMINI).value().c_str(), BUTTON_SIZE) &&
+        pressedButtonIndex_ < 0)
     {
-      pressedButtonIndex_ = 2; // Only allow one button to be pressed at a time
+      pressedButtonIndex_ = PlayerType::GEMINI; // Only allow one button to be pressed at a time
     }
 
     ImGui::Dummy(ImVec2(DUMMY_SIZE.x * 2.0f, DUMMY_SIZE.y * 2.0f));
+
     ImGui::Separator();
     ImGui::Dummy(ImVec2(DUMMY_SIZE.x * 2.0f, DUMMY_SIZE.y * 2.0f));
 
@@ -124,20 +132,25 @@ namespace iab
 
     switch (pressedButtonIndex_)
     {
-    case 0:
+    case PlayerType::HUMAN:
+    case PlayerType::CHATGPT:
+    case PlayerType::GEMINI:
+    {
+      int playerType = pressedButtonIndex_;
+      // TODO: send requestGame(gameType_, playerType);
+      std::shared_ptr<GameScreen> waitingScreen(new SfBlockingScreen(
+          window(),
+          "Waiting for opponent...",
+          {"Cancel"},
+          {[this]()
+           {
+             // TODO: send cancelGameRequest
+             gameDisplay()->popScreen();
+           }}));
 
-      pressedButtonIndex_ = -1;
-      return;
-
-    case 1:
-
-      pressedButtonIndex_ = -1;
-      return;
-
-    case 2:
-
-      pressedButtonIndex_ = -1;
-      return;
+      gameDisplay()->pushScreen(waitingScreen);
+      break;
+    }
 
     case 3:
       gameDisplay()->popScreen();
@@ -152,11 +165,11 @@ namespace iab
     elapsedTime_ = sf::Time::Zero;
   }
 
-  void SfPlayerSelectionScreen::onEvent(std::optional<sf::Event> event) noexcept
+  void SfPlayerSelectionScreen::onEvent(std::optional<sf::Event> const &) noexcept
   {
   }
 
-  void SfPlayerSelectionScreen::update(sf::Time elapsedTime) noexcept
+  void SfPlayerSelectionScreen::update(sf::Time const &elapsedTime) noexcept
   {
     ImGui::SFML::Update(*window(), elapsedTime);
     drawMenu();

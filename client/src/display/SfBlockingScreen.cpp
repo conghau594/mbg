@@ -1,4 +1,4 @@
-// SfPauseScreen.cpp
+// SfBlockingScreen.cpp
 
 #include <optional>
 #include <memory>
@@ -9,11 +9,11 @@
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 #include <imgui_internal.h>
 
-#include "SfPauseScreen.h"
+#include "SfBlockingScreen.h"
 
 namespace iab
 {
-  SfPauseScreen::SfPauseScreen(
+  SfBlockingScreen::SfBlockingScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::string message,
       std::vector<std::string> buttonLabels,
@@ -29,9 +29,9 @@ namespace iab
                      "Number of button labels must be less than or equal to number of button callbacks");
   }
 
-  void SfPauseScreen::update() noexcept
+  void SfBlockingScreen::update() noexcept
   {
-    if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < static_cast<int>(buttonCallbacks_.size()))
+    if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < (int)buttonCallbacks_.size())
     {
       buttonCallbacks_[pressedButtonIndex_]();
       pressedButtonIndex_ = -1; // Reset after executing the callback
@@ -57,7 +57,7 @@ namespace iab
     elapsedTime_ = sf::Time::Zero;
   }
 
-  void SfPauseScreen::onEnter() noexcept
+  void SfBlockingScreen::onEnter() noexcept
   {
     ImGuiIO &io = ImGui::GetIO();
     io.Fonts->Clear();
@@ -68,20 +68,20 @@ namespace iab
     if (!ImGui::SFML::UpdateFontTexture())
     {
       // TODO: handle this concretely
-      ImGui::Begin("!", nullptr);
-      std::string errorMsg = "Failed to load font " + std::string(FONT_PATH);
-      ImGui::Text(errorMsg.c_str());
-      ImGui::End();
+      // ImGui::Begin("!", nullptr);
+      // std::string errorMsg = "Failed to load font " + std::string(FONT_PATH);
+      // ImGui::Text(errorMsg.c_str());
+      // ImGui::End();
     }
 
     clock_->restart();
   }
 
-  void SfPauseScreen::onExit() noexcept
+  void SfBlockingScreen::onExit() noexcept
   {
   }
 
-  void SfPauseScreen::drawDialog() noexcept
+  void SfBlockingScreen::drawDialog() noexcept
   {
     // Calculate button size
     int const BUTTON_COUNT = int(buttonLabels_.size());
@@ -93,7 +93,7 @@ namespace iab
     // float const TITLE_BAR_HEIGHT = ImGui::GetFontSize() + style.FramePadding.y * 2.0f;
     ImVec2 constexpr DUMMY_SIZE(0.0f, 8.0f);
 
-    float const WINDOW_WIDTH = TEXT_SIZE.x + WINDOW_PADDING.x * 2.0f + 100.0f;
+    float const WINDOW_WIDTH = TEXT_SIZE.x + WINDOW_PADDING.x * 2.0f + 50.0f;
     float const BUTTON_WIDTH = (WINDOW_WIDTH - 2 * WINDOW_PADDING.x - (BUTTON_COUNT - 1) * ITEM_SPACING.x) / BUTTON_COUNT;
     float constexpr BUTTON_HEIGHT = 40.0f;
     ImVec2 BUTTON_SIZE(BUTTON_WIDTH, BUTTON_HEIGHT);
@@ -119,7 +119,7 @@ namespace iab
         // ImGuiWindowFlags_NoDecoration |
         ImGuiWindowFlags_AlwaysAutoResize |
         ImGuiWindowFlags_NoMove;
-    ImGui::Begin("Pause Dialog", nullptr, IM_GUI_FLAGS);
+    ImGui::Begin("Blocking Screen", nullptr, IM_GUI_FLAGS);
 
     ImGui::Text(message_.c_str());
 
