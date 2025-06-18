@@ -44,52 +44,94 @@ message(STATUS "ImGui Added: ${ImGui_ADDED}")
 ###############################################################################
 # FetchContent for ImGui-SFML                                                 #
 ###############################################################################
-FetchContent_Declare(ImGui-SFML
+FetchContent_Declare(ImGui_SFML
   GIT_REPOSITORY https://github.com/SFML/imgui-sfml
   GIT_TAG v3.0
   GIT_SHALLOW ON
   EXCLUDE_FROM_ALL
   SYSTEM
 )
-FetchContent_MakeAvailable(ImGui-SFML)
+FetchContent_MakeAvailable(ImGui_SFML)
 
-message(STATUS "ImGui-SFML source directory: ${ImGui-SFML_SOURCE_DIR}")
-message(STATUS "ImGui-SFML binary directory: ${ImGui-SFML_BINARY_DIR}")
-message(STATUS "ImGui-SFML populated: ${ImGui-SFML_POPULATED}")
-message(STATUS "ImGui-SFML Added: ${ImGui-SFML_ADDED}")
+message(STATUS "ImGui_SFML source directory: ${ImGui_SFML_SOURCE_DIR}")
+message(STATUS "ImGui_SFML binary directory: ${ImGui_SFML_BINARY_DIR}")
+message(STATUS "ImGui_SFML populated: ${ImGui_SFML_POPULATED}")
+message(STATUS "ImGui_SFML Added: ${ImGui_SFML_ADDED}")
+
+
 
 
 ###############################################################################
-# FetchContent for Google Test                                               #
+# First: Fetch Boost.Config                                                   #
 ###############################################################################
-FetchContent_Declare(googletest
-  GIT_REPOSITORY https://github.com/google/googletest
-  GIT_TAG main
+
+FetchContent_Declare(
+  BoostConfig
+  GIT_REPOSITORY https://github.com/boostorg/config.git
+  GIT_TAG        boost-1.88.0
   GIT_SHALLOW ON
   EXCLUDE_FROM_ALL
   SYSTEM
 )
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+FetchContent_MakeAvailable(BoostConfig)
 
-message(STATUS "googletest source directory: ${googletest_SOURCE_DIR}")
-message(STATUS "googletest binary directory: ${googletest_BINARY_DIR}")
-message(STATUS "googletest populated: ${googletest_POPULATED}")
-message(STATUS "googletest Added: ${googletest_ADDED}")
+
+message(STATUS "BoostConfig source directory: ${BoostConfig_SOURCE_DIR}")
+message(STATUS "BoostConfig binary directory: ${BoostConfig_BINARY_DIR}")
+message(STATUS "BoostConfig populated: ${BoostConfig_POPULATED}")
+message(STATUS "BoostConfig Added: ${BoostConfig_ADDED}")
+
+###############################################################################
+# Then: Fetch Boost.Assert                                                    #
+###############################################################################
+FetchContent_Declare(BoostAssert
+  GIT_REPOSITORY https://github.com/boostorg/assert.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+
+FetchContent_MakeAvailable(BoostAssert)
+
+message(STATUS "BoostAssert source directory: ${BoostAssert_SOURCE_DIR}")
+message(STATUS "BoostAssert binary directory: ${BoostAssert_BINARY_DIR}")
+message(STATUS "BoostAssert populated: ${BoostAssert_POPULATED}")
+message(STATUS "BoostAssert Added: ${BoostAssert_ADDED}")
+
 
 ###############################################################################
 # Configure Build Process                                           #
 ###############################################################################
 if (MSVC)
-  add_compile_options(/FS /MP /Zi)
+  add_compile_options(
+    /std:c++20
+    /FS /MP /Zi 
+    /W4  /EHsc /permissive- #/WX -> treat warnings as errors
+    /external:W0)
 endif()
 
+
+# Detect and print source files
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
+  src/*.cpp
+  src/*.h
+)
+
+message(STATUS "List of source files:")
+foreach(src_file ${SOURCES})
+  message(STATUS "${src_file}")
+endforeach()
 
 ###############################################################################
 # Add executable and link libraries                                           #
 ###############################################################################
-add_executable(mbgclient main.cpp)
+
+add_executable(mbgclient 
+  main.cpp
+  ${SOURCES}
+)
+
 target_compile_features(mbgclient PRIVATE cxx_std_20)
 target_link_libraries(mbgclient PRIVATE
   SFML::Graphics 
@@ -97,9 +139,21 @@ target_link_libraries(mbgclient PRIVATE
   SFML::Window
   SFML::System
   SFML::Main
-  ImGui-SFML::ImGui-SFML 
+  ImGui-SFML::ImGui-SFML
+  Boost::assert
 )
 
+target_include_directories(mbgclient PRIVATE 
+  ${CMAKE_SOURCE_DIR}/src)
+
+
+get_property(all_targets GLOBAL PROPERTY TARGETS)
+foreach(tgt ${all_targets})
+  message(STATUS "CMake target: ${tgt}")
+endforeach()
+
+get_target_property(INCLUDE_DIRS mbgclient INCLUDE_DIRECTORIES)
+message(STATUS "Include directories for mbgclient: ${INCLUDE_DIRS}")
 ###############################################################################
 # Install App                                                                 #
 ###############################################################################

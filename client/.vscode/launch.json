@@ -1,6 +1,7 @@
 {
   "version": "0.2.0",
   "configurations": [
+    //build without clean
     {
       "name": "launch-debug",
       "type": "cppvsdbg", // for Visual Studio debugger
@@ -12,8 +13,7 @@
       "environment": [],
       //"externalConsole": true,
       "preLaunchTask": "build-debug-with-preset", // <-- task to build the project
-      "console": "integratedTerminal",
-      
+      "console": "integratedTerminal"
     },
     {
       "name": "launch-release",
@@ -26,7 +26,35 @@
       "environment": [],
       //"externalConsole": true,
       "preLaunchTask": "build-release-with-preset", // <-- task to build the project
-      "console": "integratedTerminal",
+      "console": "integratedTerminal"
+    },
+
+    //build with clean
+    {
+      "name": "launch-debug-with-clean",
+      "type": "cppvsdbg", // for Visual Studio debugger
+      "request": "launch",
+      "program": "${env:BUILD_ROOT}/mbg/client/msvc2022/bin/DEBUG/mbgclient.exe", // <-- full path to binary
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      //"externalConsole": true,
+      "preLaunchTask": "clean-and-build-debug-with-preset", // <-- task to build the project
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "launch-release-with-clean",
+      "type": "cppvsdbg", // for Visual Studio debugger
+      "request": "launch",
+      "program": "${env:BUILD_ROOT}/mbg/client/msvc2022/bin/RELEASE/mbgclient.exe", // <-- full path to binary
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      //"externalConsole": true,
+      "preLaunchTask": "clean-and-build-release-with-preset", // <-- task to build the project
+      "console": "integratedTerminal"
     }
   ]
 }
