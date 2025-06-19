@@ -19,24 +19,17 @@ namespace iab
 {
   SfGameSelectionScreen::SfGameSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameDisplay> displayContext) noexcept
-      : SfBaseScreen(window, displayContext),
-        elapsedTime_(sf::Time::Zero),
+      std::shared_ptr<GameDisplay> gameDisplay) noexcept
+      : SfBaseScreen(window, gameDisplay),
         pressedButtonIndex_(-1)
   {
   }
 
-  void SfGameSelectionScreen::onExit() noexcept
+  void SfGameSelectionScreen::doExit() noexcept
   {
-    elapsedTime_ += clock()->reset();
-    if (elapsedTime_ == sf::Time::Zero)
-    {
-      return;
-    }
-    update(elapsedTime_);
   }
 
-  void SfGameSelectionScreen::onEnter() noexcept
+  void SfGameSelectionScreen::doEnter() noexcept
   {
     ImGuiIO &io = ImGui::GetIO();
     io.Fonts->Clear();
@@ -52,16 +45,56 @@ namespace iab
       // ImGui::Text(errorMsg.c_str());
       // ImGui::End();
     }
+  }
 
-    clock()->restart();
+  void SfGameSelectionScreen::update(sf::Time const &elapsed) noexcept
+  {
+    switch (pressedButtonIndex_)
+    {
+    case GameType::WESTERN_CHESS:
+    case GameType::CHINESE_CHESS:
+    {
+      int gameType = pressedButtonIndex_;
+      std::shared_ptr<GameScreen> playerSelectionScreen(new SfPlayerSelectionScreen(
+          window(), gameDisplay(), gameType));
+
+      gameDisplay()->pushScreen(playerSelectionScreen);
+      pressedButtonIndex_ = -1;
+      return;
+    }
+
+    case 2:
+      askExitConfirmation(window(), gameDisplay());
+      pressedButtonIndex_ = -1;
+      break;
+
+    default:
+      break;
+    }
+
+    pressedButtonIndex_ = -1;
+    if (elapsed == sf::Time::Zero || shouldExit())
+    {
+      // If no time has passed or the screen should exit, do nothing
+      return;
+    }
+
+    ImGui::SFML::Update(*window(), elapsed);
+    drawMenu();
+
+    window()->clear();
+    ImGui::SFML::Render(*window());
+    window()->display();
+  }
+
+  void SfGameSelectionScreen::onEvent(std::optional<sf::Event> const &) noexcept
+  {
   }
 
   void SfGameSelectionScreen::drawMenu() noexcept
   {
     ImVec2 center(window()->getSize().x * 0.5f, window()->getSize().y * 0.5f);
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    // ImGuiIO &io = ImGui::GetIO();
-    // io.FontGlobalScale = 2.0f;
 
     int constexpr IM_GUI_FLAGS = ImGuiWindowFlags_NoBackground |
                                  ImGuiWindowFlags_NoSavedSettings |
@@ -101,52 +134,4 @@ namespace iab
 
     ImGui::End();
   }
-
-  void SfGameSelectionScreen::onTimeElapsed() noexcept
-  {
-    elapsedTime_ += clock()->restart();
-    if (elapsedTime_ == sf::Time::Zero)
-    {
-      return;
-    }
-    update(elapsedTime_);
-
-    switch (pressedButtonIndex_)
-    {
-    case GameType::WESTERN_CHESS:
-    case GameType::CHINESE_CHESS:
-    {
-      int gameType = pressedButtonIndex_;
-      std::shared_ptr<GameScreen> playerSelectionScreen(new SfPlayerSelectionScreen(
-          window(), gameDisplay(), gameType));
-
-      gameDisplay()->pushScreen(playerSelectionScreen);
-      break;
-    }
-
-    case 2:
-      askExitConfirmation();
-      break;
-
-    default:
-      break;
-    }
-
-    pressedButtonIndex_ = -1;
-    elapsedTime_ = sf::Time::Zero;
-  }
-
-  void SfGameSelectionScreen::onEvent(std::optional<sf::Event> const &) noexcept
-  {
-  }
-
-  void SfGameSelectionScreen::update(sf::Time const &elapsedTime) noexcept
-  {
-    ImGui::SFML::Update(*window(), elapsedTime);
-    drawMenu();
-    window()->clear();
-    ImGui::SFML::Render(*window());
-    window()->display();
-  }
-
 } // namespace iab

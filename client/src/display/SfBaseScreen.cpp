@@ -22,24 +22,25 @@ namespace iab
 {
   SfBaseScreen::SfBaseScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameDisplay> displayContext) noexcept
+      std::shared_ptr<GameDisplay> gameDisplay) noexcept
       : window_(window),
         clock_(new sf::Clock),
-        displayContext_(displayContext)
+        gameDisplay_(gameDisplay),
+        shouldExit_(false)
   {
     BOOST_ASSERT_MSG(window, "`window_` of `SfBaseScreen` cannot be null.");
-    BOOST_ASSERT_MSG(displayContext, "`displayContext_` of `SfBaseScreen` cannot be null.");
+    BOOST_ASSERT_MSG(gameDisplay, "`gameDisplay_` of `SfBaseScreen` cannot be null.");
   }
 
   void SfBaseScreen::update()
   {
-    onTimeElapsed();
+    update(clock_->restart());
 
     while (const auto event = window_->pollEvent())
     {
       if (event->is<sf::Event::Closed>())
       {
-        askExitConfirmation();
+        onWindowClosed();
       }
       else
       {
@@ -49,22 +50,40 @@ namespace iab
     }
   }
 
-  void SfBaseScreen::askExitConfirmation() noexcept
+  void SfBaseScreen::onEnter()
+  {
+    shouldExit_ = false;
+    doEnter();
+    clock_->start();
+  }
+
+  void SfBaseScreen::onExit()
+  {
+    clock_->stop();
+    doExit();
+  }
+
+  void SfBaseScreen::onWindowClosed()
+  {
+    askExitConfirmation(window_, gameDisplay_);
+  }
+
+  void SfBaseScreen::askExitConfirmation(std::shared_ptr<sf::RenderWindow> window, std::shared_ptr<GameDisplay> gameDisplay) noexcept
   {
     std::vector<std::string> &&buttonLabels{"Yes", "No"};
     std::vector<std::function<void()>> &&buttonCallbacks{
-        [this]()
+        [window]()
         {
-          window_->close();
+          window->close();
         },
-        [this]()
+        [gameDisplay]()
         {
-          displayContext_->popScreen();
+          gameDisplay->popScreen();
         }};
 
     std::shared_ptr<GameScreen> pauseScreen(new SfBlockingScreen(
-        window_, "Do you want to exit?", buttonLabels, buttonCallbacks));
+        window, gameDisplay, "Do you want to exit?", buttonLabels, buttonCallbacks));
 
-    displayContext_->pushScreen(pauseScreen);
+    gameDisplay->pushScreen(pauseScreen);
   }
 }

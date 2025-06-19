@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <memory>
+
 #include <boost/assert.hpp>
 
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -15,49 +16,21 @@ namespace iab
 {
   SfBlockingScreen::SfBlockingScreen(
       std::shared_ptr<sf::RenderWindow> window,
+      std::shared_ptr<GameDisplay> gameDisplay,
       std::string message,
       std::vector<std::string> buttonLabels,
       std::vector<std::function<void()>> buttonCallbacks) noexcept
-      : window_(window),
+      : SfBaseScreen(window, gameDisplay),
         message_(std::move(message)),
         buttonLabels_(std::move(buttonLabels)),
         buttonCallbacks_(std::move(buttonCallbacks)),
-        clock_(new sf::Clock),
         pressedButtonIndex_(-1)
   {
     BOOST_ASSERT_MSG(buttonLabels_.size() <= buttonCallbacks_.size(),
                      "Number of button labels must be less than or equal to number of button callbacks");
   }
 
-  void SfBlockingScreen::update() noexcept
-  {
-    if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < (int)buttonCallbacks_.size())
-    {
-      buttonCallbacks_[pressedButtonIndex_]();
-      pressedButtonIndex_ = -1; // Reset after executing the callback
-    }
-
-    auto event = window_->pollEvent();
-    if (event)
-    {
-      ImGui::SFML::ProcessEvent(*window_, *event);
-    }
-
-    elapsedTime_ += clock_->restart();
-    if (elapsedTime_ == sf::Time::Zero)
-    {
-      return;
-    }
-
-    ImGui::SFML::Update(*window_, elapsedTime_);
-    drawDialog();
-    window_->clear();
-    ImGui::SFML::Render(*window_);
-    window_->display();
-    elapsedTime_ = sf::Time::Zero;
-  }
-
-  void SfBlockingScreen::onEnter() noexcept
+  void SfBlockingScreen::doEnter() noexcept
   {
     ImGuiIO &io = ImGui::GetIO();
     io.Fonts->Clear();
@@ -73,11 +46,39 @@ namespace iab
       // ImGui::Text(errorMsg.c_str());
       // ImGui::End();
     }
-
-    clock_->restart();
   }
 
-  void SfBlockingScreen::onExit() noexcept
+  void SfBlockingScreen::doExit() noexcept
+  {
+  }
+
+  void SfBlockingScreen::update(sf::Time const &elapsed) noexcept
+  {
+    if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < (int)buttonCallbacks_.size())
+    {
+      buttonCallbacks_[pressedButtonIndex_]();
+      pressedButtonIndex_ = -1; // Reset after executing the callback
+    }
+
+    if (elapsed == sf::Time::Zero || shouldExit())
+    {
+      // If no time has passed or the screen should exit, do nothing
+      return;
+    }
+
+    ImGui::SFML::Update(*window(), elapsed);
+    drawDialog();
+    window()->clear();
+    ImGui::SFML::Render(*window());
+    window()->display();
+  }
+
+  void SfBlockingScreen::onWindowClosed() noexcept
+  {
+    // TODO: flicker the imgui menu
+  }
+
+  void SfBlockingScreen::onEvent(std::optional<sf::Event> const &event) noexcept
   {
   }
 
@@ -106,7 +107,7 @@ namespace iab
     ImGui::SetNextWindowSize(ImVec2(WINDOW_WIDTH, WINDOW_HEIGHT), ImGuiCond_Always);
 
     // change window position
-    ImVec2 center(window_->getSize().x * 0.5f, window_->getSize().y * 0.5f);
+    ImVec2 center(window()->getSize().x * 0.5f, window()->getSize().y * 0.5f);
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     // begin ImGui window
@@ -136,4 +137,5 @@ namespace iab
 
     ImGui::End();
   }
+
 }

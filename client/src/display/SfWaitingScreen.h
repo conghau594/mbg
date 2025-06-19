@@ -1,56 +1,35 @@
-// SfBlockingScreen.h
+// SfWaitingScreen.h
 #pragma once
 
 #include <memory>
+#include <vector>
 #include <functional>
 #include <string>
 
-#include <SFML/System/Time.hpp>
-
 #include "SfBaseScreen.h"
-
-namespace std
-{
-  template <typename T>
-  class optional;
-}
-
-namespace sf
-{
-  class RenderWindow;
-  class Event;
-  class Clock;
-}
 
 namespace iab
 {
+  class SfBlockingScreen;
 
-  class SfBlockingScreen : public SfBaseScreen
+  class SfWaitingScreen final : public SfBaseScreen
   {
-    std::string message_;
-    std::vector<std::string> buttonLabels_;
-    std::vector<std::function<void()>> buttonCallbacks_;
-    int pressedButtonIndex_;
+    std::shared_ptr<SfBlockingScreen> blockingScreen_;
 
   public:
-    SfBlockingScreen(
+    SfWaitingScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameDisplay> gameDisplay,
-        std::string message,
+        std::string const &message,
         std::vector<std::string> buttonLabels,
         std::vector<std::function<void()>> buttonCallbacks) noexcept;
-    //~SfBlockingScreen();
 
+  private:
     void update(sf::Time const &elapsed) noexcept override;
 
     void onEvent(std::optional<sf::Event> const &event) noexcept override;
 
     void doExit() noexcept override;
     void doEnter() noexcept override;
-
-  private:
-    void onWindowClosed() noexcept override;
-    void drawDialog() noexcept;
   };
-
 }

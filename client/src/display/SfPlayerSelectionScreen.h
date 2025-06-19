@@ -1,13 +1,15 @@
 // SfPlayerSelectionScreen.h
 #pragma once
 
+#include <SFML/System/Time.hpp>
+
 #include "SfBaseScreen.h"
 
+struct ImFont;
 namespace iab
 {
   class SfPlayerSelectionScreen final : public SfBaseScreen
   {
-    sf::Time elapsedTime_;
     ImFont *smallFont_;
     int pressedButtonIndex_;
     int gameType_;
@@ -15,18 +17,18 @@ namespace iab
   public:
     SfPlayerSelectionScreen(
         std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameDisplay> displayContext,
+        std::shared_ptr<GameDisplay> gameDisplay,
         int gameType) noexcept;
 
-    void onExit() noexcept override;
-    void onEnter() noexcept override;
-
   private:
-    void onTimeElapsed() noexcept override;
+    void update(sf::Time const &elapsed) noexcept override;
+
     void onEvent(std::optional<sf::Event> const &event) noexcept override;
 
+    void doExit() noexcept override;
+    void doEnter() noexcept override;
+
     void drawMenu() noexcept;
-    void update(sf::Time const &elapsedTime) noexcept;
   };
 
 } // namespace iab

@@ -12,34 +12,27 @@
 
 #include "SfBaseScreen.h"
 #include "SfPlayerSelectionScreen.h"
-#include "SfBlockingScreen.h"
+#include "SfWaitingScreen.h"
 #include "GameDisplay.h"
 
 namespace iab
 {
   SfPlayerSelectionScreen::SfPlayerSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameDisplay> displayContext,
+      std::shared_ptr<GameDisplay> gameDisplay,
       int gameType) noexcept
-      : SfBaseScreen(window, displayContext),
-        elapsedTime_(sf::Time::Zero),
+      : SfBaseScreen(window, gameDisplay),
         smallFont_(nullptr),
         pressedButtonIndex_(-1),
         gameType_(gameType)
   {
   }
 
-  void SfPlayerSelectionScreen::onExit() noexcept
+  void SfPlayerSelectionScreen::doExit() noexcept
   {
-    elapsedTime_ += clock()->reset();
-    if (elapsedTime_ == sf::Time::Zero)
-    {
-      return;
-    }
-    update(elapsedTime_);
   }
 
-  void SfPlayerSelectionScreen::onEnter() noexcept
+  void SfPlayerSelectionScreen::doEnter() noexcept
   {
     ImGuiIO &io = ImGui::GetIO();
     io.Fonts->Clear();
@@ -58,8 +51,66 @@ namespace iab
       // ImGui::Text(errorMsg.c_str());
       // ImGui::End();
     }
+  }
 
-    clock()->start();
+  void SfPlayerSelectionScreen::update(sf::Time const &elapsed) noexcept
+  {
+    if (elapsed == sf::Time::Zero)
+    {
+      return;
+    }
+
+    switch (pressedButtonIndex_)
+    {
+    case PlayerType::HUMAN:
+    case PlayerType::CHATGPT:
+    case PlayerType::GEMINI:
+    {
+      int playerType = pressedButtonIndex_;
+      // TODO: send requestGame(gameType_, playerType);
+      std::shared_ptr<GameScreen> waitScreen(new SfWaitingScreen(
+          window(),
+          gameDisplay(),
+          "Waiting for opponent...",
+          {"Cancel"},
+          {[this]()
+           {
+             // TODO: send cancelGameRequest
+             gameDisplay()->popScreen();
+           }}));
+
+      gameDisplay()->pushScreen(waitScreen);
+      pressedButtonIndex_ = -1;
+      return;
+    }
+
+    case 3:
+      gameDisplay()->popScreen();
+      pressedButtonIndex_ = -1;
+      return;
+
+    default:
+      break;
+    }
+
+    pressedButtonIndex_ = -1;
+
+    if (elapsed == sf::Time::Zero || shouldExit())
+    {
+      // If no time has passed or the screen should exit, do nothing
+      return;
+    }
+
+    ImGui::SFML::Update(*window(), elapsed);
+    drawMenu();
+
+    window()->clear();
+    ImGui::SFML::Render(*window());
+    window()->display();
+  }
+
+  void SfPlayerSelectionScreen::onEvent(std::optional<sf::Event> const &) noexcept
+  {
   }
 
   void SfPlayerSelectionScreen::drawMenu() noexcept
@@ -119,62 +170,5 @@ namespace iab
     }
 
     ImGui::End();
-  }
-
-  void SfPlayerSelectionScreen::onTimeElapsed() noexcept
-  {
-    elapsedTime_ += clock()->restart();
-    if (elapsedTime_ == sf::Time::Zero)
-    {
-      return;
-    }
-    update(elapsedTime_);
-
-    switch (pressedButtonIndex_)
-    {
-    case PlayerType::HUMAN:
-    case PlayerType::CHATGPT:
-    case PlayerType::GEMINI:
-    {
-      int playerType = pressedButtonIndex_;
-      // TODO: send requestGame(gameType_, playerType);
-      std::shared_ptr<GameScreen> waitingScreen(new SfBlockingScreen(
-          window(),
-          "Waiting for opponent...",
-          {"Cancel"},
-          {[this]()
-           {
-             // TODO: send cancelGameRequest
-             gameDisplay()->popScreen();
-           }}));
-
-      gameDisplay()->pushScreen(waitingScreen);
-      break;
-    }
-
-    case 3:
-      gameDisplay()->popScreen();
-      pressedButtonIndex_ = -1;
-      return;
-
-    default:
-      break;
-    }
-
-    pressedButtonIndex_ = -1;
-    elapsedTime_ = sf::Time::Zero;
-  }
-
-  void SfPlayerSelectionScreen::onEvent(std::optional<sf::Event> const &) noexcept
-  {
-  }
-
-  void SfPlayerSelectionScreen::update(sf::Time const &elapsedTime) noexcept
-  {
-    ImGui::SFML::Update(*window(), elapsedTime);
-    drawMenu();
-    window()->clear();
-    ImGui::SFML::Render(*window());
-    window()->display();
   }
 } // namespace iab

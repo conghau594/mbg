@@ -39,7 +39,10 @@ namespace iab
         // TODO: Need to add a default/empty screen instread of exiting the app
         break;
       }
-      currentScreen_ = screenStack_.back();
+      if (currentScreen_ != screenStack_.back())
+      {
+        currentScreen_ = screenStack_.back();
+      }
       currentScreen_->update();
     }
   }
@@ -73,10 +76,9 @@ namespace iab
 
   void SfGameDisplay::changeScreen(std::shared_ptr<GameScreen> newScreen) noexcept
   {
-    screenStack_.back()->onExit();
-    screenStack_.pop_back();
-
-    screenStack_.push_back(newScreen);
-    newScreen->onEnter();
+    auto &lastScreen = screenStack_.back();
+    lastScreen->onExit();
+    lastScreen = newScreen;
+    lastScreen->onEnter();
   }
 }
