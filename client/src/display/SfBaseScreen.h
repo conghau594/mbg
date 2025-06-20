@@ -41,7 +41,7 @@ namespace iab
   protected:
     virtual void update(sf::Time const &elapsed) = 0;
 
-    virtual void onEvent(std::optional<sf::Event> const &event) = 0;
+    virtual void onWindowEventExceptClosed(std::optional<sf::Event> const &event) = 0;
     virtual void onWindowClosed();
 
     virtual void doEnter() = 0;

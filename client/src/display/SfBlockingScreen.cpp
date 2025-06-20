@@ -78,7 +78,7 @@ namespace iab
     // TODO: flicker the imgui menu
   }
 
-  void SfBlockingScreen::onEvent(std::optional<sf::Event> const &event) noexcept
+  void SfBlockingScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &) noexcept
   {
   }
 

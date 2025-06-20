@@ -17,7 +17,7 @@ namespace iab
   private:
     void update(sf::Time const &elapsedTime) noexcept override;
 
-    void onEvent(std::optional<sf::Event> const &event) noexcept override;
+    void onWindowEventExceptClosed(std::optional<sf::Event> const &event) noexcept override;
 
     void doExit() noexcept override;
     void doEnter() noexcept override;

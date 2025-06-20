@@ -33,7 +33,8 @@ namespace iab
     blockingScreen_->update(elapsed);
   }
 
-  void SfWaitingScreen::onEvent(std::optional<sf::Event> const &event) noexcept
+  void SfWaitingScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &event) noexcept
   {
+    blockingScreen_->onWindowEventExceptClosed(event);
   }
 };

@@ -109,7 +109,7 @@ namespace iab
     window()->display();
   }
 
-  void SfPlayerSelectionScreen::onEvent(std::optional<sf::Event> const &) noexcept
+  void SfPlayerSelectionScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &) noexcept
   {
   }
 

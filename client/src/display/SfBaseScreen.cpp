@@ -45,7 +45,7 @@ namespace iab
       else
       {
         ImGui::SFML::ProcessEvent(*window_, *event);
-        onEvent(event);
+        onWindowEventExceptClosed(event);
       }
     }
   }

@@ -17,6 +17,7 @@ FetchContent_Declare(SFML
   SYSTEM
 )
 FetchContent_MakeAvailable(SFML)
+
 message(STATUS "SFML source directory: ${SFML_SOURCE_DIR}")
 message(STATUS "SFML binary directory: ${SFML_BINARY_DIR}")
 message(STATUS "SFML populated: ${SFML_POPULATED}")
@@ -58,9 +59,6 @@ message(STATUS "ImGui_SFML binary directory: ${ImGui_SFML_BINARY_DIR}")
 message(STATUS "ImGui_SFML populated: ${ImGui_SFML_POPULATED}")
 message(STATUS "ImGui_SFML Added: ${ImGui_SFML_ADDED}")
 
-
-
-
 ###############################################################################
 # First: Fetch Boost.Config                                                   #
 ###############################################################################
@@ -74,7 +72,6 @@ FetchContent_Declare(
   SYSTEM
 )
 FetchContent_MakeAvailable(BoostConfig)
-
 
 message(STATUS "BoostConfig source directory: ${BoostConfig_SOURCE_DIR}")
 message(STATUS "BoostConfig binary directory: ${BoostConfig_BINARY_DIR}")
@@ -99,7 +96,6 @@ message(STATUS "BoostAssert binary directory: ${BoostAssert_BINARY_DIR}")
 message(STATUS "BoostAssert populated: ${BoostAssert_POPULATED}")
 message(STATUS "BoostAssert Added: ${BoostAssert_ADDED}")
 
-
 ###############################################################################
 # Configure Build Process                                           #
 ###############################################################################
@@ -111,8 +107,8 @@ if (MSVC)
     /external:W0)
 endif()
 
-
 # Detect and print source files
+# TODO: Use a more robust method to detect source files
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
   src/*.cpp
   src/*.h
@@ -120,7 +116,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
 
 message(STATUS "List of source files:")
 foreach(src_file ${SOURCES})
-  message(STATUS "${src_file}")
+  message(STATUS "+ ${src_file}")
 endforeach()
 
 ###############################################################################
