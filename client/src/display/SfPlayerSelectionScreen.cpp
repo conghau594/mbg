@@ -73,17 +73,14 @@ namespace iab
            }}));
 
       gameDisplay()->pushScreen(waitScreen);
-      pressedButtonIndex_ = -1;
-      return;
+      exit();
     }
 
     else if (pressedButtonIndex_ == int(playerTypeNames_.size()))
     {
 
-      gameDisplay()
-          ->popScreen();
-      pressedButtonIndex_ = -1;
-      return;
+      gameDisplay()->popScreen();
+      exit();
     }
 
     pressedButtonIndex_ = -1;
@@ -146,7 +143,7 @@ namespace iab
 
     if (ImGui::Button("Back", BUTTON_SIZE) && pressedButtonIndex_ < 0)
     {
-      pressedButtonIndex_ = playerTypeNames_.size(); // Only allow one button to be pressed at a time
+      pressedButtonIndex_ = int(playerTypeNames_.size()); // Only allow one button to be pressed at a time
     }
 
     ImGui::End();

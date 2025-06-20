@@ -38,6 +38,9 @@ namespace iab
     void onEnter() override final;
     void onExit() override final;
 
+    [[nodiscard]] auto shouldExit() noexcept -> bool override final { return shouldExit_; }
+    void exit() noexcept override final { shouldExit_ = true; }
+
   protected:
     virtual void update(sf::Time const &elapsed) = 0;
 
@@ -47,9 +50,8 @@ namespace iab
     virtual void doEnter() = 0;
     virtual void doExit() = 0;
 
-    auto window() noexcept -> std::shared_ptr<sf::RenderWindow> const & { return window_; }
-    auto gameDisplay() noexcept -> std::shared_ptr<GameDisplay> const & { return gameDisplay_; }
-    auto shouldExit() noexcept -> bool & { return shouldExit_; }
+    [[nodiscard]] auto window() noexcept -> std::shared_ptr<sf::RenderWindow> const & { return window_; }
+    [[nodiscard]] auto gameDisplay() noexcept -> std::shared_ptr<GameDisplay> const & { return gameDisplay_; }
 
     static void askExitConfirmation(
         std::shared_ptr<sf::RenderWindow> window,

@@ -61,6 +61,7 @@ namespace iab
   {
     clock_->stop();
     doExit();
+    shouldExit_ = true;
   }
 
   void SfBaseScreen::onWindowClosed()

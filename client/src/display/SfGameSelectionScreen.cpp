@@ -60,14 +60,12 @@ namespace iab
           window(), gameDisplay(), playerTypeNames, gameType));
 
       gameDisplay()->pushScreen(playerSelectionScreen);
-      pressedButtonIndex_ = -1;
-      return;
+      exit();
     }
     else if (pressedButtonIndex_ == int(gameNames_.size()))
     {
       askExitConfirmation(window(), gameDisplay());
-      pressedButtonIndex_ = -1;
-      return;
+      exit();
     }
 
     pressedButtonIndex_ = -1;
