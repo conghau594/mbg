@@ -9,6 +9,7 @@
 #include <imgui_internal.h>
 
 #include "model/GameType.h"
+#include "model/PlayerType.h"
 
 #include "SfGameDisplay.h"
 #include "SfBaseScreen.h"
@@ -19,8 +20,10 @@ namespace iab
 {
   SfGameSelectionScreen::SfGameSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameDisplay> gameDisplay) noexcept
+      std::shared_ptr<GameDisplay> gameDisplay,
+      std::vector<std::string> gameNames) noexcept
       : SfBaseScreen(window, gameDisplay),
+        gameNames_(std::move(gameNames)),
         pressedButtonIndex_(-1)
   {
   }
@@ -49,27 +52,22 @@ namespace iab
 
   void SfGameSelectionScreen::update(sf::Time const &elapsed) noexcept
   {
-    switch (pressedButtonIndex_)
-    {
-    case GameType::WESTERN_CHESS:
-    case GameType::CHINESE_CHESS:
+    if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < int(gameNames_.size()))
     {
       int gameType = pressedButtonIndex_;
+      std::vector<std::string> playerTypeNames(std::begin(PlayerType::NAMES), std::end(PlayerType::NAMES));
       std::shared_ptr<GameScreen> playerSelectionScreen(new SfPlayerSelectionScreen(
-          window(), gameDisplay(), gameType));
+          window(), gameDisplay(), playerTypeNames, gameType));
 
       gameDisplay()->pushScreen(playerSelectionScreen);
       pressedButtonIndex_ = -1;
       return;
     }
-
-    case 2:
+    else if (pressedButtonIndex_ == int(gameNames_.size()))
+    {
       askExitConfirmation(window(), gameDisplay());
       pressedButtonIndex_ = -1;
-      break;
-
-    default:
-      break;
+      return;
     }
 
     pressedButtonIndex_ = -1;
@@ -104,32 +102,26 @@ namespace iab
                                  ImGuiWindowFlags_AlwaysAutoResize |
                                  ImGuiWindowFlags_NoMove;
 
-    ImVec2 constexpr BUTTON_SIZE(400.0f, 80.0f);
-    ImVec2 constexpr DUMMY_SIZE(0.0f, 20.0f);
+    ImVec2 constexpr BUTTON_SIZE(400.0f, 70.0f);
+    ImVec2 constexpr DUMMY_SIZE(0.0f, 10.0f);
 
     ImGui::Begin("Select Game", nullptr, IM_GUI_FLAGS);
 
-    if (ImGui::Button(GameType::toString(GameType::WESTERN_CHESS).value().c_str(), BUTTON_SIZE) &&
-        pressedButtonIndex_ < 0)
+    for (int i = 0; i < (const int)gameNames_.size(); ++i)
     {
-      pressedButtonIndex_ = GameType::WESTERN_CHESS; // Only allow one button to be pressed at a time
+      if (ImGui::Button(gameNames_[i].c_str(), BUTTON_SIZE) && pressedButtonIndex_ < 0)
+      {
+        pressedButtonIndex_ = i; // Only allow one button to be pressed at a time
+      }
+      ImGui::Dummy(DUMMY_SIZE);
     }
 
-    ImGui::Dummy(DUMMY_SIZE);
-
-    if (ImGui::Button(GameType::toString(GameType::CHINESE_CHESS).value().c_str(), BUTTON_SIZE) &&
-        pressedButtonIndex_ < 0)
-    {
-      pressedButtonIndex_ = GameType::CHINESE_CHESS; // Only allow one button to be pressed at a time
-    }
-
-    ImGui::Dummy(DUMMY_SIZE);
     ImGui::Separator();
     ImGui::Dummy(DUMMY_SIZE);
 
     if (ImGui::Button("Exit", BUTTON_SIZE) && pressedButtonIndex_ < 0)
     {
-      pressedButtonIndex_ = 2; // Only allow one button to be pressed at a time
+      pressedButtonIndex_ = int(gameNames_.size()); // Only allow one button to be pressed at a time
     }
 
     ImGui::End();

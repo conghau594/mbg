@@ -10,6 +10,7 @@ namespace iab
 {
   class SfPlayerSelectionScreen final : public SfBaseScreen
   {
+    std::vector<std::string> playerTypeNames_;
     ImFont *smallFont_;
     int pressedButtonIndex_;
     int gameType_;
@@ -18,6 +19,7 @@ namespace iab
     SfPlayerSelectionScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameDisplay> gameDisplay,
+        std::vector<std::string> playerTypeNames,
         int gameType) noexcept;
 
   private:

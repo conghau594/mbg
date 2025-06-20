@@ -1,50 +1,22 @@
 // GameType.h
 #pragma once
 
-#include <string>
-#include <optional>
+#include "base/EnumUtils.h"
 
 namespace iab
 {
-  class GameType final
-  {
-    inline static std::vector<std::string> const GAME_TYPE_STRINGS{
-        "Western Chess",
-        "Chinese Chess"};
 
-  public:
-    enum
-    {
-      WESTERN_CHESS,
-      CHINESE_CHESS,
-    };
+#define GAME_TYPE_ENTRIES(E) \
+  E(WESTERN_CHESS)           \
+  E(CHINESE_CHESS)           \
+  E(TIC_TAC_TOE)             \
+  E(GOMOKU)
 
-    static bool isValid(int gameType) noexcept
-    {
-      return gameType >= 0 && gameType < GAME_TYPE_STRINGS.size();
-    }
+#define GAME_TYPE_NAMES(E) \
+  E(Western Chess)         \
+  E(Chinese Chess)         \
+  E(Tic Tac Toe)           \
+  E(Gomoku)
 
-    static std::optional<std::string> toString(int gameType) noexcept
-    {
-      if (isValid(gameType))
-      {
-        return GAME_TYPE_STRINGS[gameType];
-      }
-
-      return std::nullopt;
-    }
-
-    static std::optional<int> fromString(const std::string &gameTypeStr) noexcept
-    {
-      for (int i = 0; i < (const int)GAME_TYPE_STRINGS.size(); ++i)
-      {
-        if (GAME_TYPE_STRINGS[i] == gameTypeStr)
-        {
-          return i;
-        }
-      }
-
-      return std::nullopt; // Unknown game type
-    }
-  };
+  DEFINE_ENUM(GameType, GAME_TYPE_ENTRIES, GAME_TYPE_NAMES);
 }

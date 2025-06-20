@@ -9,6 +9,7 @@
 #include "display/SfGameDisplay.h"
 #include "display/SfGameSelectionScreen.h"
 
+#include "model/GameType.h"
 namespace iab
 {
   class ChessAppFactory final : public GameAppFactory
@@ -30,8 +31,9 @@ namespace iab
 
       std::shared_ptr<GameDisplay> gameDisplay(new SfGameDisplay(window));
 
+      std::vector<std::string> gameTypeNames(std::begin(GameType::NAMES), std::end(GameType::NAMES));
       std::shared_ptr<GameScreen> initialScreen(new SfGameSelectionScreen(
-          window, gameDisplay));
+          window, gameDisplay, gameTypeNames));
 
       gameDisplay->pushScreen(initialScreen);
 

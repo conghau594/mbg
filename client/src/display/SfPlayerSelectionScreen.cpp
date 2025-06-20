@@ -20,10 +20,12 @@ namespace iab
   SfPlayerSelectionScreen::SfPlayerSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameDisplay> gameDisplay,
+      std::vector<std::string> playerTypeNames,
       int gameType) noexcept
       : SfBaseScreen(window, gameDisplay),
         smallFont_(nullptr),
         pressedButtonIndex_(-1),
+        playerTypeNames_(std::move(playerTypeNames)),
         gameType_(gameType)
   {
   }
@@ -55,16 +57,7 @@ namespace iab
 
   void SfPlayerSelectionScreen::update(sf::Time const &elapsed) noexcept
   {
-    if (elapsed == sf::Time::Zero)
-    {
-      return;
-    }
-
-    switch (pressedButtonIndex_)
-    {
-    case PlayerType::HUMAN:
-    case PlayerType::CHATGPT:
-    case PlayerType::GEMINI:
+    if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < int(playerTypeNames_.size()))
     {
       int playerType = pressedButtonIndex_;
       // TODO: send requestGame(gameType_, playerType);
@@ -84,13 +77,13 @@ namespace iab
       return;
     }
 
-    case 3:
-      gameDisplay()->popScreen();
+    else if (pressedButtonIndex_ == int(playerTypeNames_.size()))
+    {
+
+      gameDisplay()
+          ->popScreen();
       pressedButtonIndex_ = -1;
       return;
-
-    default:
-      break;
     }
 
     pressedButtonIndex_ = -1;
@@ -134,39 +127,26 @@ namespace iab
     ImGui::Begin("Select Player", nullptr, IM_GUI_FLAGS);
 
     ImGui::PushFont(smallFont_);
-    ImGui::Text("Play with");
+    ImGui::Text("Play with . . .");
     ImGui::PopFont();
 
     ImGui::Dummy(DUMMY_SIZE);
 
-    if (ImGui::Button(PlayerType::toString(PlayerType::HUMAN).value().c_str(), BUTTON_SIZE) &&
-        pressedButtonIndex_ < 0)
+    for (int i = 0; i < (const int)playerTypeNames_.size(); ++i)
     {
-      pressedButtonIndex_ = PlayerType::HUMAN; // Only allow one button to be pressed at a time
+      if (ImGui::Button(playerTypeNames_[i].c_str(), BUTTON_SIZE) && pressedButtonIndex_ < 0)
+      {
+        pressedButtonIndex_ = i; // Only allow one button to be pressed at a time
+      }
+      ImGui::Dummy(DUMMY_SIZE);
     }
-
-    ImGui::Dummy(DUMMY_SIZE);
-
-    if (ImGui::Button(PlayerType::toString(PlayerType::CHATGPT).value().c_str(), BUTTON_SIZE) && pressedButtonIndex_ < 0)
-    {
-      pressedButtonIndex_ = PlayerType::CHATGPT; // Only allow one button to be pressed at a time
-    }
-    ImGui::Dummy(DUMMY_SIZE);
-
-    if (ImGui::Button(PlayerType::toString(PlayerType::GEMINI).value().c_str(), BUTTON_SIZE) &&
-        pressedButtonIndex_ < 0)
-    {
-      pressedButtonIndex_ = PlayerType::GEMINI; // Only allow one button to be pressed at a time
-    }
-
-    ImGui::Dummy(ImVec2(DUMMY_SIZE.x * 2.0f, DUMMY_SIZE.y * 2.0f));
 
     ImGui::Separator();
     ImGui::Dummy(ImVec2(DUMMY_SIZE.x * 2.0f, DUMMY_SIZE.y * 2.0f));
 
     if (ImGui::Button("Back", BUTTON_SIZE) && pressedButtonIndex_ < 0)
     {
-      pressedButtonIndex_ = 3; // Only allow one button to be pressed at a time
+      pressedButtonIndex_ = playerTypeNames_.size(); // Only allow one button to be pressed at a time
     }
 
     ImGui::End();
