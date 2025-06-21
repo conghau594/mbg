@@ -60,7 +60,7 @@ message(STATUS "ImGui_SFML populated: ${ImGui_SFML_POPULATED}")
 message(STATUS "ImGui_SFML Added: ${ImGui_SFML_ADDED}")
 
 ###############################################################################
-# First: Fetch Boost.Config                                                   #
+# First: Fetch Boost::config                                                   #
 ###############################################################################
 
 FetchContent_Declare(
@@ -79,7 +79,7 @@ message(STATUS "BoostConfig populated: ${BoostConfig_POPULATED}")
 message(STATUS "BoostConfig Added: ${BoostConfig_ADDED}")
 
 ###############################################################################
-# Then: Fetch Boost.Assert                                                    #
+# Then: Fetch Boost::assert                                                    #
 ###############################################################################
 FetchContent_Declare(BoostAssert
   GIT_REPOSITORY https://github.com/boostorg/assert.git
@@ -88,13 +88,97 @@ FetchContent_Declare(BoostAssert
   EXCLUDE_FROM_ALL
   SYSTEM
 )
-
 FetchContent_MakeAvailable(BoostAssert)
 
 message(STATUS "BoostAssert source directory: ${BoostAssert_SOURCE_DIR}")
 message(STATUS "BoostAssert binary directory: ${BoostAssert_BINARY_DIR}")
 message(STATUS "BoostAssert populated: ${BoostAssert_POPULATED}")
 message(STATUS "BoostAssert Added: ${BoostAssert_ADDED}")
+
+# ###############################################################################
+# # Fetch Boost::system                                                    #
+# ###############################################################################
+# FetchContent_Declare(BoostSystem
+#   GIT_REPOSITORY https://github.com/boostorg/system.git
+#   GIT_TAG        boost-1.88.0
+#   GIT_SHALLOW ON
+#   EXCLUDE_FROM_ALL
+#   SYSTEM
+# )
+# FetchContent_MakeAvailable(BoostSystem)
+
+# message(STATUS "BoostSystem source directory: ${BoostSystem_SOURCE_DIR}")
+# message(STATUS "BoostSystem binary directory: ${BoostSystem_BINARY_DIR}")
+# message(STATUS "BoostSystem populated: ${BoostSystem_POPULATED}")
+# message(STATUS "BoostSystem Added: ${BoostSystem_ADDED}")
+
+###############################################################################
+# Fetch Boost::throw_exception                                                    #
+###############################################################################
+FetchContent_Declare(BoostThrowException
+  GIT_REPOSITORY https://github.com/boostorg/throw_exception.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostThrowException)
+
+message(STATUS "BoostThrowException source directory: ${BoostThrowException_SOURCE_DIR}")
+message(STATUS "BoostThrowException binary directory: ${BoostThrowException_BINARY_DIR}")
+message(STATUS "BoostThrowException populated: ${BoostThrowException_POPULATED}")
+message(STATUS "BoostThrowException Added: ${BoostThrowException_ADDED}")
+
+###############################################################################
+# Fetch Boost::type_traits                                                    #
+###############################################################################
+FetchContent_Declare(BoostTypeTraits
+  GIT_REPOSITORY https://github.com/boostorg/type_traits.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostTypeTraits)
+
+message(STATUS "BoostTypeTraits source directory: ${BoostTypeTraits_SOURCE_DIR}")
+message(STATUS "BoostTypeTraits binary directory: ${BoostTypeTraits_BINARY_DIR}")
+message(STATUS "BoostTypeTraits populated: ${BoostTypeTraits_POPULATED}")
+message(STATUS "BoostTypeTraits Added: ${BoostTypeTraits_ADDED}")
+
+###############################################################################
+# Fetch Boost::static_assert                                                    #
+###############################################################################
+FetchContent_Declare(BoostStaticAssert
+  GIT_REPOSITORY https://github.com/boostorg/static_assert.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostStaticAssert)
+
+message(STATUS "BoostStaticAssert source directory: ${BoostStaticAssert_SOURCE_DIR}")
+message(STATUS "BoostStaticAssert binary directory: ${BoostStaticAssert_BINARY_DIR}")
+message(STATUS "BoostStaticAssert populated: ${BoostStaticAssert_POPULATED}")
+message(STATUS "BoostStaticAssert Added: ${BoostStaticAssert_ADDED}")
+
+###############################################################################
+# Then: Fetch Boost.Uuid                                                      #
+###############################################################################
+FetchContent_Declare(BoostUuid
+  GIT_REPOSITORY https://github.com/boostorg/uuid.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostUuid)
+
+message(STATUS "BoostUuid source directory: ${BoostUuid_SOURCE_DIR}")
+message(STATUS "BoostUuid binary directory: ${BoostUuid_BINARY_DIR}")
+message(STATUS "BoostUuid populated: ${BoostUuid_POPULATED}")
+message(STATUS "BoostUuid Added: ${BoostUuid_ADDED}")
 
 ###############################################################################
 # Configure Build Process                                           #
@@ -137,6 +221,7 @@ target_link_libraries(mbgclient PRIVATE
   SFML::Main
   ImGui-SFML::ImGui-SFML
   Boost::assert
+  Boost::uuid
 )
 
 target_include_directories(mbgclient PRIVATE 

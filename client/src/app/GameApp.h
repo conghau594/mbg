@@ -4,7 +4,7 @@
 #include <boost/assert.hpp>
 #include <memory>
 
-#include "connect/ServerConnector.h"
+#include "connect/GameService.h"
 #include "display/GameDisplay.h"
 
 namespace iab
@@ -14,13 +14,13 @@ namespace iab
 
   class GameApp final
   {
-    std::shared_ptr<ServerConnector> serverConnector_;
+    std::shared_ptr<GameService> gameService_;
     std::shared_ptr<GameDisplay> gameDisplay_;
 
   public:
     GameApp(
         std::shared_ptr<GameDisplay> gameDisplay,
-        std::shared_ptr<ServerConnector> serverConnector) noexcept;
+        std::shared_ptr<GameService> gameService) noexcept;
 
     inline void run();
   };
@@ -28,18 +28,18 @@ namespace iab
   // ==========================================================================
   GameApp::GameApp(
       std::shared_ptr<GameDisplay> gameDisplay,
-      std::shared_ptr<ServerConnector> serverConnector) noexcept
-      : gameDisplay_(gameDisplay), serverConnector_(serverConnector)
+      std::shared_ptr<GameService> gameService) noexcept
+      : gameDisplay_(gameDisplay), gameService_(gameService)
   {
     BOOST_ASSERT_MSG(
         gameDisplay, "`gameDisplay` of `GameApp` cannot be null.");
     BOOST_ASSERT_MSG(
-        serverConnector, "`serverConnector` of `GameApp` cannot be null.");
+        gameService, "`serverConnector` of `GameApp` cannot be null.");
   }
 
   void GameApp::run()
   {
-    serverConnector_->run();
+    // serverConnector_->run();
     gameDisplay_->run();
   }
 }

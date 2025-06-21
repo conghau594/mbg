@@ -5,7 +5,7 @@
 #include "GameAppFactory.h"
 #include "GameApp.h"
 
-#include "connect/SimpleServerConnector.h"
+#include "connect/GameServiceSimulator.h"
 #include "display/SfGameDisplay.h"
 #include "display/SfGameSelectionScreen.h"
 
@@ -41,10 +41,10 @@ namespace iab
       gameDisplay->pushScreen(initialScreen);
 
       // create ServerConnector object
-      std::shared_ptr<ServerConnector> serverConnector(new SimpleServerConnector);
+      std::shared_ptr<GameService> gameService(new GameServiceSimulator);
 
       // return GameApp object
-      return GameApp(gameDisplay, serverConnector);
+      return GameApp(gameDisplay, gameService);
     }
   };
 } // namespace iab
