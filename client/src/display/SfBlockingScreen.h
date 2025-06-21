@@ -37,8 +37,8 @@ namespace iab
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameDisplay> gameDisplay,
         std::string message,
-        std::vector<std::string> buttonLabels,
-        std::vector<std::function<void()>> buttonCallbacks) noexcept;
+        std::vector<std::string> buttonLabels = {},
+        std::vector<std::function<void()>> buttonCallbacks = {}) noexcept;
     //~SfBlockingScreen();
 
     void update(sf::Time const &elapsed) noexcept override;

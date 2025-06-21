@@ -6,7 +6,6 @@
 
 #include <imgui.h>      // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
-#include <imgui_internal.h>
 
 #include "model/GameType.h"
 #include "model/PlayerType.h"
@@ -79,7 +78,7 @@ namespace iab
     }
     else if (pressedButtonIndex_ == int(gameNames_.size()))
     {
-      askExitConfirmation(window(), gameDisplay());
+      askExitConfirmation(window(), gameDisplay(), "Are you sure?");
       deactivate();
     }
 
@@ -120,7 +119,7 @@ namespace iab
     ImGui::Separator();
     ImGui::Dummy(DUMMY_SIZE);
 
-    if (ImGui::Button("Exit", BUTTON_SIZE) && pressedButtonIndex_ < 0)
+    if (ImGui::Button("Quit", BUTTON_SIZE) && pressedButtonIndex_ < 0)
     {
       pressedButtonIndex_ = int(gameNames_.size()); // Only allow one button to be pressed at a time
     }

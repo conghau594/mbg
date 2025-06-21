@@ -9,13 +9,13 @@ namespace iab
   E(HUMAN)                     \
   E(CHATGPT)                   \
   E(GEMINI)                    \
-  E(CLAUDE)
+  // E(CLAUDE)
 
 #define PLAYER_TYPE_NAMES(E) \
   E(Human)                   \
   E(ChatGPT)                 \
   E(Gemini)                  \
-  E(Claude)
+  // E(Claude)
 
   DEFINE_ENUM(PlayerType, PLAYER_TYPE_ENTRIES, PLAYER_TYPE_NAMES);
 }

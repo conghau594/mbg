@@ -89,24 +89,27 @@ namespace iab
     // Calculate button size
     int const BUTTON_COUNT = int(buttonLabels_.size());
     ImVec2 const TEXT_SIZE = ImGui::CalcTextSize(message_.c_str());
-    auto &style = ImGui::GetStyle();
+    ImGuiStyle const &style = ImGui::GetStyle();
 
     ImVec2 const ITEM_SPACING = style.ItemSpacing;
-    ImVec2 const WINDOW_PADDING = style.WindowPadding;
+    ImVec2 const MENU_PADDING = style.WindowPadding;
     // float const TITLE_BAR_HEIGHT = ImGui::GetFontSize() + style.FramePadding.y * 2.0f;
     ImVec2 constexpr DUMMY_SIZE(0.0f, 8.0f);
 
-    float const WINDOW_WIDTH = TEXT_SIZE.x + WINDOW_PADDING.x * 2.0f + 50.0f;
-    float const BUTTON_WIDTH = (WINDOW_WIDTH - 2 * WINDOW_PADDING.x - (BUTTON_COUNT - 1) * ITEM_SPACING.x) / BUTTON_COUNT;
-    float constexpr BUTTON_HEIGHT = 40.0f;
+    float const MENU_WIDTH = TEXT_SIZE.x + MENU_PADDING.x * 2.0f + 50.0f;
+
+    float const BUTTON_WIDTH = BUTTON_COUNT == 0
+                                   ? 0.0f
+                                   : (MENU_WIDTH - 2 * MENU_PADDING.x - (BUTTON_COUNT - 1) * ITEM_SPACING.x) / BUTTON_COUNT;
+    float const BUTTON_HEIGHT = BUTTON_COUNT == 0 ? 0.0f : 40.0f;
     ImVec2 BUTTON_SIZE(BUTTON_WIDTH, BUTTON_HEIGHT);
 
     // change window size
-    float const WINDOW_HEIGHT = /*TITLE_BAR_HEIGHT +*/ WINDOW_PADDING.y * 2.0f +
-                                TEXT_SIZE.y + BUTTON_HEIGHT + ITEM_SPACING.y * 2.0f +
-                                DUMMY_SIZE.y;
+    float const MENU_HEIGHT = /*TITLE_BAR_HEIGHT +*/ MENU_PADDING.y * 2.0f +
+                              TEXT_SIZE.y + BUTTON_HEIGHT + ITEM_SPACING.y * 2.0f +
+                              DUMMY_SIZE.y;
 
-    ImGui::SetNextWindowSize(ImVec2(WINDOW_WIDTH, WINDOW_HEIGHT), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(MENU_WIDTH, MENU_HEIGHT), ImGuiCond_Always);
 
     // change window position
     ImVec2 center(window()->getSize().x * 0.5f, window()->getSize().y * 0.5f);
@@ -122,19 +125,23 @@ namespace iab
         // ImGuiWindowFlags_NoDecoration |
         ImGuiWindowFlags_AlwaysAutoResize |
         ImGuiWindowFlags_NoMove;
+
     ImGui::Begin("Blocking Screen", nullptr, IM_GUI_FLAGS);
 
     ImGui::Text(message_.c_str());
 
-    ImGui::Dummy(DUMMY_SIZE);
-
-    for (int i = 0; i < (const int)(buttonLabels_.size()); ++i)
+    if (BUTTON_COUNT > 0)
     {
-      if (ImGui::Button(buttonLabels_[i].c_str(), BUTTON_SIZE) && pressedButtonIndex_ < 0)
+      ImGui::Dummy(DUMMY_SIZE);
+
+      for (int i = 0; i < BUTTON_COUNT; ++i)
       {
-        pressedButtonIndex_ = i; // Only allow one button to be pressed at a time
+        if (ImGui::Button(buttonLabels_[i].c_str(), BUTTON_SIZE) && pressedButtonIndex_ < 0)
+        {
+          pressedButtonIndex_ = i; // Only allow one button to be pressed at a time
+        }
+        ImGui::SameLine();
       }
-      ImGui::SameLine();
     }
 
     ImGui::End();

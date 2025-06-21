@@ -8,15 +8,15 @@ namespace iab
 
 #define GAME_TYPE_ENTRIES(E) \
   E(WESTERN_CHESS)           \
-  E(CHINESE_CHESS)           \
-  E(TIC_TAC_TOE)             \
-  E(GOMOKU)
+  E(GOMOKU)                  \
+  // E(CHINESE_CHESS)
+  // E(TIC_TAC_TOE)
 
 #define GAME_TYPE_NAMES(E) \
   E(Western Chess)         \
-  E(Chinese Chess)         \
-  E(Tic Tac Toe)           \
-  E(Gomoku)
+  E(Gomoku)                \
+  // E(Chinese Chess)
+  // E(Tic Tac Toe)
 
   DEFINE_ENUM(GameType, GAME_TYPE_ENTRIES, GAME_TYPE_NAMES);
 }

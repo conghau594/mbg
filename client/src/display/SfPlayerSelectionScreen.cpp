@@ -98,7 +98,7 @@ namespace iab
       //=============================================================================
       // Just for test, push the SfChessScreen:
       // define the level with an array of tile indices
-      constexpr int const level[] = {
+      constexpr unsigned const level[] = {
           0, 1, 0, 1, 0, 1, 0, 1,
           1, 0, 1, 0, 1, 0, 1, 0,
           0, 1, 0, 1, 0, 1, 0, 1,
@@ -107,16 +107,16 @@ namespace iab
           1, 0, 1, 0, 1, 0, 1, 0,
           0, 1, 0, 1, 0, 1, 0, 1,
           1, 0, 1, 0, 1, 0, 1, 0};
-      std::shared_ptr<SfTileMap> tileMap(new SfTileMap(
+
+      SfTileMap tileMap(
           "resource/western-chess-tile-set.png",
-          {0, 0},
           {200, 200},
-          level, 8, 8));
-      std::shared_ptr<GameScreen> chessScreen(new SfChessScreen(window(), gameDisplay(), *tileMap));
+          level,
+          {8, 8});
+      std::shared_ptr<GameScreen> chessScreen(new SfChessScreen(window(), gameDisplay(), tileMap));
       gameDisplay()->pushScreen(chessScreen);
       //=============================================================================
     }
-
     else if (pressedButtonIndex_ == int(playerTypeNames_.size()))
     {
       gameDisplay()->popScreen();

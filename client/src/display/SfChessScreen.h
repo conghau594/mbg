@@ -9,6 +9,9 @@ namespace iab
   class SfChessScreen : public SfBaseScreen
   {
     SfTileMap tileMap_;
+    sf::Vector2u mapRegionTopLeft_;
+    sf::Vector2u mapRegionBotRight_;
+    int pressedButtonIndex_;
 
   public:
     SfChessScreen(
@@ -23,5 +26,7 @@ namespace iab
 
     void doEnter() override;
     void doExit() override;
+
+    void drawResignButton() noexcept;
   };
 }

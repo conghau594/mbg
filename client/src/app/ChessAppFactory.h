@@ -18,14 +18,17 @@ namespace iab
     GameApp createGameApp() noexcept override
     {
       // create GameDisplay object
-      uint32_t constexpr height = 640;
-      uint32_t constexpr width = 720;
+      uint32_t constexpr height = 860;
+      uint32_t constexpr width = 800;
       const char *title = "Chess Game"; // "Intelligent Agent Combats"
       // TODO: consider when to use updatePeriod
       // size_t constexpr updatePeriod = 15'000; //
 
       std::shared_ptr<sf::RenderWindow> window(new sf::RenderWindow(
-          sf::VideoMode({width, height}), title));
+          sf::VideoMode({width, height}), title, sf::Style::Titlebar | sf::Style::Close));
+
+      window->setMinimumSize(sf::Vector2u{300, 360});
+
       // window->setVerticalSyncEnabled(false);
       //  window->setFramerateLimit(0);
 

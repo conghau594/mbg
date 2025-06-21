@@ -14,18 +14,18 @@ namespace iab
   {
     sf::VertexArray vertices_;
     sf::Texture tileSet_;
-    sf::Vector2i startPoint_;
-    sf::Vector2u tileSize_;
+    sf::Vector2u tileSizeInPixels_;
+    sf::Vector2u mapSizeInPixels_;
 
   public:
     SfTileMap(std::filesystem::path const &tileSetPath,
-              sf::Vector2i const &startPoint,
-              sf::Vector2u const &tileSize,
-              int const *const tileLevels,
-              int const tilesPerRow,
-              int const tilesPerCol);
+              sf::Vector2u const &tileSizeInPixels,
+              unsigned const *const tileLevels,
+              sf::Vector2u const &mapSizeInTiles);
 
     [[nodiscard]] auto getTileCoords(int x, int y) const noexcept -> sf::Vector2i;
+    void fitRectangle(
+        sf::Vector2u const &mapRegionTopLeft, sf::Vector2u const &mapRegionBotRight);
 
     // [[nodiscard]] auto getTileSize() const noexcept -> sf::Vector2u { return tileSet_.getSize(); }
 

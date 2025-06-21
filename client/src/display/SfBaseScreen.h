@@ -55,6 +55,7 @@ namespace iab
 
     static void askExitConfirmation(
         std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameDisplay> gameDisplay) noexcept;
+        std::shared_ptr<GameDisplay> gameDisplay,
+        std::string const &msg) noexcept;
   };
 }

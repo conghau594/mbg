@@ -66,10 +66,13 @@ namespace iab
 
   void SfBaseScreen::onWindowClosed()
   {
-    askExitConfirmation(window_, gameDisplay_);
+    askExitConfirmation(window_, gameDisplay_, "Do you want to quit?");
   }
 
-  void SfBaseScreen::askExitConfirmation(std::shared_ptr<sf::RenderWindow> window, std::shared_ptr<GameDisplay> gameDisplay) noexcept
+  void SfBaseScreen::askExitConfirmation(
+      std::shared_ptr<sf::RenderWindow> window,
+      std::shared_ptr<GameDisplay> gameDisplay,
+      std::string const &msg) noexcept
   {
     std::vector<std::string> &&buttonLabels{"Yes", "No"};
     std::vector<std::function<void()>> &&buttonCallbacks{
@@ -83,7 +86,7 @@ namespace iab
         }};
 
     std::shared_ptr<GameScreen> pauseScreen(new SfBlockingScreen(
-        window, gameDisplay, "Do you want to exit?", buttonLabels, buttonCallbacks));
+        window, gameDisplay, msg, buttonLabels, buttonCallbacks));
 
     gameDisplay->pushScreen(pauseScreen);
   }
