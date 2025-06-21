@@ -52,6 +52,21 @@ namespace iab
 
   void SfGameSelectionScreen::update(sf::Time const &elapsed) noexcept
   {
+    if (elapsed == sf::Time::Zero || !isActive())
+    {
+      // If no time has passed or the screen should deactivate, do nothing
+      return;
+    }
+
+    // update the window display
+    ImGui::SFML::Update(*window(), elapsed);
+    drawMenu();
+
+    window()->clear();
+    ImGui::SFML::Render(*window());
+    window()->display();
+
+    // handle button presses
     if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < int(gameNames_.size()))
     {
       int gameType = pressedButtonIndex_;
@@ -60,27 +75,15 @@ namespace iab
           window(), gameDisplay(), playerTypeNames, gameType));
 
       gameDisplay()->pushScreen(playerSelectionScreen);
-      exit();
+      deactivate();
     }
     else if (pressedButtonIndex_ == int(gameNames_.size()))
     {
       askExitConfirmation(window(), gameDisplay());
-      exit();
+      deactivate();
     }
 
     pressedButtonIndex_ = -1;
-    if (elapsed == sf::Time::Zero || shouldExit())
-    {
-      // If no time has passed or the screen should exit, do nothing
-      return;
-    }
-
-    ImGui::SFML::Update(*window(), elapsed);
-    drawMenu();
-
-    window()->clear();
-    ImGui::SFML::Render(*window());
-    window()->display();
   }
 
   void SfGameSelectionScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &) noexcept

@@ -18,12 +18,12 @@ namespace iab
     sf::Vector2u tileSize_;
 
   public:
-    auto load(const std::filesystem::path &tileSetPath,
+    SfTileMap(std::filesystem::path const &tileSetPath,
               sf::Vector2i const &startPoint,
               sf::Vector2u const &tileSize,
               int const *const tileLevels,
               int const tilesPerRow,
-              int const tilesPerCol) noexcept -> bool;
+              int const tilesPerCol);
 
     [[nodiscard]] auto getTileCoords(int x, int y) const noexcept -> sf::Vector2i;
 

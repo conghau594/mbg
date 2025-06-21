@@ -54,23 +54,25 @@ namespace iab
 
   void SfBlockingScreen::update(sf::Time const &elapsed) noexcept
   {
-    if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < (int)buttonCallbacks_.size())
+    if (elapsed == sf::Time::Zero || !isActive())
     {
-      buttonCallbacks_[pressedButtonIndex_]();
-      pressedButtonIndex_ = -1; // Reset after executing the callback
-    }
-
-    if (elapsed == sf::Time::Zero || shouldExit())
-    {
-      // If no time has passed or the screen should exit, do nothing
+      // If no time has passed or the screen should deactivate, do nothing
       return;
     }
 
+    // update the window display
     ImGui::SFML::Update(*window(), elapsed);
     drawDialog();
     window()->clear();
     ImGui::SFML::Render(*window());
     window()->display();
+
+    // handle button presses
+    if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < (int)buttonCallbacks_.size())
+    {
+      buttonCallbacks_[pressedButtonIndex_]();
+      pressedButtonIndex_ = -1; // Reset after executing the callback
+    }
   }
 
   void SfBlockingScreen::onWindowClosed() noexcept

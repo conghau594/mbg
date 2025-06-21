@@ -27,7 +27,7 @@ namespace iab
     std::shared_ptr<sf::RenderWindow> window_;
     std::shared_ptr<sf::Clock> clock_;
     std::shared_ptr<GameDisplay> gameDisplay_;
-    bool shouldExit_;
+    bool isActive_;
 
   public:
     SfBaseScreen(
@@ -38,8 +38,8 @@ namespace iab
     void onEnter() override final;
     void onExit() override final;
 
-    [[nodiscard]] auto shouldExit() noexcept -> bool override final { return shouldExit_; }
-    void exit() noexcept override final { shouldExit_ = true; }
+    [[nodiscard]] auto isActive() noexcept -> bool override final { return isActive_; }
+    void deactivate() noexcept override final { isActive_ = false; }
 
   protected:
     virtual void update(sf::Time const &elapsed) = 0;

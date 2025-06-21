@@ -15,6 +15,10 @@
 #include "SfWaitingScreen.h"
 #include "GameDisplay.h"
 
+//=============================================================================
+// JUST TESTING
+#include "SfChessScreen.h"
+//=============================================================================
 namespace iab
 {
   SfPlayerSelectionScreen::SfPlayerSelectionScreen(
@@ -57,6 +61,21 @@ namespace iab
 
   void SfPlayerSelectionScreen::update(sf::Time const &elapsed) noexcept
   {
+    if (elapsed == sf::Time::Zero || !isActive())
+    {
+      // If no time has passed or the screen should deactivate, do nothing
+      return;
+    }
+
+    // update the window display
+    ImGui::SFML::Update(*window(), elapsed);
+    drawMenu();
+
+    window()->clear();
+    ImGui::SFML::Render(*window());
+    window()->display();
+
+    // handle button presses
     if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < int(playerTypeNames_.size()))
     {
       int playerType = pressedButtonIndex_;
@@ -72,31 +91,39 @@ namespace iab
              gameDisplay()->popScreen();
            }}));
 
+      //
       gameDisplay()->pushScreen(waitScreen);
-      exit();
+      deactivate();
+
+      //=============================================================================
+      // Just for test, push the SfChessScreen:
+      // define the level with an array of tile indices
+      constexpr int const level[] = {
+          0, 1, 0, 1, 0, 1, 0, 1,
+          1, 0, 1, 0, 1, 0, 1, 0,
+          0, 1, 0, 1, 0, 1, 0, 1,
+          1, 0, 1, 0, 1, 0, 1, 0,
+          0, 1, 0, 1, 0, 1, 0, 1,
+          1, 0, 1, 0, 1, 0, 1, 0,
+          0, 1, 0, 1, 0, 1, 0, 1,
+          1, 0, 1, 0, 1, 0, 1, 0};
+      std::shared_ptr<SfTileMap> tileMap(new SfTileMap(
+          "resource/western-chess-tile-set.png",
+          {0, 0},
+          {200, 200},
+          level, 8, 8));
+      std::shared_ptr<GameScreen> chessScreen(new SfChessScreen(window(), gameDisplay(), *tileMap));
+      gameDisplay()->pushScreen(chessScreen);
+      //=============================================================================
     }
 
     else if (pressedButtonIndex_ == int(playerTypeNames_.size()))
     {
-
       gameDisplay()->popScreen();
-      exit();
+      deactivate();
     }
 
     pressedButtonIndex_ = -1;
-
-    if (elapsed == sf::Time::Zero || shouldExit())
-    {
-      // If no time has passed or the screen should exit, do nothing
-      return;
-    }
-
-    ImGui::SFML::Update(*window(), elapsed);
-    drawMenu();
-
-    window()->clear();
-    ImGui::SFML::Render(*window());
-    window()->display();
   }
 
   void SfPlayerSelectionScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &) noexcept

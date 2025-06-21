@@ -1,0 +1,27 @@
+// SfChessScreen.h
+#pragma once
+
+#include "SfBaseScreen.h"
+#include "SfTileMap.h"
+
+namespace iab
+{
+  class SfChessScreen : public SfBaseScreen
+  {
+    SfTileMap tileMap_;
+
+  public:
+    SfChessScreen(
+        std::shared_ptr<sf::RenderWindow> window,
+        std::shared_ptr<GameDisplay> gameDisplay,
+        SfTileMap tileMap) noexcept;
+
+  private:
+    void update(sf::Time const &elapsed) override;
+
+    void onWindowEventExceptClosed(std::optional<sf::Event> const &event) override;
+
+    void doEnter() override;
+    void doExit() override;
+  };
+}

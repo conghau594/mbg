@@ -26,7 +26,7 @@ namespace iab
       : window_(window),
         clock_(new sf::Clock),
         gameDisplay_(gameDisplay),
-        shouldExit_(false)
+        isActive_(true)
   {
     BOOST_ASSERT_MSG(window, "`window_` of `SfBaseScreen` cannot be null.");
     BOOST_ASSERT_MSG(gameDisplay, "`gameDisplay_` of `SfBaseScreen` cannot be null.");
@@ -52,7 +52,7 @@ namespace iab
 
   void SfBaseScreen::onEnter()
   {
-    shouldExit_ = false;
+    isActive_ = true;
     doEnter();
     clock_->start();
   }
@@ -61,7 +61,7 @@ namespace iab
   {
     clock_->stop();
     doExit();
-    shouldExit_ = true;
+    isActive_ = false;
   }
 
   void SfBaseScreen::onWindowClosed()
