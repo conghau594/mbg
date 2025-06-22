@@ -14,9 +14,10 @@ namespace iab
 {
   SfChessScreen::SfChessScreen(
       std::shared_ptr<sf::RenderWindow> window,
+      std::shared_ptr<GameService> gameService,
       std::shared_ptr<ScreenManager> screenMgr,
       SfTileMap tileMap) noexcept
-      : SfBaseScreen(window, screenMgr),
+      : SfBaseScreen(window, gameService, screenMgr),
         tileMap_(std::move(tileMap)),
         pressedButtonIndex_(-1)
   {
@@ -49,28 +50,29 @@ namespace iab
           {
             std::shared_ptr<GameScreen> waitScreen(new SfBlockingScreen(
                 window(),
-                screenManager(),
+                gameService(),
+                parentScreenManager(),
                 "Wait a second...",
                 {},
                 {}));
 
             // TODO: Send resign request
-            screenManager()->popScreen();
-            screenManager()->pushScreen(waitScreen);
+            parentScreenManager()->popScreen();
+            parentScreenManager()->pushScreen(waitScreen);
 
-            screenManager()->popScreen();
-            screenManager()->popScreen();
+            parentScreenManager()->popScreen();
+            parentScreenManager()->popScreen();
           },
           [this]()
           {
-            screenManager()->popScreen();
+            parentScreenManager()->popScreen();
           }};
 
       std::shared_ptr<GameScreen> pauseScreen(new SfBlockingScreen(
-          window(), screenManager(), msg, buttonLabels, buttonCallbacks));
+          window(), gameService(), parentScreenManager(), msg, buttonLabels, buttonCallbacks));
 
-      screenManager()->pushScreen(pauseScreen);
-      deactivate();
+      parentScreenManager()->pushScreen(pauseScreen);
+      // deactivate();
     }
 
     pressedButtonIndex_ = -1;

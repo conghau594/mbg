@@ -15,9 +15,8 @@ namespace iab
   class ChessAppFactory final : public GameAppFactory
   {
   public:
-    GameApp createGameApp() noexcept override
+    auto createGameApp() noexcept -> GameApp override
     {
-      // create GameDisplay object
       uint32_t constexpr height = 860;
       uint32_t constexpr width = 800;
       const char *title = "Chess Game"; // "Intelligent Agent Combats"
@@ -29,22 +28,22 @@ namespace iab
 
       window->setMinimumSize(sf::Vector2u{300, 360});
 
-      // window->setVerticalSyncEnabled(false);
+      window->setVerticalSyncEnabled(true);
       //  window->setFramerateLimit(0);
 
-      std::shared_ptr<GameDisplay> gameDisplay(new SfGameDisplay(window));
+      // create GameService object
+      std::shared_ptr<GameService> gameService(new GameServiceSimulator);
+      // create GameDisplay object
+      std::shared_ptr<GameDisplay> gameDisplay(new SfGameDisplay(window, gameService));
 
       std::vector<std::string> gameTypeNames(std::begin(GameType::NAMES), std::end(GameType::NAMES));
       std::shared_ptr<GameScreen> initialScreen(new SfGameSelectionScreen(
-          window, gameDisplay, gameTypeNames));
+          window, gameService, gameDisplay, gameTypeNames));
 
       gameDisplay->pushScreen(initialScreen);
 
-      // create ServerConnector object
-      std::shared_ptr<GameService> gameService(new GameServiceSimulator);
-
       // return GameApp object
-      return GameApp(gameDisplay, gameService);
+      return GameApp(gameDisplay);
     }
   };
 } // namespace iab

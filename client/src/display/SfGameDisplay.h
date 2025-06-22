@@ -13,14 +13,18 @@ namespace sf
 
 namespace iab
 {
+  class GameService;
   class SfGameDisplay final : public GameDisplay
   {
     std::shared_ptr<sf::RenderWindow> window_;
+    std::shared_ptr<GameService> gameService_;
     std::list<std::shared_ptr<GameScreen>> screenStack_;
     std::shared_ptr<GameScreen> currentScreen_;
 
   public:
-    SfGameDisplay(std::shared_ptr<sf::RenderWindow> window);
+    SfGameDisplay(
+        std::shared_ptr<sf::RenderWindow> window,
+        std::shared_ptr<GameService> gameService);
     ~SfGameDisplay() noexcept;
 
     void run() override;

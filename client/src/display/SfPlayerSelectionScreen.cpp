@@ -23,10 +23,11 @@ namespace iab
 {
   SfPlayerSelectionScreen::SfPlayerSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
+      std::shared_ptr<GameService> gameService,
       std::shared_ptr<ScreenManager> screenMgr,
       std::vector<std::string> playerTypeNames,
       int gameType) noexcept
-      : SfBaseScreen(window, screenMgr),
+      : SfBaseScreen(window, gameService, screenMgr),
         smallFont_(nullptr),
         pressedButtonIndex_(-1),
         playerTypeNames_(std::move(playerTypeNames)),
@@ -76,24 +77,26 @@ namespace iab
     window()->display();
 
     // handle button presses
-    if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < int(playerTypeNames_.size()))
+    if (pressedButtonIndex_ >= 0 &&
+        pressedButtonIndex_ < int(playerTypeNames_.size()))
     {
       int playerType = pressedButtonIndex_;
       // TODO: send requestGame(gameType_, playerType);
       std::shared_ptr<GameScreen> waitScreen(new SfWaitingScreen(
           window(),
-          screenManager(),
+          gameService(),
+          parentScreenManager(),
           "Waiting for opponent...",
           {"Cancel"},
           {[this]()
            {
              // TODO: send cancelGameRequest
-             screenManager()->popScreen();
+             this->popScreen();
            }}));
 
       //
-      screenManager()->pushScreen(waitScreen);
-      deactivate();
+      this->pushScreen(waitScreen);
+      // deactivate();
 
       //=============================================================================
       // Just for test, push the SfChessScreen:
@@ -113,20 +116,22 @@ namespace iab
           {200, 200},
           level,
           {8, 8});
-      std::shared_ptr<GameScreen> chessScreen(new SfChessScreen(window(), screenManager(), tileMap));
-      screenManager()->pushScreen(chessScreen);
+      std::shared_ptr<GameScreen> chessScreen(new SfChessScreen(
+          window(), gameService(), parentScreenManager(), tileMap));
+      parentScreenManager()->pushScreen(chessScreen);
       //=============================================================================
     }
     else if (pressedButtonIndex_ == int(playerTypeNames_.size()))
     {
-      screenManager()->popScreen();
-      deactivate();
+      parentScreenManager()->popScreen();
+      // deactivate();
     }
 
     pressedButtonIndex_ = -1;
   }
 
-  void SfPlayerSelectionScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &) noexcept
+  void SfPlayerSelectionScreen::onWindowEventExceptClosed(
+      std::optional<sf::Event> const &) noexcept
   {
   }
 
@@ -158,7 +163,8 @@ namespace iab
 
     for (int i = 0; i < (const int)playerTypeNames_.size(); ++i)
     {
-      if (ImGui::Button(playerTypeNames_[i].c_str(), BUTTON_SIZE) && pressedButtonIndex_ < 0)
+      if (ImGui::Button(playerTypeNames_[i].c_str(), BUTTON_SIZE) &&
+          pressedButtonIndex_ < 0)
       {
         pressedButtonIndex_ = i; // Only allow one button to be pressed at a time
       }

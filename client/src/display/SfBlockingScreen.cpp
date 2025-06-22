@@ -16,11 +16,12 @@ namespace iab
 {
   SfBlockingScreen::SfBlockingScreen(
       std::shared_ptr<sf::RenderWindow> window,
+      std::shared_ptr<GameService> gameService,
       std::shared_ptr<ScreenManager> screenMgr,
       std::string message,
       std::vector<std::string> buttonLabels,
       std::vector<std::function<void()>> buttonCallbacks) noexcept
-      : SfBaseScreen(window, screenMgr),
+      : SfBaseScreen(window, gameService, screenMgr),
         message_(std::move(message)),
         buttonLabels_(std::move(buttonLabels)),
         buttonCallbacks_(std::move(buttonCallbacks)),

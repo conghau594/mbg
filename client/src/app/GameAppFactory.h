@@ -9,6 +9,6 @@ namespace iab
   {
   public:
     virtual ~GameAppFactory() = default;
-    virtual GameApp createGameApp() = 0;
+    virtual auto createGameApp() -> GameApp = 0;
   };
 } // namespace iab

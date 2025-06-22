@@ -19,9 +19,10 @@ namespace iab
 {
   SfGameSelectionScreen::SfGameSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
+      std::shared_ptr<GameService> gameService,
       std::shared_ptr<ScreenManager> screenMgr,
       std::vector<std::string> gameNames) noexcept
-      : SfBaseScreen(window, screenMgr),
+      : SfBaseScreen(window, gameService, screenMgr),
         gameNames_(std::move(gameNames)),
         pressedButtonIndex_(-1)
   {
@@ -69,23 +70,25 @@ namespace iab
     if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < int(gameNames_.size()))
     {
       int gameType = pressedButtonIndex_;
-      std::vector<std::string> playerTypeNames(std::begin(PlayerType::NAMES), std::end(PlayerType::NAMES));
+      std::vector<std::string> playerTypeNames(
+          std::begin(PlayerType::NAMES), std::end(PlayerType::NAMES));
       std::shared_ptr<GameScreen> playerSelectionScreen(new SfPlayerSelectionScreen(
-          window(), screenManager(), playerTypeNames, gameType));
+          window(), gameService(), parentScreenManager(), playerTypeNames, gameType));
 
-      screenManager()->pushScreen(playerSelectionScreen);
-      deactivate();
+      parentScreenManager()->pushScreen(playerSelectionScreen);
+      // deactivate();
     }
     else if (pressedButtonIndex_ == int(gameNames_.size()))
     {
-      askExitConfirmation(window(), shared_from_this(), "Are you sure?");
-      deactivate();
+      askExitConfirmation(window(), gameService(), shared_from_this(), "Are you sure?");
+      // deactivate();
     }
 
     pressedButtonIndex_ = -1;
   }
 
-  void SfGameSelectionScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &) noexcept
+  void SfGameSelectionScreen::onWindowEventExceptClosed(
+      std::optional<sf::Event> const &) noexcept
   {
   }
 

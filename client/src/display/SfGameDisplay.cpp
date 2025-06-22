@@ -15,10 +15,14 @@
 
 namespace iab
 {
-  SfGameDisplay::SfGameDisplay(std::shared_ptr<sf::RenderWindow> window)
-      : window_(window), currentScreen_(nullptr)
+  SfGameDisplay::SfGameDisplay(
+      std::shared_ptr<sf::RenderWindow> window,
+      std::shared_ptr<GameService> gameService)
+      : window_(window), gameService_(gameService), currentScreen_(nullptr)
   {
-    BOOST_ASSERT_MSG(window, "`window_` of `SfGameDisplay` cannot be null.");
+    BOOST_ASSERT_MSG(window, "window_ of SfGameDisplay cannot be null.");
+    BOOST_ASSERT_MSG(gameService, "gameService_ of GameApp cannot be null.");
+
     if (!ImGui::SFML::Init(*window_))
     { // TODO: Define exception for this
       throw std::runtime_error("Failed to initialize ImGui.");
