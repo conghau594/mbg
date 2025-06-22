@@ -2,6 +2,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <list>
 
 #include "GameScreen.h"
@@ -36,6 +37,9 @@ namespace iab
     std::shared_ptr<sf::Clock> clock_;
     std::shared_ptr<ScreenManager> parentScreenMgr_;
     bool isActive_;
+
+  protected:
+    static std::recursive_mutex s_ImGuiMutex;
 
   public:
     SfBaseScreen(
@@ -80,5 +84,10 @@ namespace iab
         std::shared_ptr<GameService> gameService,
         std::shared_ptr<ScreenManager> screenMgr,
         std::string const &msg) noexcept;
+
+    static void connectServer(
+        std::shared_ptr<sf::RenderWindow> window,
+        std::shared_ptr<GameService> gameService,
+        std::shared_ptr<ScreenManager> screenMgr) noexcept;
   };
 }

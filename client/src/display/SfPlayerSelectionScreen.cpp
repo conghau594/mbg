@@ -9,6 +9,7 @@
 #include <imgui_internal.h>
 
 #include "model/PlayerType.h"
+#include "connect/GameService.h"
 
 #include "SfBaseScreen.h"
 #include "SfPlayerSelectionScreen.h"
@@ -62,12 +63,6 @@ namespace iab
 
   void SfPlayerSelectionScreen::update(sf::Time const &elapsed) noexcept
   {
-    // if (elapsed == sf::Time::Zero || !isActive())
-    // {
-    //   // If no time has passed or the screen should deactivate, do nothing
-    //   return;
-    // }
-
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
     drawMenu();
@@ -80,46 +75,52 @@ namespace iab
     if (pressedButtonIndex_ >= 0 &&
         pressedButtonIndex_ < int(playerTypeNames_.size()))
     {
-      int playerType = pressedButtonIndex_;
-      // TODO: send requestGame(gameType_, playerType);
-      std::shared_ptr<GameScreen> waitScreen(new SfWaitingScreen(
-          window(),
-          gameService(),
-          parentScreenManager(),
-          "Waiting for opponent...",
-          {"Cancel"},
-          {[this]()
-           {
-             // TODO: send cancelGameRequest
-             this->popScreen();
-           }}));
 
-      //
-      this->pushScreen(waitScreen);
-      // deactivate();
+      if (!gameService()->isConnected())
+      {
+        connectServer(window(), gameService(), shared_from_this());
+      }
+      // int playerType = pressedButtonIndex_;
 
-      //=============================================================================
-      // Just for test, push the SfChessScreen:
-      // define the level with an array of tile indices
-      constexpr unsigned const level[] = {
-          0, 1, 0, 1, 0, 1, 0, 1,
-          1, 0, 1, 0, 1, 0, 1, 0,
-          0, 1, 0, 1, 0, 1, 0, 1,
-          1, 0, 1, 0, 1, 0, 1, 0,
-          0, 1, 0, 1, 0, 1, 0, 1,
-          1, 0, 1, 0, 1, 0, 1, 0,
-          0, 1, 0, 1, 0, 1, 0, 1,
-          1, 0, 1, 0, 1, 0, 1, 0};
+      // // TODO: send requestGame(gameType_, playerType);
+      // std::shared_ptr<GameScreen> waitScreen(new SfWaitingScreen(
+      //     window(),
+      //     gameService(),
+      //     parentScreenManager(),
+      //     "Waiting for opponent...",
+      //     {"Cancel"},
+      //     {[this]()
+      //      {
+      //        // TODO: send cancelGameRequest
+      //        this->popScreen();
+      //      }}));
 
-      SfTileMap tileMap(
-          "resource/western-chess-tile-set.png",
-          {200, 200},
-          level,
-          {8, 8});
-      std::shared_ptr<GameScreen> chessScreen(new SfChessScreen(
-          window(), gameService(), parentScreenManager(), tileMap));
-      parentScreenManager()->pushScreen(chessScreen);
-      //=============================================================================
+      // //
+      // this->pushScreen(waitScreen);
+      // // deactivate();
+
+      // //=============================================================================
+      // // Just for test, push the SfChessScreen:
+      // // define the level with an array of tile indices
+      // constexpr unsigned const level[] = {
+      //     0, 1, 0, 1, 0, 1, 0, 1,
+      //     1, 0, 1, 0, 1, 0, 1, 0,
+      //     0, 1, 0, 1, 0, 1, 0, 1,
+      //     1, 0, 1, 0, 1, 0, 1, 0,
+      //     0, 1, 0, 1, 0, 1, 0, 1,
+      //     1, 0, 1, 0, 1, 0, 1, 0,
+      //     0, 1, 0, 1, 0, 1, 0, 1,
+      //     1, 0, 1, 0, 1, 0, 1, 0};
+
+      // SfTileMap tileMap(
+      //     "resource/western-chess-tile-set.png",
+      //     {200, 200},
+      //     level,
+      //     {8, 8});
+      // std::shared_ptr<GameScreen> chessScreen(new SfChessScreen(
+      //     window(), gameService(), parentScreenManager(), tileMap));
+      // parentScreenManager()->pushScreen(chessScreen);
+      // //=============================================================================
     }
     else if (pressedButtonIndex_ == int(playerTypeNames_.size()))
     {

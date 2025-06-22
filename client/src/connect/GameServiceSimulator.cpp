@@ -1,6 +1,5 @@
 // GameServiceSimulator.cpp
-
-#include <future>
+#include <iostream>
 
 #include <boost/uuid.hpp>
 
@@ -10,34 +9,37 @@
 namespace iab
 {
   GameServiceSimulator::GameServiceSimulator() noexcept
-      : uuidGenerator_(new boost::uuids::random_generator),
+      : threadPool_(1),
+        uuidGenerator_(new boost::uuids::random_generator),
         isConnected_(false)
   {
   }
 
   void GameServiceSimulator::connect(
       std::string const &userId,
-      Callback const &callback) noexcept
+      Callback const &callback)
   {
-    std::async(
-        [this, &callback]()
+    threadPool_.push(
+        [this, callback]()
         {
+          std::string msg;
+          int code = 0;
           if (!isConnected_)
           {
-            std::string msg;
             try
             {
-              simulateNetworkLatencyAndFailure(30);
+              simulateNetworkLatencyAndFailure(100, 2000, 5000);
             }
-            catch (std::exception const &e)
+            catch (std::runtime_error const &e)
             {
               msg = e.what();
+              code = -1;
             }
 
             // connect successfully
             isConnected_ = true;
-            callback(-1, msg);
           }
+          callback(code, msg);
         });
   }
 
@@ -55,12 +57,13 @@ namespace iab
       std::string const & /*userId*/,
       Callback const &callback) noexcept
   {
-    std::async(
+    threadPool_.push(
         [this, &callback]()
         {
           if (!isConnected_)
           {
             std::string msg;
+            int code = 0;
             try
             {
               simulateNetworkLatencyAndFailure(10);
@@ -72,7 +75,7 @@ namespace iab
 
             // connect successfully
             isConnected_ = true;
-            callback(-1, msg);
+            callback(code, msg);
           }
         });
   }
@@ -83,13 +86,14 @@ namespace iab
       int /*playerType*/,
       Callback const &callback) noexcept -> std::string
   {
-    std::async(
+    threadPool_.push(
         [this, &callback]()
         {
+          std::string msg;
+          int code = 0;
+
           if (!isConnected_)
           {
-            std::string msg;
-            int code = 0;
             try
             {
               simulateNetworkLatencyAndFailure(50, 2000, 5000);
@@ -109,8 +113,8 @@ namespace iab
             }
 
             isConnected_ = true;
-            callback(code, msg);
           }
+          callback(code, msg);
         });
     return "" /*boost::uuids::to_string(id)*/;
   }
@@ -120,12 +124,13 @@ namespace iab
       std::string const & /*gameId*/,
       Callback const &callback) noexcept
   {
-    std::async(
+    threadPool_.push(
         [this, &callback]()
         {
           if (!isConnected_)
           {
             std::string msg;
+            int code = 0;
             try
             {
               simulateNetworkLatencyAndFailure(10);
@@ -137,7 +142,7 @@ namespace iab
 
             // resign successfully
             isConnected_ = true;
-            callback(-1, msg);
+            callback(code, msg);
           }
         });
   }
@@ -148,12 +153,13 @@ namespace iab
       Move const *const /*move*/,
       Callback const &callback) noexcept
   {
-    std::async(
+    threadPool_.push(
         [this, &callback]()
         {
           if (!isConnected_)
           {
             std::string msg;
+            int code = 0;
             try
             {
               simulateNetworkLatencyAndFailure(30);
@@ -165,21 +171,21 @@ namespace iab
 
             // commit move successfully
             isConnected_ = true;
-            callback(-1, msg);
+            callback(code, msg);
           }
         });
   }
 
   void GameServiceSimulator::simulateNetworkLatencyAndFailure(
-      int failurePercent /*=0*/, int minDelay /*=100*/, int maxDelay /*=2000*/) noexcept
+      int failurePercent /*=0*/, int minDelay /*=100*/, int maxDelay /*=2000*/)
   {
     std::this_thread::sleep_for(
         std::chrono::milliseconds(util::randomInt(minDelay, maxDelay)));
 
     if (util::randomInt(1, 100) < failurePercent)
     {
-      throw std::runtime_error("Failed to connect to server");
       isConnected_ = false;
+      throw std::runtime_error("Failed to connect to server");
     }
   }
 

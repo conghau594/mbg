@@ -17,8 +17,8 @@ namespace iab
   public:
     auto createGameApp() noexcept -> GameApp override
     {
-      uint32_t constexpr height = 860;
-      uint32_t constexpr width = 800;
+      unsigned constexpr height = 860;
+      unsigned constexpr width = 800;
       const char *title = "Chess Game"; // "Intelligent Agent Combats"
       // TODO: consider when to use updatePeriod
       // size_t constexpr updatePeriod = 15'000; //

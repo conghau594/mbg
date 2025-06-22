@@ -10,9 +10,13 @@
 #include "model/GameType.h"
 #include "model/PlayerType.h"
 
+#include "connect/GameService.h"
+
+#include "SfGameSelectionScreen.h"
 #include "SfGameDisplay.h"
 #include "SfBaseScreen.h"
-#include "SfGameSelectionScreen.h"
+#include "SfBlockingScreen.h"
+#include "SfWaitingScreen.h"
 #include "SfPlayerSelectionScreen.h"
 
 namespace iab
@@ -52,12 +56,6 @@ namespace iab
 
   void SfGameSelectionScreen::update(sf::Time const &elapsed) noexcept
   {
-    // if (elapsed == sf::Time::Zero || !isActive())
-    // {
-    //   // If no time has passed or the screen should deactivate, do nothing
-    //   return;
-    // }
-
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
     drawMenu();
