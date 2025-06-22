@@ -1,6 +1,6 @@
 // GameServiceSimulator.cpp
 
-#include <thread>
+#include <future>
 
 #include <boost/uuid.hpp>
 
@@ -9,49 +9,165 @@
 
 namespace iab
 {
-  GameServiceSimulator::GameServiceSimulator()
-      : uuidGenerator_(new boost::uuids::random_generator)
+  GameServiceSimulator::GameServiceSimulator() noexcept
+      : uuidGenerator_(new boost::uuids::random_generator),
+        isConnected_(false)
   {
   }
 
-  void GameServiceSimulator::connect(std::string const &userId)
+  void GameServiceSimulator::connect(
+      std::string const &userId,
+      Callback const &callback) noexcept
   {
-    simulateNetworkLatencyAndFailure(30);
+    std::async(
+        [this, &callback]()
+        {
+          if (!isConnected_)
+          {
+            std::string msg;
+            try
+            {
+              simulateNetworkLatencyAndFailure(30);
+            }
+            catch (std::exception const &e)
+            {
+              msg = e.what();
+            }
 
-    // connect successfully
+            // connect successfully
+            isConnected_ = true;
+            callback(-1, msg);
+          }
+        });
   }
 
-  void GameServiceSimulator::cancelMatchmaking(std::string const & /*userId*/)
+  void GameServiceSimulator::disconnect() noexcept
   {
-    simulateNetworkLatencyAndFailure(10);
-
-    // cancel successfully
+    isConnected_ = false;
   }
 
-  auto GameServiceSimulator::findOpponent(std::string const & /*userId*/, int /*gameType*/, int /*playerType*/)
-      -> std::string
+  auto GameServiceSimulator::isConnected() const noexcept -> bool
   {
-    simulateNetworkLatencyAndFailure(50, 2000, 5000);
-
-    boost::uuids::uuid id = (*uuidGenerator_)();
-    if (id.is_nil())
-    {
-      throw std::runtime_error("Failed to create UUID");
-    }
-    return boost::uuids::to_string(id);
+    return isConnected_;
   }
 
-  void GameServiceSimulator::resignGame(std::string const & /*userId*/, std::string const & /*gameId*/)
+  void GameServiceSimulator::cancelMatchmaking(
+      std::string const & /*userId*/,
+      Callback const &callback) noexcept
   {
-    simulateNetworkLatencyAndFailure(10);
+    std::async(
+        [this, &callback]()
+        {
+          if (!isConnected_)
+          {
+            std::string msg;
+            try
+            {
+              simulateNetworkLatencyAndFailure(10);
+            }
+            catch (std::exception const &e)
+            {
+              msg = e.what();
+            }
 
-    // resign successfully
+            // connect successfully
+            isConnected_ = true;
+            callback(-1, msg);
+          }
+        });
   }
 
-  void GameServiceSimulator::commitMove(std::string const & /*userId*/, std::string const & /*gameId*/, Move const *const /*move*/)
+  auto GameServiceSimulator::findOpponent(
+      std::string const & /*userId*/,
+      int /*gameType*/,
+      int /*playerType*/,
+      Callback const &callback) noexcept -> std::string
   {
-    simulateNetworkLatencyAndFailure(10);
-    // commit successfully
+    std::async(
+        [this, &callback]()
+        {
+          if (!isConnected_)
+          {
+            std::string msg;
+            int code = 0;
+            try
+            {
+              simulateNetworkLatencyAndFailure(50, 2000, 5000);
+            }
+            catch (std::exception const &e)
+            {
+              msg = e.what();
+              code = -1;
+            }
+
+            // find opponent successfully, the create game UUID
+            boost::uuids::uuid id = (*uuidGenerator_)();
+            if (id.is_nil())
+            {
+              msg = "Failed to create UUID";
+              code = -1;
+            }
+
+            isConnected_ = true;
+            callback(code, msg);
+          }
+        });
+    return "" /*boost::uuids::to_string(id)*/;
+  }
+
+  void GameServiceSimulator::resignGame(
+      std::string const & /*userId*/,
+      std::string const & /*gameId*/,
+      Callback const &callback) noexcept
+  {
+    std::async(
+        [this, &callback]()
+        {
+          if (!isConnected_)
+          {
+            std::string msg;
+            try
+            {
+              simulateNetworkLatencyAndFailure(10);
+            }
+            catch (std::exception const &e)
+            {
+              msg = e.what();
+            }
+
+            // resign successfully
+            isConnected_ = true;
+            callback(-1, msg);
+          }
+        });
+  }
+
+  void GameServiceSimulator::commitMove(
+      std::string const & /*userId*/,
+      std::string const & /*gameId*/,
+      Move const *const /*move*/,
+      Callback const &callback) noexcept
+  {
+    std::async(
+        [this, &callback]()
+        {
+          if (!isConnected_)
+          {
+            std::string msg;
+            try
+            {
+              simulateNetworkLatencyAndFailure(30);
+            }
+            catch (std::exception const &e)
+            {
+              msg = e.what();
+            }
+
+            // commit move successfully
+            isConnected_ = true;
+            callback(-1, msg);
+          }
+        });
   }
 
   void GameServiceSimulator::simulateNetworkLatencyAndFailure(
@@ -63,6 +179,7 @@ namespace iab
     if (util::randomInt(1, 100) < failurePercent)
     {
       throw std::runtime_error("Failed to connect to server");
+      isConnected_ = false;
     }
   }
 
