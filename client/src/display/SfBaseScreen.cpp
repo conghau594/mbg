@@ -22,32 +22,30 @@
 // #endif
 namespace iab
 {
-  std::recursive_mutex SfBaseScreen::s_ImGuiMutex;
-
   SfBaseScreen::SfBaseScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
-      std::shared_ptr<ScreenManager> parentScreenMgr) noexcept
+      std::shared_ptr<GameDisplay> gameDisplay) noexcept
       : window_(window),
         gameService_(gameService),
         clock_(new sf::Clock),
-        parentScreenMgr_(parentScreenMgr),
+        gameDisplay_(gameDisplay),
         isActive_(true)
   {
     BOOST_ASSERT_MSG(window, "window_ of SfBaseScreen cannot be null.");
     BOOST_ASSERT_MSG(gameService, "gameService_ of SfBaseScreen cannot be null.");
-    BOOST_ASSERT_MSG(parentScreenMgr, "parentScreenMgr_ of SfBaseScreen cannot be null.");
+    BOOST_ASSERT_MSG(gameDisplay, "gameDisplay_ of SfBaseScreen cannot be null.");
   }
 
   void SfBaseScreen::update()
   {
-    if (!screenStack_.empty())
+    if (currentSubscreen_ != nullptr)
     {
-      if (currentScreen_ != screenStack_.back())
+      if (lastSubscreen_ != currentSubscreen_)
       {
-        currentScreen_ = screenStack_.back();
+        lastSubscreen_ = currentSubscreen_;
       }
-      currentScreen_->update();
+      lastSubscreen_->update();
       return;
     }
 
@@ -58,28 +56,24 @@ namespace iab
       return;
     }
 
-    {
-      std::lock_guard lock(s_ImGuiMutex);
-      update(elapsed);
+    update(elapsed);
 
-      while (const auto event = window_->pollEvent())
+    while (const auto event = window_->pollEvent())
+    {
+      if (event->is<sf::Event::Closed>())
       {
-        if (event->is<sf::Event::Closed>())
-        {
-          onWindowClosed();
-        }
-        else
-        {
-          ImGui::SFML::ProcessEvent(*window_, *event);
-          onWindowEventExceptClosed(event);
-        }
+        onWindowClosed();
+      }
+      else
+      {
+        ImGui::SFML::ProcessEvent(*window_, *event);
+        onWindowEventExceptClosed(event);
       }
     }
   }
 
   void SfBaseScreen::onEnter()
   {
-    std::lock_guard lock(s_ImGuiMutex);
     isActive_ = true;
     doEnter();
     clock_->start();
@@ -94,59 +88,67 @@ namespace iab
 
   void SfBaseScreen::onWindowClosed()
   {
-    askExitConfirmation(window_, gameService_, shared_from_this(), "Do you want to quit?");
+    askExitConfirmation(window_, gameService_, gameDisplay_, shared_from_this(), "Do you want to quit?");
   }
 
-  void SfBaseScreen::pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept
+  // void SfBaseScreen::pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept
+  // {
+  //   if (!screenStack_.empty())
+  //   {
+  //     screenStack_.back()->onExit();
+  //   }
+  //   else
+  //   {
+  //     this->onExit();
+  //   }
+
+  //   screenStack_.push_back(newScreen);
+  //   newScreen->onEnter();
+  // }
+
+  // void SfBaseScreen::popScreen() noexcept
+  // {
+  //   if (screenStack_.empty())
+  //   {
+  //     return;
+  //   }
+
+  //   screenStack_.back()->onExit();
+  //   screenStack_.pop_back();
+
+  //   if (screenStack_.empty())
+  //   {
+  //     this->onEnter();
+  //   }
+  //   else
+  //   {
+  //     screenStack_.back()->onEnter();
+  //   }
+  // }
+
+  void SfBaseScreen::changeSubscreen(std::shared_ptr<GameScreen> newSubscreen) noexcept
   {
-    std::lock_guard lock(s_ImGuiMutex);
-    if (!screenStack_.empty())
     {
-      screenStack_.back()->onExit();
-    }
-    else
-    {
-      this->onExit();
-    }
+      std::lock_guard lock(subscreenMutex_);
+      if (currentSubscreen_ != nullptr)
+      {
+        currentSubscreen_->onExit();
+      }
 
-    screenStack_.push_back(newScreen);
-    newScreen->onEnter();
-  }
-
-  void SfBaseScreen::popScreen() noexcept
-  {
-    std::lock_guard lock(s_ImGuiMutex);
-    if (screenStack_.empty())
-    {
-      return;
+      currentSubscreen_ = newSubscreen;
     }
 
-    screenStack_.back()->onExit();
-    screenStack_.pop_back();
-
-    if (screenStack_.empty())
+    if (newSubscreen != nullptr)
     {
-      this->onEnter();
+      newSubscreen->onEnter();
     }
-    else
-    {
-      screenStack_.back()->onEnter();
-    }
-  }
-
-  void SfBaseScreen::changeScreen(std::shared_ptr<GameScreen> newScreen) noexcept
-  {
-    std::lock_guard lock(s_ImGuiMutex);
-    auto &lastScreen = screenStack_.back();
-    lastScreen->onExit();
-    lastScreen = newScreen;
-    lastScreen->onEnter();
   }
 
   void SfBaseScreen::askExitConfirmation(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
-      std::shared_ptr<ScreenManager> screenMgr,
+      std::shared_ptr<GameDisplay> gameDisplay,
+      std::shared_ptr<SfBaseScreen> parentScreen,
       std::string const &msg) noexcept
   {
     std::vector<std::string> &&buttonLabels{"Yes", "No"};
@@ -155,66 +157,71 @@ namespace iab
         {
           window->close();
         },
-        [screenMgr]()
+        [parentScreen]()
         {
-          screenMgr->popScreen();
+          parentScreen->changeSubscreen(nullptr);
         }};
 
-    std::shared_ptr<GameScreen> pauseScreen(new SfBlockingScreen(
-        window, gameService, screenMgr, msg, buttonLabels, buttonCallbacks));
+    std::shared_ptr<GameScreen> confirmScreen(new SfBlockingScreen(
+        window, gameService, gameDisplay, msg, buttonLabels, buttonCallbacks));
 
-    screenMgr->pushScreen(pauseScreen);
+    parentScreen->changeSubscreen(confirmScreen);
   }
 
   void SfBaseScreen::connectServer(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
-      std::shared_ptr<ScreenManager> screenMgr) noexcept
+      std::shared_ptr<GameDisplay> gameDisplay,
+      std::shared_ptr<SfBaseScreen> parentScreen) noexcept
   {
     std::shared_ptr<GameScreen> waitScreen(new SfWaitingScreen(
         window,
         gameService,
-        screenMgr,
+        gameDisplay,
         "Connecting to server...",
-        {"Cancel"},
-        {[window]()
-         {
-           window->close();
-         }}));
+        {/*"Cancel"*/},
+        {
+            /*[parentScreen, gameService]()
+            {
+              // TODO: send cancelConnection
+              //gameService->disconnect();
+              parentScreen->changeSubscreen(nullptr);
+            }*/
+        }));
 
-    screenMgr->pushScreen(waitScreen);
+    parentScreen->changeSubscreen(waitScreen);
 
     gameService->connect(
         "",
-        [screenMgr, window, gameService](int code, std::string const &errMsg)
+        [parentScreen, window, gameDisplay, gameService](int code, std::string const &errMsg)
         {
           if (code == 0)
           {
-            screenMgr->popScreen();
+            parentScreen->changeSubscreen(nullptr);
           }
           else
           {
-            std::vector<std::string> &&buttonLabels{"Retry", "Quit"};
+            std::vector<std::string> &&buttonLabels{"Retry", "Cancel"};
             std::vector<std::function<void()>> &&buttonCallbacks{
-                [window, gameService, screenMgr]()
+                [window, gameService, gameDisplay, parentScreen]()
                 {
-                  screenMgr->popScreen();
-                  SfBaseScreen::connectServer(window, gameService, screenMgr);
+                  parentScreen->changeSubscreen(nullptr);
+                  SfBaseScreen::connectServer(window, gameService, gameDisplay, parentScreen);
                 },
-                [window]()
+                [parentScreen]()
                 {
-                  window->close();
+                  parentScreen->changeSubscreen(nullptr);
                 }};
 
-            std::shared_ptr<GameScreen> pauseScreen(new SfBlockingScreen(
+            std::shared_ptr<GameScreen> retryScreen(new SfWaitingScreen(
                 window,
                 gameService,
-                screenMgr,
-                errMsg + std::to_string(code),
+                gameDisplay,
+                errMsg + " (" + std::to_string(code) + ")",
                 buttonLabels,
                 buttonCallbacks));
 
-            screenMgr->changeScreen(pauseScreen);
+            parentScreen->changeSubscreen(retryScreen);
           }
         });
   }

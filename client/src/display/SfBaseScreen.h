@@ -3,10 +3,8 @@
 
 #include <memory>
 #include <mutex>
-#include <list>
 
 #include "GameScreen.h"
-#include "ScreenManager.h"
 
 namespace std
 {
@@ -25,27 +23,26 @@ namespace sf
 namespace iab
 {
   class GameService;
+  class GameDisplay;
   class SfBaseScreen
       : public std::enable_shared_from_this<SfBaseScreen>,
-        public GameScreen,
-        public ScreenManager
+        public GameScreen
   {
-    std::list<std::shared_ptr<GameScreen>> screenStack_;
-    std::shared_ptr<GameScreen> currentScreen_;
     std::shared_ptr<sf::RenderWindow> window_;
+    std::shared_ptr<GameDisplay> gameDisplay_;
     std::shared_ptr<GameService> gameService_;
-    std::shared_ptr<sf::Clock> clock_;
-    std::shared_ptr<ScreenManager> parentScreenMgr_;
-    bool isActive_;
 
-  protected:
-    static std::recursive_mutex s_ImGuiMutex;
+    std::shared_ptr<GameScreen> lastSubscreen_;
+    std::shared_ptr<GameScreen> currentSubscreen_;
+    std::mutex subscreenMutex_;
+    std::shared_ptr<sf::Clock> clock_;
+    bool isActive_;
 
   public:
     SfBaseScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameService> gameService,
-        std::shared_ptr<ScreenManager> screenMgr) noexcept;
+        std::shared_ptr<GameDisplay> gameDisplay) noexcept;
 
     void update() override final;
     void onEnter() override final;
@@ -55,9 +52,7 @@ namespace iab
         -> bool override final { return isActive_; }
     void deactivate() noexcept override final { isActive_ = false; }
 
-    void pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept override;
-    void popScreen() noexcept override;
-    void changeScreen(std::shared_ptr<GameScreen> newScreen) noexcept override;
+    void changeSubscreen(std::shared_ptr<GameScreen> newSubscreen) noexcept override;
 
   protected:
     virtual void update(sf::Time const &elapsed) = 0;
@@ -72,22 +67,20 @@ namespace iab
         -> std::shared_ptr<sf::RenderWindow> const & { return window_; }
     [[nodiscard]] auto gameService() const noexcept
         -> std::shared_ptr<GameService> const & { return gameService_; }
-    [[nodiscard]] auto parentScreenManager() const noexcept
-        -> std::shared_ptr<ScreenManager> const & { return parentScreenMgr_; }
-    [[nodiscard]] auto screenStack() const noexcept
-        -> std::list<std::shared_ptr<GameScreen>> const & { return screenStack_; }
-    [[nodiscard]] auto currentScreen() const noexcept
-        -> std::shared_ptr<GameScreen> const & { return currentScreen_; }
+    [[nodiscard]] auto gameDisplay() const noexcept
+        -> std::shared_ptr<GameDisplay> const & { return gameDisplay_; }
 
     static void askExitConfirmation(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameService> gameService,
-        std::shared_ptr<ScreenManager> screenMgr,
+        std::shared_ptr<GameDisplay> gameDisplay,
+        std::shared_ptr<SfBaseScreen> parentScreen,
         std::string const &msg) noexcept;
 
     static void connectServer(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameService> gameService,
-        std::shared_ptr<ScreenManager> screenMgr) noexcept;
+        std::shared_ptr<GameDisplay> gameDisplay,
+        std::shared_ptr<SfBaseScreen> parentScreen) noexcept;
   };
 }

@@ -36,7 +36,7 @@ namespace iab
     SfBlockingScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameService> gameService,
-        std::shared_ptr<ScreenManager> screenMgr,
+        std::shared_ptr<GameDisplay> gameDisplay,
         std::string message,
         std::vector<std::string> buttonLabels = {},
         std::vector<std::function<void()>> buttonCallbacks = {}) noexcept;
@@ -51,7 +51,7 @@ namespace iab
 
   private:
     void onWindowClosed() noexcept override;
-    void drawDialog() noexcept;
+    void layOutScreen() noexcept;
   };
 
 }

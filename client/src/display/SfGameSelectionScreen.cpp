@@ -2,8 +2,6 @@
 #include <boost/assert.hpp>
 
 #include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/System/Clock.hpp>
-
 #include <imgui.h>      // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 
@@ -24,9 +22,9 @@ namespace iab
   SfGameSelectionScreen::SfGameSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
-      std::shared_ptr<ScreenManager> screenMgr,
+      std::shared_ptr<GameDisplay> gameDisplay,
       std::vector<std::string> gameNames) noexcept
-      : SfBaseScreen(window, gameService, screenMgr),
+      : SfBaseScreen(window, gameService, gameDisplay),
         gameNames_(std::move(gameNames)),
         pressedButtonIndex_(-1)
   {
@@ -38,27 +36,13 @@ namespace iab
 
   void SfGameSelectionScreen::doEnter() noexcept
   {
-    ImGuiIO &io = ImGui::GetIO();
-    io.Fonts->Clear();
-
-    char constexpr FONT_PATH[] = "resource/VeniteAdoremus-rgRBA.ttf";
-    float constexpr FONT_SIZE = 36.0f;
-    io.Fonts->AddFontFromFileTTF(FONT_PATH, FONT_SIZE);
-    if (!ImGui::SFML::UpdateFontTexture())
-    {
-      // TODO: Handle the error more gracefully, e.g., log it or show a message to the user
-      // ImGui::Begin("!", nullptr);
-      // std::string errorMsg = "Failed to load font " + std::string(FONT_PATH);
-      // ImGui::Text(errorMsg.c_str());
-      // ImGui::End();
-    }
   }
 
   void SfGameSelectionScreen::update(sf::Time const &elapsed) noexcept
   {
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
-    drawMenu();
+    layOutScreen();
 
     window()->clear();
     ImGui::SFML::Render(*window());
@@ -71,14 +55,14 @@ namespace iab
       std::vector<std::string> playerTypeNames(
           std::begin(PlayerType::NAMES), std::end(PlayerType::NAMES));
       std::shared_ptr<GameScreen> playerSelectionScreen(new SfPlayerSelectionScreen(
-          window(), gameService(), parentScreenManager(), playerTypeNames, gameType));
+          window(), gameService(), gameDisplay(), playerTypeNames, gameType));
 
-      parentScreenManager()->pushScreen(playerSelectionScreen);
+      gameDisplay()->pushScreen(playerSelectionScreen);
       // deactivate();
     }
     else if (pressedButtonIndex_ == int(gameNames_.size()))
     {
-      askExitConfirmation(window(), gameService(), shared_from_this(), "Are you sure?");
+      askExitConfirmation(window(), gameService(), gameDisplay(), shared_from_this(), "Are you sure?");
       // deactivate();
     }
 
@@ -90,8 +74,12 @@ namespace iab
   {
   }
 
-  void SfGameSelectionScreen::drawMenu() noexcept
+  void SfGameSelectionScreen::layOutScreen() noexcept
   {
+    int constexpr FONT_VENITE_ADOREMUS_36 = 1;
+    ImFont *font36 = ImGui::GetIO().Fonts->Fonts[FONT_VENITE_ADOREMUS_36];
+    ImGui::PushFont(font36);
+
     ImVec2 center(window()->getSize().x * 0.5f, window()->getSize().y * 0.5f);
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
@@ -126,5 +114,7 @@ namespace iab
     }
 
     ImGui::End();
+
+    ImGui::PopFont();
   }
 } // namespace iab

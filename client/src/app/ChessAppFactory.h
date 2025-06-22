@@ -5,9 +5,9 @@
 #include "GameAppFactory.h"
 #include "GameApp.h"
 
-#include "connect/GameServiceSimulator.h"
+#include "connect/MockGameService.h"
 #include "display/SfGameDisplay.h"
-#include "display/SfGameSelectionScreen.h"
+#include "display/SfLoginScreen.h"
 
 #include "model/GameType.h"
 namespace iab
@@ -32,13 +32,13 @@ namespace iab
       //  window->setFramerateLimit(0);
 
       // create GameService object
-      std::shared_ptr<GameService> gameService(new GameServiceSimulator);
+      std::shared_ptr<GameService> gameService(new MockGameService);
       // create GameDisplay object
       std::shared_ptr<GameDisplay> gameDisplay(new SfGameDisplay(window, gameService));
 
       std::vector<std::string> gameTypeNames(std::begin(GameType::NAMES), std::end(GameType::NAMES));
-      std::shared_ptr<GameScreen> initialScreen(new SfGameSelectionScreen(
-          window, gameService, gameDisplay, gameTypeNames));
+      std::shared_ptr<GameScreen> initialScreen(new SfLoginScreen(
+          window, gameService, gameDisplay));
 
       gameDisplay->pushScreen(initialScreen);
 

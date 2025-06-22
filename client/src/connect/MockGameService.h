@@ -1,4 +1,4 @@
-// GameServiceSimulator.h
+// MockGameService.h
 #pragma once
 
 #include <memory>
@@ -16,16 +16,16 @@ namespace boost
 
 namespace iab
 {
-  class GameServiceSimulator : public GameService
+  class MockGameService : public GameService
   {
     util::ThreadPool threadPool_;
     std::shared_ptr<boost::uuids::random_generator> uuidGenerator_;
     bool isConnected_;
 
   public:
-    GameServiceSimulator() noexcept;
+    MockGameService() noexcept;
 
-    void connect(std::string const &userId, Callback const &callback) override;
+    void connect(std::string const &userId, Callback const &callback) noexcept override;
 
     void disconnect() noexcept override;
 

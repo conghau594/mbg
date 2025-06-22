@@ -11,7 +11,6 @@ namespace iab
   class SfPlayerSelectionScreen final : public SfBaseScreen
   {
     std::vector<std::string> playerTypeNames_;
-    ImFont *smallFont_;
     int pressedButtonIndex_;
     int gameType_;
 
@@ -19,7 +18,7 @@ namespace iab
     SfPlayerSelectionScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameService> gameService,
-        std::shared_ptr<ScreenManager> screenMgr,
+        std::shared_ptr<GameDisplay> gameDisplay_,
         std::vector<std::string> playerTypeNames,
         int gameType) noexcept;
 
@@ -31,7 +30,7 @@ namespace iab
     void doExit() noexcept override;
     void doEnter() noexcept override;
 
-    void drawMenu() noexcept;
+    void layOutScreen() noexcept;
   };
 
 } // namespace iab

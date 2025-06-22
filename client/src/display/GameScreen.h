@@ -12,5 +12,6 @@ namespace iab
     virtual auto isActive() const -> bool = 0;
     virtual void onExit() = 0;
     virtual void onEnter() = 0;
+    virtual void changeSubscreen(std::shared_ptr<GameScreen> newSubscreen) = 0;
   };
 }

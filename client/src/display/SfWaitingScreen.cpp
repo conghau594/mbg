@@ -9,13 +9,13 @@ namespace iab
   SfWaitingScreen::SfWaitingScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
-      std::shared_ptr<ScreenManager> screenMgr,
+      std::shared_ptr<GameDisplay> gameDisplay,
       std::string const &message,
       std::vector<std::string> buttonLabels,
       std::vector<std::function<void()>> buttonCallbacks) noexcept
-      : SfBaseScreen(window, gameService, screenMgr),
+      : SfBaseScreen(window, gameService, gameDisplay),
         blockingScreen_(new SfBlockingScreen(
-            window, gameService, screenMgr, message, buttonLabels, buttonCallbacks))
+            window, gameService, gameDisplay, message, buttonLabels, buttonCallbacks))
   {
   }
 

@@ -15,9 +15,9 @@ namespace iab
   SfChessScreen::SfChessScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
-      std::shared_ptr<ScreenManager> screenMgr,
+      std::shared_ptr<GameDisplay> gameDisplay,
       SfTileMap tileMap) noexcept
-      : SfBaseScreen(window, gameService, screenMgr),
+      : SfBaseScreen(window, gameService, gameDisplay),
         tileMap_(std::move(tileMap)),
         pressedButtonIndex_(-1)
   {
@@ -33,7 +33,7 @@ namespace iab
 
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
-    drawResignButton();
+    layOutScreen();
 
     window()->clear();
     window()->draw(tileMap_);
@@ -51,27 +51,27 @@ namespace iab
             std::shared_ptr<GameScreen> waitScreen(new SfBlockingScreen(
                 window(),
                 gameService(),
-                parentScreenManager(),
+                gameDisplay(),
                 "Wait a second...",
                 {},
                 {}));
 
             // TODO: Send resign request
-            parentScreenManager()->popScreen();
-            parentScreenManager()->pushScreen(waitScreen);
+            gameDisplay()->popScreen();
+            gameDisplay()->pushScreen(waitScreen);
 
-            parentScreenManager()->popScreen();
-            parentScreenManager()->popScreen();
+            gameDisplay()->popScreen();
+            gameDisplay()->popScreen();
           },
           [this]()
           {
-            parentScreenManager()->popScreen();
+            gameDisplay()->popScreen();
           }};
 
       std::shared_ptr<GameScreen> pauseScreen(new SfBlockingScreen(
-          window(), gameService(), parentScreenManager(), msg, buttonLabels, buttonCallbacks));
+          window(), gameService(), gameDisplay(), msg, buttonLabels, buttonCallbacks));
 
-      parentScreenManager()->pushScreen(pauseScreen);
+      gameDisplay()->pushScreen(pauseScreen);
       // deactivate();
     }
 
@@ -92,25 +92,6 @@ namespace iab
 
   void SfChessScreen::doEnter()
   {
-    ImGuiIO &io = ImGui::GetIO();
-    io.Fonts->Clear();
-
-    char constexpr FONT_PATH[] = "resource/VeniteAdoremus-rgRBA.ttf";
-    float constexpr FONT_SIZE = 24.0f;
-    io.Fonts->AddFontFromFileTTF(FONT_PATH, FONT_SIZE);
-    if (!ImGui::SFML::UpdateFontTexture())
-    {
-      // TODO: Handle the error more gracefully, e.g., log it or show a message to the user
-      // ImGui::Begin("!", nullptr);
-      // std::string errorMsg = "Failed to load font " + std::string(FONT_PATH);
-      // ImGui::Text(errorMsg.c_str());
-      // ImGui::End();
-    }
-
-    mapRegionTopLeft_ = {0, 60};
-    mapRegionBotRight_ = window()->getSize();
-
-    tileMap_.fitRectangle(mapRegionTopLeft_, mapRegionBotRight_);
   }
 
   void SfChessScreen::doExit()
@@ -118,8 +99,12 @@ namespace iab
     // tileMap_.doExit();
   }
 
-  void SfChessScreen::drawResignButton() noexcept
+  void SfChessScreen::layOutScreen() noexcept
   {
+    int constexpr FONT_VENITE_ADOREMUS_24 = 2;
+    ImFont *font24 = ImGui::GetIO().Fonts->Fonts[FONT_VENITE_ADOREMUS_24];
+    ImGui::PushFont(font24);
+
     char constexpr buttonLabel[] = "Resign";
 
     ImVec2 const TEXT_SIZE = ImGui::CalcTextSize(buttonLabel);
@@ -164,5 +149,7 @@ namespace iab
     ImGui::PopStyleColor(numStyleColorsPushed);
 
     ImGui::End();
+
+    ImGui::PopFont();
   }
 }

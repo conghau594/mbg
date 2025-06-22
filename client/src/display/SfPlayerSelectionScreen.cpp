@@ -2,11 +2,8 @@
 #include <boost/assert.hpp>
 
 #include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/System/Clock.hpp>
-
 #include <imgui.h>      // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
-#include <imgui_internal.h>
 
 #include "model/PlayerType.h"
 #include "connect/GameService.h"
@@ -25,11 +22,10 @@ namespace iab
   SfPlayerSelectionScreen::SfPlayerSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
-      std::shared_ptr<ScreenManager> screenMgr,
+      std::shared_ptr<GameDisplay> gameDisplay,
       std::vector<std::string> playerTypeNames,
       int gameType) noexcept
-      : SfBaseScreen(window, gameService, screenMgr),
-        smallFont_(nullptr),
+      : SfBaseScreen(window, gameService, gameDisplay),
         pressedButtonIndex_(-1),
         playerTypeNames_(std::move(playerTypeNames)),
         gameType_(gameType)
@@ -42,30 +38,13 @@ namespace iab
 
   void SfPlayerSelectionScreen::doEnter() noexcept
   {
-    ImGuiIO &io = ImGui::GetIO();
-    io.Fonts->Clear();
-
-    char constexpr FONT_PATH[] = "resource/VeniteAdoremus-rgRBA.ttf";
-    float constexpr DEFAULT_FONT_SIZE = 36.0f;
-
-    io.Fonts->AddFontFromFileTTF(FONT_PATH, DEFAULT_FONT_SIZE);
-    smallFont_ = io.Fonts->AddFontFromFileTTF(FONT_PATH, DEFAULT_FONT_SIZE * 0.75f);
-
-    if (!ImGui::SFML::UpdateFontTexture())
-    {
-      // TODO: Handle the error more gracefully, e.g., log it or show a message to the user
-      // ImGui::Begin("!", nullptr);
-      // std::string errorMsg = "Failed to load font " + std::string(FONT_PATH);
-      // ImGui::Text(errorMsg.c_str());
-      // ImGui::End();
-    }
   }
 
   void SfPlayerSelectionScreen::update(sf::Time const &elapsed) noexcept
   {
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
-    drawMenu();
+    layOutScreen();
 
     window()->clear();
     ImGui::SFML::Render(*window());
@@ -78,27 +57,32 @@ namespace iab
 
       if (!gameService()->isConnected())
       {
-        connectServer(window(), gameService(), shared_from_this());
+        connectServer(window(), gameService(), gameDisplay(), shared_from_this());
       }
-      // int playerType = pressedButtonIndex_;
 
-      // // TODO: send requestGame(gameType_, playerType);
-      // std::shared_ptr<GameScreen> waitScreen(new SfWaitingScreen(
-      //     window(),
-      //     gameService(),
-      //     parentScreenManager(),
-      //     "Waiting for opponent...",
-      //     {"Cancel"},
-      //     {[this]()
-      //      {
-      //        // TODO: send cancelGameRequest
-      //        this->popScreen();
-      //      }}));
+      if (gameService()->isConnected())
+      {
+        int playerType = pressedButtonIndex_;
 
-      // //
-      // this->pushScreen(waitScreen);
-      // // deactivate();
+        gameService()->findOpponent("", gameType_, playerType, nullptr);
 
+        // TODO: send requestGame(gameType_, playerType);
+        std::shared_ptr<GameScreen> waitScreen(new SfWaitingScreen(
+            window(),
+            gameService(),
+            gameDisplay(),
+            "Waiting for opponent...",
+            {/*"Cancel"*/},
+            {
+                /*[this]()
+                {
+                  // TODO: send cancelGameRequest
+                  changeSubscreen(nullptr);
+                }*/
+            }));
+
+        changeSubscreen(waitScreen);
+      }
       // //=============================================================================
       // // Just for test, push the SfChessScreen:
       // // define the level with an array of tile indices
@@ -118,13 +102,13 @@ namespace iab
       //     level,
       //     {8, 8});
       // std::shared_ptr<GameScreen> chessScreen(new SfChessScreen(
-      //     window(), gameService(), parentScreenManager(), tileMap));
-      // parentScreenManager()->pushScreen(chessScreen);
+      //     window(), gameService(), gameDisplay(), tileMap));
+      // gameDisplay()->pushScreen(chessScreen);
       // //=============================================================================
     }
     else if (pressedButtonIndex_ == int(playerTypeNames_.size()))
     {
-      parentScreenManager()->popScreen();
+      gameDisplay()->popScreen();
       // deactivate();
     }
 
@@ -136,8 +120,12 @@ namespace iab
   {
   }
 
-  void SfPlayerSelectionScreen::drawMenu() noexcept
+  void SfPlayerSelectionScreen::layOutScreen() noexcept
   {
+    int constexpr FONT_VENITE_ADOREMUS_36 = 1;
+    ImFont *font36 = ImGui::GetIO().Fonts->Fonts[FONT_VENITE_ADOREMUS_36];
+    ImGui::PushFont(font36);
+
     ImVec2 center(window()->getSize().x * 0.5f, window()->getSize().y * 0.5f);
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     // ImGuiIO &io = ImGui::GetIO();
@@ -156,22 +144,23 @@ namespace iab
 
     ImGui::Begin("Select Player", nullptr, IM_GUI_FLAGS);
 
-    ImGui::PushFont(smallFont_);
+    int constexpr FONT_VENITE_ADOREMUS_24 = 2;
+    ImFont *font24 = ImGui::GetIO().Fonts->Fonts[FONT_VENITE_ADOREMUS_24];
+    ImGui::PushFont(font24);
     ImGui::Text("Play with . . .");
     ImGui::PopFont();
 
-    ImGui::Dummy(DUMMY_SIZE);
-
     for (int i = 0; i < (const int)playerTypeNames_.size(); ++i)
     {
+      ImGui::Dummy(DUMMY_SIZE);
       if (ImGui::Button(playerTypeNames_[i].c_str(), BUTTON_SIZE) &&
           pressedButtonIndex_ < 0)
       {
         pressedButtonIndex_ = i; // Only allow one button to be pressed at a time
       }
-      ImGui::Dummy(DUMMY_SIZE);
     }
 
+    ImGui::Dummy(ImVec2(DUMMY_SIZE.x * 2.0f, DUMMY_SIZE.y * 2.0f));
     ImGui::Separator();
     ImGui::Dummy(ImVec2(DUMMY_SIZE.x * 2.0f, DUMMY_SIZE.y * 2.0f));
 
@@ -181,5 +170,6 @@ namespace iab
     }
 
     ImGui::End();
+    ImGui::PopFont();
   }
 } // namespace iab

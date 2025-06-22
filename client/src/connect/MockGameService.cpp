@@ -1,23 +1,23 @@
-// GameServiceSimulator.cpp
+// MockGameService.cpp
 #include <iostream>
 
 #include <boost/uuid.hpp>
 
 #include "base/RandomUtils.h"
-#include "GameServiceSimulator.h"
+#include "MockGameService.h"
 
 namespace iab
 {
-  GameServiceSimulator::GameServiceSimulator() noexcept
+  MockGameService::MockGameService() noexcept
       : threadPool_(1),
         uuidGenerator_(new boost::uuids::random_generator),
         isConnected_(false)
   {
   }
 
-  void GameServiceSimulator::connect(
+  void MockGameService::connect(
       std::string const &userId,
-      Callback const &callback)
+      Callback const &callback) noexcept
   {
     threadPool_.push(
         [this, callback]()
@@ -29,31 +29,31 @@ namespace iab
             try
             {
               simulateNetworkLatencyAndFailure(100, 2000, 5000);
+              // connect successfully
+              isConnected_ = true;
             }
             catch (std::runtime_error const &e)
             {
               msg = e.what();
               code = -1;
+              isConnected_ = false;
             }
-
-            // connect successfully
-            isConnected_ = true;
           }
           callback(code, msg);
         });
   }
 
-  void GameServiceSimulator::disconnect() noexcept
+  void MockGameService::disconnect() noexcept
   {
     isConnected_ = false;
   }
 
-  auto GameServiceSimulator::isConnected() const noexcept -> bool
+  auto MockGameService::isConnected() const noexcept -> bool
   {
     return isConnected_;
   }
 
-  void GameServiceSimulator::cancelMatchmaking(
+  void MockGameService::cancelMatchmaking(
       std::string const & /*userId*/,
       Callback const &callback) noexcept
   {
@@ -80,7 +80,7 @@ namespace iab
         });
   }
 
-  auto GameServiceSimulator::findOpponent(
+  auto MockGameService::findOpponent(
       std::string const & /*userId*/,
       int /*gameType*/,
       int /*playerType*/,
@@ -119,7 +119,7 @@ namespace iab
     return "" /*boost::uuids::to_string(id)*/;
   }
 
-  void GameServiceSimulator::resignGame(
+  void MockGameService::resignGame(
       std::string const & /*userId*/,
       std::string const & /*gameId*/,
       Callback const &callback) noexcept
@@ -147,7 +147,7 @@ namespace iab
         });
   }
 
-  void GameServiceSimulator::commitMove(
+  void MockGameService::commitMove(
       std::string const & /*userId*/,
       std::string const & /*gameId*/,
       Move const *const /*move*/,
@@ -176,7 +176,7 @@ namespace iab
         });
   }
 
-  void GameServiceSimulator::simulateNetworkLatencyAndFailure(
+  void MockGameService::simulateNetworkLatencyAndFailure(
       int failurePercent /*=0*/, int minDelay /*=100*/, int maxDelay /*=2000*/)
   {
     std::this_thread::sleep_for(

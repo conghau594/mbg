@@ -17,7 +17,7 @@ namespace iab
     SfChessScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameService> gameService,
-        std::shared_ptr<ScreenManager> screenMgr,
+        std::shared_ptr<GameDisplay> gameDisplay_,
         SfTileMap tileMap) noexcept;
 
   private:
@@ -28,6 +28,6 @@ namespace iab
     void doEnter() override;
     void doExit() override;
 
-    void drawResignButton() noexcept;
+    void layOutScreen() noexcept;
   };
 }

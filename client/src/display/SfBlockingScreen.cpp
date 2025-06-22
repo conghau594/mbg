@@ -8,7 +8,6 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <imgui.h>      // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
-#include <imgui_internal.h>
 
 #include "SfBlockingScreen.h"
 
@@ -17,11 +16,11 @@ namespace iab
   SfBlockingScreen::SfBlockingScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
-      std::shared_ptr<ScreenManager> screenMgr,
+      std::shared_ptr<GameDisplay> gameDisplay_,
       std::string message,
       std::vector<std::string> buttonLabels,
       std::vector<std::function<void()>> buttonCallbacks) noexcept
-      : SfBaseScreen(window, gameService, screenMgr),
+      : SfBaseScreen(window, gameService, gameDisplay_),
         message_(std::move(message)),
         buttonLabels_(std::move(buttonLabels)),
         buttonCallbacks_(std::move(buttonCallbacks)),
@@ -33,20 +32,6 @@ namespace iab
 
   void SfBlockingScreen::doEnter() noexcept
   {
-    ImGuiIO &io = ImGui::GetIO();
-    io.Fonts->Clear();
-
-    const char FONT_PATH[] = "resource/Consola.ttf";
-    io.Fonts->AddFontFromFileTTF(FONT_PATH, 24.0f);
-
-    if (!ImGui::SFML::UpdateFontTexture())
-    {
-      // TODO: handle this concretely
-      // ImGui::Begin("!", nullptr);
-      // std::string errorMsg = "Failed to load font " + std::string(FONT_PATH);
-      // ImGui::Text(errorMsg.c_str());
-      // ImGui::End();
-    }
   }
 
   void SfBlockingScreen::doExit() noexcept
@@ -63,7 +48,7 @@ namespace iab
 
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
-    drawDialog();
+    layOutScreen();
     window()->clear();
     ImGui::SFML::Render(*window());
     window()->display();
@@ -85,8 +70,12 @@ namespace iab
   {
   }
 
-  void SfBlockingScreen::drawDialog() noexcept
+  void SfBlockingScreen::layOutScreen() noexcept
   {
+    int constexpr FONT_CONSOLA_24 = 3;
+    ImFont *font24 = ImGui::GetIO().Fonts->Fonts[FONT_CONSOLA_24];
+    ImGui::PushFont(font24);
+
     // Calculate button size
     int const BUTTON_COUNT = int(buttonLabels_.size());
     ImVec2 const TEXT_SIZE = ImGui::CalcTextSize(message_.c_str());
@@ -146,6 +135,8 @@ namespace iab
     }
 
     ImGui::End();
+
+    ImGui::PopFont();
   }
 
 }

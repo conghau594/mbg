@@ -27,6 +27,18 @@ namespace iab
     { // TODO: Define exception for this
       throw std::runtime_error("Failed to initialize ImGui.");
     }
+
+    ImGuiIO &io = ImGui::GetIO();
+
+    io.Fonts->AddFontFromFileTTF("resource/VeniteAdoremus-rgRBA.ttf", 36.0f);
+    io.Fonts->AddFontFromFileTTF("resource/VeniteAdoremus-rgRBA.ttf", 24.0f);
+    io.Fonts->AddFontFromFileTTF("resource/Consola.ttf", 24.0f);
+    io.Fonts->AddFontFromFileTTF("resource/Consola.ttf", 36.0f);
+
+    if (!ImGui::SFML::UpdateFontTexture())
+    {
+      throw std::runtime_error("Failed to update ImGui font texture.");
+    }
   }
 
   SfGameDisplay::~SfGameDisplay() noexcept

@@ -1,21 +1,21 @@
-// SfGameSelectionScreen.h
+// SfLoginScreen.h
 #pragma once
 
 #include "SfBaseScreen.h"
 
 namespace iab
 {
-  class SfGameSelectionScreen final : public SfBaseScreen
+  class SfLoginScreen : public SfBaseScreen
   {
-    std::vector<std::string> gameNames_;
+    char usernameBuffer_[128];
+    char passwordBuffer_[128];
     int pressedButtonIndex_;
 
   public:
-    SfGameSelectionScreen(
+    SfLoginScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameService> gameService,
-        std::shared_ptr<GameDisplay> gameDisplay,
-        std::vector<std::string> gameNames) noexcept;
+        std::shared_ptr<GameDisplay> gameDisplay) noexcept;
 
   private:
     void update(sf::Time const &elapsedTime) noexcept override;
@@ -27,5 +27,4 @@ namespace iab
 
     void layOutScreen() noexcept;
   };
-
 } // namespace iab

@@ -20,7 +20,7 @@ namespace iab
     SfWaitingScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameService> gameService,
-        std::shared_ptr<ScreenManager> screenMgr,
+        std::shared_ptr<GameDisplay> gameDisplay,
         std::string const &message,
         std::vector<std::string> buttonLabels,
         std::vector<std::function<void()>> buttonCallbacks) noexcept;
