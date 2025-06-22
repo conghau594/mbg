@@ -22,19 +22,36 @@ namespace iab
 {
   SfBaseScreen::SfBaseScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameDisplay> gameDisplay) noexcept
+      std::shared_ptr<ScreenManager> screenMgr) noexcept
       : window_(window),
         clock_(new sf::Clock),
-        gameDisplay_(gameDisplay),
+        screenMgr_(screenMgr),
         isActive_(true)
   {
     BOOST_ASSERT_MSG(window, "`window_` of `SfBaseScreen` cannot be null.");
-    BOOST_ASSERT_MSG(gameDisplay, "`gameDisplay_` of `SfBaseScreen` cannot be null.");
+    BOOST_ASSERT_MSG(screenMgr, "`gameDisplay_` of `SfBaseScreen` cannot be null.");
   }
 
   void SfBaseScreen::update()
   {
-    update(clock_->restart());
+    if (!screenStack_.empty())
+    {
+      if (currentScreen_ != screenStack_.back())
+      {
+        currentScreen_ = screenStack_.back();
+      }
+      currentScreen_->update();
+      return;
+    }
+
+    sf::Time elapsed = clock_->restart();
+    if (elapsed == sf::Time::Zero || !isActive_)
+    {
+      // If no time has passed or the screen should deactivate, do nothing
+      return;
+    }
+
+    update(elapsed);
 
     while (const auto event = window_->pollEvent())
     {
@@ -66,12 +83,55 @@ namespace iab
 
   void SfBaseScreen::onWindowClosed()
   {
-    askExitConfirmation(window_, gameDisplay_, "Do you want to quit?");
+    askExitConfirmation(window_, shared_from_this(), "Do you want to quit?");
+  }
+
+  void SfBaseScreen::pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept
+  {
+    if (!screenStack_.empty())
+    {
+      screenStack_.back()->onExit();
+    }
+    else
+    {
+      this->onExit();
+    }
+
+    screenStack_.push_back(newScreen);
+    newScreen->onEnter();
+  }
+
+  void SfBaseScreen::popScreen() noexcept
+  {
+    if (screenStack_.empty())
+    {
+      return;
+    }
+
+    screenStack_.back()->onExit();
+    screenStack_.pop_back();
+
+    if (screenStack_.empty())
+    {
+      this->onEnter();
+    }
+    else
+    {
+      screenStack_.back()->onEnter();
+    }
+  }
+
+  void SfBaseScreen::changeScreen(std::shared_ptr<GameScreen> newScreen) noexcept
+  {
+    auto &lastScreen = screenStack_.back();
+    lastScreen->onExit();
+    lastScreen = newScreen;
+    lastScreen->onEnter();
   }
 
   void SfBaseScreen::askExitConfirmation(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameDisplay> gameDisplay,
+      std::shared_ptr<ScreenManager> screenMgr,
       std::string const &msg) noexcept
   {
     std::vector<std::string> &&buttonLabels{"Yes", "No"};
@@ -80,14 +140,14 @@ namespace iab
         {
           window->close();
         },
-        [gameDisplay]()
+        [screenMgr]()
         {
-          gameDisplay->popScreen();
+          screenMgr->popScreen();
         }};
 
     std::shared_ptr<GameScreen> pauseScreen(new SfBlockingScreen(
-        window, gameDisplay, msg, buttonLabels, buttonCallbacks));
+        window, screenMgr, msg, buttonLabels, buttonCallbacks));
 
-    gameDisplay->pushScreen(pauseScreen);
+    screenMgr->pushScreen(pauseScreen);
   }
 }

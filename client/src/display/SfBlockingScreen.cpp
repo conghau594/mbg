@@ -16,11 +16,11 @@ namespace iab
 {
   SfBlockingScreen::SfBlockingScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameDisplay> gameDisplay,
+      std::shared_ptr<ScreenManager> screenMgr,
       std::string message,
       std::vector<std::string> buttonLabels,
       std::vector<std::function<void()>> buttonCallbacks) noexcept
-      : SfBaseScreen(window, gameDisplay),
+      : SfBaseScreen(window, screenMgr),
         message_(std::move(message)),
         buttonLabels_(std::move(buttonLabels)),
         buttonCallbacks_(std::move(buttonCallbacks)),
@@ -54,11 +54,11 @@ namespace iab
 
   void SfBlockingScreen::update(sf::Time const &elapsed) noexcept
   {
-    if (elapsed == sf::Time::Zero || !isActive())
-    {
-      // If no time has passed or the screen should deactivate, do nothing
-      return;
-    }
+    // if (elapsed == sf::Time::Zero || !isActive())
+    // {
+    //   // If no time has passed or the screen should deactivate, do nothing
+    //   return;
+    // }
 
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);

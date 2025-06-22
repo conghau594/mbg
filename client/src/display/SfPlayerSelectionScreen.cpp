@@ -23,10 +23,10 @@ namespace iab
 {
   SfPlayerSelectionScreen::SfPlayerSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameDisplay> gameDisplay,
+      std::shared_ptr<ScreenManager> screenMgr,
       std::vector<std::string> playerTypeNames,
       int gameType) noexcept
-      : SfBaseScreen(window, gameDisplay),
+      : SfBaseScreen(window, screenMgr),
         smallFont_(nullptr),
         pressedButtonIndex_(-1),
         playerTypeNames_(std::move(playerTypeNames)),
@@ -61,11 +61,11 @@ namespace iab
 
   void SfPlayerSelectionScreen::update(sf::Time const &elapsed) noexcept
   {
-    if (elapsed == sf::Time::Zero || !isActive())
-    {
-      // If no time has passed or the screen should deactivate, do nothing
-      return;
-    }
+    // if (elapsed == sf::Time::Zero || !isActive())
+    // {
+    //   // If no time has passed or the screen should deactivate, do nothing
+    //   return;
+    // }
 
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
@@ -82,17 +82,17 @@ namespace iab
       // TODO: send requestGame(gameType_, playerType);
       std::shared_ptr<GameScreen> waitScreen(new SfWaitingScreen(
           window(),
-          gameDisplay(),
+          screenManager(),
           "Waiting for opponent...",
           {"Cancel"},
           {[this]()
            {
              // TODO: send cancelGameRequest
-             gameDisplay()->popScreen();
+             screenManager()->popScreen();
            }}));
 
       //
-      gameDisplay()->pushScreen(waitScreen);
+      screenManager()->pushScreen(waitScreen);
       deactivate();
 
       //=============================================================================
@@ -113,13 +113,13 @@ namespace iab
           {200, 200},
           level,
           {8, 8});
-      std::shared_ptr<GameScreen> chessScreen(new SfChessScreen(window(), gameDisplay(), tileMap));
-      gameDisplay()->pushScreen(chessScreen);
+      std::shared_ptr<GameScreen> chessScreen(new SfChessScreen(window(), screenManager(), tileMap));
+      screenManager()->pushScreen(chessScreen);
       //=============================================================================
     }
     else if (pressedButtonIndex_ == int(playerTypeNames_.size()))
     {
-      gameDisplay()->popScreen();
+      screenManager()->popScreen();
       deactivate();
     }
 

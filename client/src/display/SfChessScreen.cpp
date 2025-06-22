@@ -14,9 +14,9 @@ namespace iab
 {
   SfChessScreen::SfChessScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameDisplay> gameDisplay,
+      std::shared_ptr<ScreenManager> screenMgr,
       SfTileMap tileMap) noexcept
-      : SfBaseScreen(window, gameDisplay),
+      : SfBaseScreen(window, screenMgr),
         tileMap_(std::move(tileMap)),
         pressedButtonIndex_(-1)
   {
@@ -24,11 +24,11 @@ namespace iab
 
   void SfChessScreen::update(sf::Time const &elapsed)
   {
-    if (elapsed == sf::Time::Zero || !isActive())
-    {
-      // If no time has passed or the screen should deactivate, do nothing
-      return;
-    }
+    // if (elapsed == sf::Time::Zero || !isActive())
+    // {
+    //   // If no time has passed or the screen should deactivate, do nothing
+    //   return;
+    // }
 
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
@@ -49,27 +49,27 @@ namespace iab
           {
             std::shared_ptr<GameScreen> waitScreen(new SfBlockingScreen(
                 window(),
-                gameDisplay(),
+                screenManager(),
                 "Wait a second...",
                 {},
                 {}));
 
             // TODO: Send resign request
-            gameDisplay()->popScreen();
-            gameDisplay()->pushScreen(waitScreen);
+            screenManager()->popScreen();
+            screenManager()->pushScreen(waitScreen);
 
-            gameDisplay()->popScreen();
-            gameDisplay()->popScreen();
+            screenManager()->popScreen();
+            screenManager()->popScreen();
           },
           [this]()
           {
-            gameDisplay()->popScreen();
+            screenManager()->popScreen();
           }};
 
       std::shared_ptr<GameScreen> pauseScreen(new SfBlockingScreen(
-          window(), gameDisplay(), msg, buttonLabels, buttonCallbacks));
+          window(), screenManager(), msg, buttonLabels, buttonCallbacks));
 
-      gameDisplay()->pushScreen(pauseScreen);
+      screenManager()->pushScreen(pauseScreen);
       deactivate();
     }
 

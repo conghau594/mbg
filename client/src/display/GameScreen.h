@@ -9,7 +9,7 @@ namespace iab
     virtual ~GameScreen() = default;
     virtual void update() = 0;
     virtual void deactivate() = 0;
-    virtual auto isActive() -> bool = 0;
+    virtual auto isActive() const -> bool = 0;
     virtual void onExit() = 0;
     virtual void onEnter() = 0;
   };

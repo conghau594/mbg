@@ -9,9 +9,9 @@ int main()
     iab::GameApp app = appFactory->createGameApp();
     app.run();
   }
-  catch (std::exception const &e)
+  catch (std::exception const & /*e*/)
   {
-    // TODO: Log failure
+    // TODO: Log failure with `e`
   }
   return 0;
 }

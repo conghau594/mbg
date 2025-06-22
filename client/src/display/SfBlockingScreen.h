@@ -35,7 +35,7 @@ namespace iab
   public:
     SfBlockingScreen(
         std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameDisplay> gameDisplay,
+        std::shared_ptr<ScreenManager> screenMgr,
         std::string message,
         std::vector<std::string> buttonLabels = {},
         std::vector<std::function<void()>> buttonCallbacks = {}) noexcept;

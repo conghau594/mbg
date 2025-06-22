@@ -13,7 +13,7 @@ namespace iab
   public:
     SfGameSelectionScreen(
         std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameDisplay> gameDisplay,
+        std::shared_ptr<ScreenManager> screenMgr,
         std::vector<std::string> gameNames) noexcept;
 
   private:

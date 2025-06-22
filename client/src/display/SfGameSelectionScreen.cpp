@@ -19,9 +19,9 @@ namespace iab
 {
   SfGameSelectionScreen::SfGameSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameDisplay> gameDisplay,
+      std::shared_ptr<ScreenManager> screenMgr,
       std::vector<std::string> gameNames) noexcept
-      : SfBaseScreen(window, gameDisplay),
+      : SfBaseScreen(window, screenMgr),
         gameNames_(std::move(gameNames)),
         pressedButtonIndex_(-1)
   {
@@ -51,11 +51,11 @@ namespace iab
 
   void SfGameSelectionScreen::update(sf::Time const &elapsed) noexcept
   {
-    if (elapsed == sf::Time::Zero || !isActive())
-    {
-      // If no time has passed or the screen should deactivate, do nothing
-      return;
-    }
+    // if (elapsed == sf::Time::Zero || !isActive())
+    // {
+    //   // If no time has passed or the screen should deactivate, do nothing
+    //   return;
+    // }
 
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
@@ -71,14 +71,14 @@ namespace iab
       int gameType = pressedButtonIndex_;
       std::vector<std::string> playerTypeNames(std::begin(PlayerType::NAMES), std::end(PlayerType::NAMES));
       std::shared_ptr<GameScreen> playerSelectionScreen(new SfPlayerSelectionScreen(
-          window(), gameDisplay(), playerTypeNames, gameType));
+          window(), screenManager(), playerTypeNames, gameType));
 
-      gameDisplay()->pushScreen(playerSelectionScreen);
+      screenManager()->pushScreen(playerSelectionScreen);
       deactivate();
     }
     else if (pressedButtonIndex_ == int(gameNames_.size()))
     {
-      askExitConfirmation(window(), gameDisplay(), "Are you sure?");
+      askExitConfirmation(window(), shared_from_this(), "Are you sure?");
       deactivate();
     }
 

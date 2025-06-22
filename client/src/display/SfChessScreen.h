@@ -16,7 +16,7 @@ namespace iab
   public:
     SfChessScreen(
         std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameDisplay> gameDisplay,
+        std::shared_ptr<ScreenManager> screenMgr,
         SfTileMap tileMap) noexcept;
 
   private:

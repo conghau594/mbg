@@ -12,6 +12,7 @@ namespace iab
   class GameDisplay;
   class ServerConnector;
 
+  // ==========================================================================
   class GameApp final
   {
     std::shared_ptr<GameService> gameService_;
