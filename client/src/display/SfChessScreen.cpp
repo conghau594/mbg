@@ -8,7 +8,7 @@
 
 #include "GameDisplay.h"
 #include "SfChessScreen.h"
-#include "SfBlockingScreen.h"
+#include "SfConfirmationScreen.h"
 
 namespace iab
 {
@@ -48,7 +48,7 @@ namespace iab
       std::vector<std::function<void()>> &&buttonCallbacks{
           [this]()
           {
-            std::shared_ptr<GameScreen> waitScreen(new SfBlockingScreen(
+            std::shared_ptr<GameScreen> waitScreen(new SfConfirmationScreen(
                 window(),
                 gameService(),
                 gameDisplay(),
@@ -68,7 +68,7 @@ namespace iab
             gameDisplay()->popScreen();
           }};
 
-      std::shared_ptr<GameScreen> pauseScreen(new SfBlockingScreen(
+      std::shared_ptr<GameScreen> pauseScreen(new SfConfirmationScreen(
           window(), gameService(), gameDisplay(), msg, buttonLabels, buttonCallbacks));
 
       gameDisplay()->pushScreen(pauseScreen);

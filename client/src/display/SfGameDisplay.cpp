@@ -32,8 +32,8 @@ namespace iab
 
     io.Fonts->AddFontFromFileTTF("resource/VeniteAdoremus-rgRBA.ttf", 36.0f);
     io.Fonts->AddFontFromFileTTF("resource/VeniteAdoremus-rgRBA.ttf", 24.0f);
-    io.Fonts->AddFontFromFileTTF("resource/Consola.ttf", 24.0f);
     io.Fonts->AddFontFromFileTTF("resource/Consola.ttf", 36.0f);
+    io.Fonts->AddFontFromFileTTF("resource/Consola.ttf", 24.0f);
 
     if (!ImGui::SFML::UpdateFontTexture())
     {

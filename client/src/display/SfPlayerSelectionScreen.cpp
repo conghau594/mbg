@@ -10,7 +10,7 @@
 
 #include "SfBaseScreen.h"
 #include "SfPlayerSelectionScreen.h"
-#include "SfWaitingScreen.h"
+#include "SfBlockingScreen.h"
 #include "GameDisplay.h"
 
 //=============================================================================
@@ -67,7 +67,7 @@ namespace iab
         gameService()->findOpponent("", gameType_, playerType, nullptr);
 
         // TODO: send requestGame(gameType_, playerType);
-        std::shared_ptr<GameScreen> waitScreen(new SfWaitingScreen(
+        std::shared_ptr<GameScreen> waitScreen(new SfBlockingScreen(
             window(),
             gameService(),
             gameDisplay(),

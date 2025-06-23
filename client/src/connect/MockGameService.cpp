@@ -28,7 +28,7 @@ namespace iab
           {
             try
             {
-              simulateNetworkLatencyAndFailure(100, 2000, 5000);
+              simulateNetworkLatencyAndFailure(10, 2000, 5000);
               // connect successfully
               isConnected_ = true;
             }

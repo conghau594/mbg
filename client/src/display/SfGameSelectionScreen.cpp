@@ -13,8 +13,8 @@
 #include "SfGameSelectionScreen.h"
 #include "SfGameDisplay.h"
 #include "SfBaseScreen.h"
+#include "SfConfirmationScreen.h"
 #include "SfBlockingScreen.h"
-#include "SfWaitingScreen.h"
 #include "SfPlayerSelectionScreen.h"
 
 namespace iab

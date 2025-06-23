@@ -13,8 +13,8 @@
 #include "connect/GameService.h"
 #include "GameDisplay.h"
 #include "SfBaseScreen.h"
+#include "SfConfirmationScreen.h"
 #include "SfBlockingScreen.h"
-#include "SfWaitingScreen.h"
 
 // #ifdef _DEBUG
 #include <iostream>
@@ -28,9 +28,11 @@ namespace iab
       std::shared_ptr<GameDisplay> gameDisplay) noexcept
       : window_(window),
         gameService_(gameService),
-        clock_(new sf::Clock),
         gameDisplay_(gameDisplay),
-        isActive_(true)
+        clock_(new sf::Clock),
+        isActive_(true),
+        lastSubscreen_(nullptr),
+        currentSubscreen_(nullptr)
   {
     BOOST_ASSERT_MSG(window, "window_ of SfBaseScreen cannot be null.");
     BOOST_ASSERT_MSG(gameService, "gameService_ of SfBaseScreen cannot be null.");
@@ -81,6 +83,8 @@ namespace iab
 
   void SfBaseScreen::onExit()
   {
+    currentSubscreen_ = nullptr;
+    lastSubscreen_ = nullptr;
     clock_->stop();
     doExit();
     isActive_ = false;
@@ -162,10 +166,10 @@ namespace iab
           parentScreen->changeSubscreen(nullptr);
         }};
 
-    std::shared_ptr<GameScreen> confirmScreen(new SfBlockingScreen(
+    std::shared_ptr<GameScreen> confirmationScreen(new SfConfirmationScreen(
         window, gameService, gameDisplay, msg, buttonLabels, buttonCallbacks));
 
-    parentScreen->changeSubscreen(confirmScreen);
+    parentScreen->changeSubscreen(confirmationScreen);
   }
 
   void SfBaseScreen::connectServer(
@@ -174,7 +178,7 @@ namespace iab
       std::shared_ptr<GameDisplay> gameDisplay,
       std::shared_ptr<SfBaseScreen> parentScreen) noexcept
   {
-    std::shared_ptr<GameScreen> waitScreen(new SfWaitingScreen(
+    std::shared_ptr<GameScreen> waitScreen(new SfBlockingScreen(
         window,
         gameService,
         gameDisplay,
@@ -195,34 +199,34 @@ namespace iab
         "",
         [parentScreen, window, gameDisplay, gameService](int code, std::string const &errMsg)
         {
-          if (code == 0)
-          {
-            parentScreen->changeSubscreen(nullptr);
-          }
-          else
-          {
-            std::vector<std::string> &&buttonLabels{"Retry", "Cancel"};
-            std::vector<std::function<void()>> &&buttonCallbacks{
-                [window, gameService, gameDisplay, parentScreen]()
-                {
-                  parentScreen->changeSubscreen(nullptr);
-                  SfBaseScreen::connectServer(window, gameService, gameDisplay, parentScreen);
-                },
-                [parentScreen]()
-                {
-                  parentScreen->changeSubscreen(nullptr);
-                }};
+          // if (code == 0)
+          // {
+          //   parentScreen->changeSubscreen(nullptr);
+          // }
+          // else
+          // {
+          //   std::vector<std::string> &&buttonLabels{"Retry", "Cancel"};
+          //   std::vector<std::function<void()>> &&buttonCallbacks{
+          //       [window, gameService, gameDisplay, parentScreen]()
+          //       {
+          //         parentScreen->changeSubscreen(nullptr);
+          //         SfBaseScreen::connectServer(window, gameService, gameDisplay, parentScreen);
+          //       },
+          //       [parentScreen]()
+          //       {
+          //         parentScreen->changeSubscreen(nullptr);
+          //       }};
 
-            std::shared_ptr<GameScreen> retryScreen(new SfWaitingScreen(
-                window,
-                gameService,
-                gameDisplay,
-                errMsg + " (" + std::to_string(code) + ")",
-                buttonLabels,
-                buttonCallbacks));
+          //   std::shared_ptr<GameScreen> retryScreen(new SfBlockingScreen(
+          //       window,
+          //       gameService,
+          //       gameDisplay,
+          //       errMsg + " (" + std::to_string(code) + ")",
+          //       buttonLabels,
+          //       buttonCallbacks));
 
-            parentScreen->changeSubscreen(retryScreen);
-          }
+          //   parentScreen->changeSubscreen(retryScreen);
+          // }
         });
   }
 }

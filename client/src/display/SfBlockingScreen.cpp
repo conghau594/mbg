@@ -61,18 +61,13 @@ namespace iab
     }
   }
 
-  void SfBlockingScreen::onWindowClosed() noexcept
-  {
-    // TODO: flicker the imgui menu
-  }
-
   void SfBlockingScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &) noexcept
   {
   }
 
   void SfBlockingScreen::layOutScreen() noexcept
   {
-    int constexpr FONT_CONSOLA_24 = 3;
+    int constexpr FONT_CONSOLA_24 = 4;
     ImFont *font24 = ImGui::GetIO().Fonts->Fonts[FONT_CONSOLA_24];
     ImGui::PushFont(font24);
 

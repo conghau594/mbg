@@ -42,6 +42,7 @@ namespace iab
         std::vector<std::function<void()>> buttonCallbacks = {}) noexcept;
     //~SfBlockingScreen();
 
+  private:
     void update(sf::Time const &elapsed) noexcept override;
 
     void onWindowEventExceptClosed(std::optional<sf::Event> const &event) noexcept override;
@@ -49,8 +50,6 @@ namespace iab
     void doExit() noexcept override;
     void doEnter() noexcept override;
 
-  private:
-    void onWindowClosed() noexcept override;
     void layOutScreen() noexcept;
   };
 

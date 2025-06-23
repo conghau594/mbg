@@ -5,7 +5,7 @@
 
 namespace iab
 {
-  class SfLoginScreen : public SfBaseScreen
+  class SfLoginScreen final : public SfBaseScreen
   {
     char usernameBuffer_[128];
     char passwordBuffer_[128];

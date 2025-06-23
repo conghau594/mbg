@@ -52,7 +52,12 @@ namespace iab
     }
     else if (pressedButtonIndex_ == 1)
     {
-      askExitConfirmation(window(), gameService(), gameDisplay(), shared_from_this(), "Are you sure?");
+      askExitConfirmation(
+          window(),
+          gameService(),
+          gameDisplay(),
+          shared_from_this(),
+          "Are you sure?");
     }
 
     pressedButtonIndex_ = -1;
@@ -65,7 +70,7 @@ namespace iab
 
   void SfLoginScreen::layOutScreen() noexcept
   {
-    int constexpr FONT_CONSOLA_36 = 4;
+    int constexpr FONT_CONSOLA_36 = 3;
     ImFont *font36 = ImGui::GetIO().Fonts->Fonts[FONT_CONSOLA_36];
     ImGui::PushFont(font36);
 
@@ -79,26 +84,26 @@ namespace iab
                                  ImGuiWindowFlags_NoMove;
 
     ImVec2 constexpr DUMMY_SIZE(0.0f, 10.0f);
+    ImVec2 constexpr INPUT_BOX_SIZE(400.0f, 60.0f);
+    ImVec2 const TEXT_SIZE = ImGui::CalcTextSize("Ayk");
 
     ImGuiStyle &style = ImGui::GetStyle();
-    ImVec2 const ITEM_SPACING = style.ItemSpacing;
-    ImVec2 const MENU_PADDING = style.WindowPadding;
-
-    ImVec2 const TEXT_SIZE = ImGui::CalcTextSize("Ayk");
-    ImVec2 constexpr INPUT_BOX_SIZE(400.0f, 60.0f);
-    ImVec2 BUTTON_SIZE((INPUT_BOX_SIZE.x - ITEM_SPACING.x) * 0.5f, INPUT_BOX_SIZE.y);
-
     float const OLD_FRAME_PADDING_Y = style.FramePadding.y;
     float const OLD_ITEM_SPACING_X = style.ItemSpacing.x;
 
     style.FramePadding.y = (INPUT_BOX_SIZE.y - TEXT_SIZE.y) * 0.5f;
-    style.ItemSpacing.x = DUMMY_SIZE.y;
+    style.ItemSpacing.x = 2.0f * DUMMY_SIZE.y;
+
+    ImVec2 const ITEM_SPACING = style.ItemSpacing;
+    ImVec2 const MENU_PADDING = style.WindowPadding;
+
+    ImVec2 BUTTON_SIZE((INPUT_BOX_SIZE.x - ITEM_SPACING.x) * 0.5f, INPUT_BOX_SIZE.y);
 
     // change window position
     ImVec2 center(window()->getSize().x * 0.5f, window()->getSize().y * 0.5f);
 
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    ImGui::Begin("Login Screen 1", nullptr, IM_GUI_FLAGS);
+    ImGui::Begin("Login Screen", nullptr, IM_GUI_FLAGS);
 
     int constexpr USERNAME_INPUT_FLAG = ImGuiInputTextFlags_CharsNoBlank;
     ImGui::InputTextEx("##Username", "Username", usernameBuffer_, IM_ARRAYSIZE(usernameBuffer_), INPUT_BOX_SIZE, USERNAME_INPUT_FLAG, 0, 0); // flags, callback, user_data
@@ -107,6 +112,7 @@ namespace iab
     int constexpr PASSWORD_INPUT_FLAG = ImGuiInputTextFlags_Password | ImGuiInputTextFlags_CharsNoBlank;
 
     ImGui::InputTextEx("##Password", "Password", passwordBuffer_, IM_ARRAYSIZE(passwordBuffer_), INPUT_BOX_SIZE, PASSWORD_INPUT_FLAG, 0, 0); // flags, callback, user_data
+    ImGui::Dummy(DUMMY_SIZE);
     ImGui::Dummy(DUMMY_SIZE);
 
     if (ImGui::Button("Login", BUTTON_SIZE) && pressedButtonIndex_ < 0)
