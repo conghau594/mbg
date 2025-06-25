@@ -1,6 +1,8 @@
 // SfGameSelectionScreen.h
 #pragma once
 
+#include <vector>
+
 #include "SfBaseScreen.h"
 
 namespace iab
@@ -15,7 +17,7 @@ namespace iab
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameService> gameService,
         std::shared_ptr<GameDisplay> gameDisplay,
-        std::vector<std::string> gameNames) noexcept;
+        std::vector<std::string> const &gameNames) noexcept;
 
   private:
     void update(sf::Time const &elapsedTime) noexcept override;

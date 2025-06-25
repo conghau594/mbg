@@ -8,7 +8,7 @@
 #include "model/GameType.h"
 #include "model/PlayerType.h"
 
-#include "connect/GameService.h"
+#include "service/GameService.h"
 
 #include "SfGameSelectionScreen.h"
 #include "SfGameDisplay.h"
@@ -23,7 +23,7 @@ namespace iab
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
       std::shared_ptr<GameDisplay> gameDisplay,
-      std::vector<std::string> gameNames) noexcept
+      std::vector<std::string> const &gameNames) noexcept
       : SfBaseScreen(window, gameService, gameDisplay),
         gameNames_(std::move(gameNames)),
         pressedButtonIndex_(-1)
@@ -62,8 +62,12 @@ namespace iab
     }
     else if (pressedButtonIndex_ == int(gameNames_.size()))
     {
-      askExitConfirmation(window(), gameService(), gameDisplay(), shared_from_this(), "Are you sure?");
-      // deactivate();
+      askExitConfirmation(
+          window(),
+          gameService(),
+          gameDisplay(),
+          shared_from_this(),
+          "Are you sure?");
     }
 
     pressedButtonIndex_ = -1;
@@ -98,7 +102,8 @@ namespace iab
 
     for (int i = 0; i < (const int)gameNames_.size(); ++i)
     {
-      if (ImGui::Button(gameNames_[i].c_str(), BUTTON_SIZE) && pressedButtonIndex_ < 0)
+      if (ImGui::Button(gameNames_[i].c_str(), BUTTON_SIZE) &&
+          pressedButtonIndex_ < 0)
       {
         pressedButtonIndex_ = i; // Only allow one button to be pressed at a time
       }

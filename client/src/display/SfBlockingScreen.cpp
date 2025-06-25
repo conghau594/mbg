@@ -40,12 +40,6 @@ namespace iab
 
   void SfBlockingScreen::update(sf::Time const &elapsed) noexcept
   {
-    // if (elapsed == sf::Time::Zero || !isActive())
-    // {
-    //   // If no time has passed or the screen should deactivate, do nothing
-    //   return;
-    // }
-
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
     layOutScreen();
@@ -54,14 +48,16 @@ namespace iab
     window()->display();
 
     // handle button presses
-    if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < (int)buttonCallbacks_.size())
+    if (pressedButtonIndex_ >= 0 &&
+        pressedButtonIndex_ < (int)buttonCallbacks_.size())
     {
       buttonCallbacks_[pressedButtonIndex_]();
       pressedButtonIndex_ = -1; // Reset after executing the callback
     }
   }
 
-  void SfBlockingScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &) noexcept
+  void SfBlockingScreen::onWindowEventExceptClosed(
+      std::optional<sf::Event> const &) noexcept
   {
   }
 
@@ -121,7 +117,8 @@ namespace iab
 
       for (int i = 0; i < BUTTON_COUNT; ++i)
       {
-        if (ImGui::Button(buttonLabels_[i].c_str(), BUTTON_SIZE) && pressedButtonIndex_ < 0)
+        if (ImGui::Button(buttonLabels_[i].c_str(), BUTTON_SIZE) &&
+            pressedButtonIndex_ < 0)
         {
           pressedButtonIndex_ = i; // Only allow one button to be pressed at a time
         }

@@ -6,7 +6,7 @@
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 
 #include "model/PlayerType.h"
-#include "connect/GameService.h"
+#include "service/GameService.h"
 
 #include "SfBaseScreen.h"
 #include "SfPlayerSelectionScreen.h"
@@ -55,34 +55,34 @@ namespace iab
         pressedButtonIndex_ < int(playerTypeNames_.size()))
     {
 
-      if (!gameService()->isConnected())
-      {
-        connectServer(window(), gameService(), gameDisplay(), shared_from_this());
-      }
+      // if (!gameService()->isConnected())
+      // {
+      //   connectServer(window(), gameService(), gameDisplay(), shared_from_this());
+      // }
 
-      if (gameService()->isConnected())
-      {
-        int playerType = pressedButtonIndex_;
+      // if (gameService()->isConnected())
+      // {
+      //   int playerType = pressedButtonIndex_;
 
-        gameService()->findOpponent("", gameType_, playerType, nullptr);
+      //   gameService()->findOpponent("", gameType_, playerType, nullptr);
 
-        // TODO: send requestGame(gameType_, playerType);
-        std::shared_ptr<GameScreen> waitScreen(new SfBlockingScreen(
-            window(),
-            gameService(),
-            gameDisplay(),
-            "Waiting for opponent...",
-            {/*"Cancel"*/},
-            {
-                /*[this]()
-                {
-                  // TODO: send cancelGameRequest
-                  changeSubscreen(nullptr);
-                }*/
-            }));
+      //   // TODO: send requestGame(gameType_, playerType);
+      //   std::shared_ptr<GameScreen> waitScreen(new SfBlockingScreen(
+      //       window(),
+      //       gameService(),
+      //       gameDisplay(),
+      //       "Waiting for opponent...",
+      //       {/*"Cancel"*/},
+      //       {
+      //           /*[this]()
+      //           {
+      //             // TODO: send cancelGameRequest
+      //             changeSubscreen(nullptr);
+      //           }*/
+      //       }));
 
-        changeSubscreen(waitScreen);
-      }
+      //   changeSubscreen(waitScreen);
+      // }
       // //=============================================================================
       // // Just for test, push the SfChessScreen:
       // // define the level with an array of tile indices

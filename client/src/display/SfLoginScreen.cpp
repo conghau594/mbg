@@ -8,18 +8,48 @@
 #include <imgui_internal.h>
 
 #include "SfGameDisplay.h"
-#include "connect/GameService.h"
+#include "SfBlockingScreen.h"
+#include "SfGameSelectionScreen.h"
+
+#include "model/GameType.h"
+
+#include "service/GameService.h"
+#include "service/Request.h"
 
 namespace iab
 {
+  SfConnectionWaitingScreen::SfConnectionWaitingScreen(
+      std::shared_ptr<sf::RenderWindow> window,
+      std::shared_ptr<GameService> gameService,
+      std::shared_ptr<GameDisplay> gameDisplay,
+      std::shared_ptr<GameScreen> parentScreen,
+      std::future<Response> const &futureLoginResponse) noexcept
+      : SfBlockingScreen(
+            window, gameService, gameDisplay, "Connecting to server...", {}, {}),
+        futureLoginResponse_(futureLoginResponse),
+        parentScreen_(parentScreen)
+  {
+  }
+
+  void SfConnectionWaitingScreen::update(sf::Time const &elapsed) noexcept
+  {
+    if (futureLoginResponse_.valid() &&
+        futureLoginResponse_.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+    {
+      parentScreen_->changeSubscreen(nullptr);
+      return;
+    }
+
+    SfBlockingScreen::update(elapsed);
+  }
 
   SfLoginScreen::SfLoginScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
       std::shared_ptr<GameDisplay> gameDisplay) noexcept
       : SfBaseScreen(window, gameService, gameDisplay),
-        passwordBuffer_(""),
-        usernameBuffer_(""),
+        passwordBuffer_(0),
+        usernameBuffer_(0),
         pressedButtonIndex_(-1)
   {
   }
@@ -34,6 +64,54 @@ namespace iab
 
   void SfLoginScreen::update(sf::Time const &elapsed) noexcept
   {
+    if (futureLoginResponse_.valid() &&
+        futureLoginResponse_.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+    {
+      Response response = futureLoginResponse_.get();
+      if (auto loginResponse = response.getIf<Response::Login>())
+      {
+        ErrorCode const &errcode = loginResponse->errcode;
+        if (errcode.value == 0)
+        {
+          std::vector<std::string> gameTypeNames(
+              std::begin(GameType::NAMES), std::end(GameType::NAMES));
+          std::shared_ptr<GameScreen> gameSelectionScreen(new SfGameSelectionScreen(
+              window(), gameService(), gameDisplay(), gameTypeNames));
+
+          changeSubscreen(nullptr);
+          gameDisplay()->pushScreen(gameSelectionScreen);
+        }
+        else
+        {
+          std::vector<std::string> &&buttonLabels{"Retry", "Cancel"};
+          std::vector<std::function<void()>> &&buttonCallbacks{
+              [this]()
+              {
+                sendLoginRequest();
+              },
+              [this]()
+              {
+                changeSubscreen(nullptr);
+              }};
+
+          std::string message = errcode.message + " (" +
+                                std::to_string(errcode.value) + ")";
+
+          std::shared_ptr<GameScreen> retryScreen(new SfBlockingScreen(
+              window(),
+              gameService(),
+              gameDisplay(),
+              message,
+              buttonLabels,
+              buttonCallbacks));
+
+          changeSubscreen(retryScreen);
+        }
+      }
+
+      return;
+    }
+
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
     layOutScreen();
@@ -45,10 +123,7 @@ namespace iab
     // handle button presses
     if (pressedButtonIndex_ == 0)
     {
-      if (!gameService()->isConnected())
-      {
-        connectServer(window(), gameService(), gameDisplay(), shared_from_this());
-      }
+      sendLoginRequest();
     }
     else if (pressedButtonIndex_ == 1)
     {
@@ -64,8 +139,11 @@ namespace iab
   }
 
   void SfLoginScreen::onWindowEventExceptClosed(
-      std::optional<sf::Event> const &) noexcept
+      std::optional<sf::Event> const &event) noexcept
   {
+    if (auto mousePressed = event->getIf<sf::Event::MouseButtonPressed>())
+    {
+    }
   }
 
   void SfLoginScreen::layOutScreen() noexcept
@@ -106,12 +184,30 @@ namespace iab
     ImGui::Begin("Login Screen", nullptr, IM_GUI_FLAGS);
 
     int constexpr USERNAME_INPUT_FLAG = ImGuiInputTextFlags_CharsNoBlank;
-    ImGui::InputTextEx("##Username", "Username", usernameBuffer_, IM_ARRAYSIZE(usernameBuffer_), INPUT_BOX_SIZE, USERNAME_INPUT_FLAG, 0, 0); // flags, callback, user_data
+    ImGui::InputTextEx(
+        "##Username",
+        "Username",
+        usernameBuffer_,
+        IM_ARRAYSIZE(usernameBuffer_),
+        INPUT_BOX_SIZE,
+        USERNAME_INPUT_FLAG,
+        0,
+        0); // flags, callback, user_data
+
     ImGui::Dummy(DUMMY_SIZE);
 
-    int constexpr PASSWORD_INPUT_FLAG = ImGuiInputTextFlags_Password | ImGuiInputTextFlags_CharsNoBlank;
+    int constexpr PASSWORD_INPUT_FLAG = ImGuiInputTextFlags_Password |
+                                        ImGuiInputTextFlags_CharsNoBlank;
 
-    ImGui::InputTextEx("##Password", "Password", passwordBuffer_, IM_ARRAYSIZE(passwordBuffer_), INPUT_BOX_SIZE, PASSWORD_INPUT_FLAG, 0, 0); // flags, callback, user_data
+    ImGui::InputTextEx(
+        "##Password",
+        "Password",
+        passwordBuffer_,
+        IM_ARRAYSIZE(passwordBuffer_),
+        INPUT_BOX_SIZE,
+        PASSWORD_INPUT_FLAG,
+        0,
+        0); // flags, callback, user_data
     ImGui::Dummy(DUMMY_SIZE);
     ImGui::Dummy(DUMMY_SIZE);
 
@@ -131,5 +227,19 @@ namespace iab
     style.ItemSpacing.x = OLD_ITEM_SPACING_X;
 
     ImGui::PopFont();
+  }
+
+  void SfLoginScreen::sendLoginRequest() noexcept
+  {
+    Request::Login request{usernameBuffer_, passwordBuffer_};
+    futureLoginResponse_ = gameService()->send(request);
+    std::shared_ptr<GameScreen> waitScreen(new SfConnectionWaitingScreen(
+        window(),
+        gameService(),
+        gameDisplay(),
+        shared_from_this(),
+        futureLoginResponse_));
+
+    changeSubscreen(waitScreen);
   }
 } // namespace iab

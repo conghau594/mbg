@@ -5,11 +5,10 @@
 #include "GameAppFactory.h"
 #include "GameApp.h"
 
-#include "connect/MockGameService.h"
+#include "service/MockGameService.h"
 #include "display/SfGameDisplay.h"
 #include "display/SfLoginScreen.h"
 
-#include "model/GameType.h"
 namespace iab
 {
   class ChessAppFactory final : public GameAppFactory
@@ -24,7 +23,9 @@ namespace iab
       // size_t constexpr updatePeriod = 15'000; //
 
       std::shared_ptr<sf::RenderWindow> window(new sf::RenderWindow(
-          sf::VideoMode({width, height}), title, sf::Style::Titlebar | sf::Style::Close));
+          sf::VideoMode({width, height}),
+          title,
+          sf::Style::Titlebar | sf::Style::Close));
 
       window->setMinimumSize(sf::Vector2u{300, 360});
 
@@ -34,9 +35,9 @@ namespace iab
       // create GameService object
       std::shared_ptr<GameService> gameService(new MockGameService);
       // create GameDisplay object
-      std::shared_ptr<GameDisplay> gameDisplay(new SfGameDisplay(window, gameService));
+      std::shared_ptr<GameDisplay> gameDisplay(
+          new SfGameDisplay(window, gameService));
 
-      std::vector<std::string> gameTypeNames(std::begin(GameType::NAMES), std::end(GameType::NAMES));
       std::shared_ptr<GameScreen> initialScreen(new SfLoginScreen(
           window, gameService, gameDisplay));
 

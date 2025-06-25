@@ -40,9 +40,8 @@ namespace iab
         std::string message,
         std::vector<std::string> buttonLabels = {},
         std::vector<std::function<void()>> buttonCallbacks = {}) noexcept;
-    //~SfBlockingScreen();
 
-  private:
+  protected:
     void update(sf::Time const &elapsed) noexcept override;
 
     void onWindowEventExceptClosed(std::optional<sf::Event> const &event) noexcept override;

@@ -10,11 +10,10 @@
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 #include <imgui_internal.h>
 
-#include "connect/GameService.h"
+#include "service/GameService.h"
 #include "GameDisplay.h"
 #include "SfBaseScreen.h"
 #include "SfConfirmationScreen.h"
-#include "SfBlockingScreen.h"
 
 // #ifdef _DEBUG
 #include <iostream>
@@ -83,8 +82,8 @@ namespace iab
 
   void SfBaseScreen::onExit()
   {
-    currentSubscreen_ = nullptr;
-    lastSubscreen_ = nullptr;
+    // currentSubscreen_ = nullptr;
+    // lastSubscreen_ = nullptr;
     clock_->stop();
     doExit();
     isActive_ = false;
@@ -94,41 +93,6 @@ namespace iab
   {
     askExitConfirmation(window_, gameService_, gameDisplay_, shared_from_this(), "Do you want to quit?");
   }
-
-  // void SfBaseScreen::pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept
-  // {
-  //   if (!screenStack_.empty())
-  //   {
-  //     screenStack_.back()->onExit();
-  //   }
-  //   else
-  //   {
-  //     this->onExit();
-  //   }
-
-  //   screenStack_.push_back(newScreen);
-  //   newScreen->onEnter();
-  // }
-
-  // void SfBaseScreen::popScreen() noexcept
-  // {
-  //   if (screenStack_.empty())
-  //   {
-  //     return;
-  //   }
-
-  //   screenStack_.back()->onExit();
-  //   screenStack_.pop_back();
-
-  //   if (screenStack_.empty())
-  //   {
-  //     this->onEnter();
-  //   }
-  //   else
-  //   {
-  //     screenStack_.back()->onEnter();
-  //   }
-  // }
 
   void SfBaseScreen::changeSubscreen(std::shared_ptr<GameScreen> newSubscreen) noexcept
   {
@@ -170,63 +134,5 @@ namespace iab
         window, gameService, gameDisplay, msg, buttonLabels, buttonCallbacks));
 
     parentScreen->changeSubscreen(confirmationScreen);
-  }
-
-  void SfBaseScreen::connectServer(
-      std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameService> gameService,
-      std::shared_ptr<GameDisplay> gameDisplay,
-      std::shared_ptr<SfBaseScreen> parentScreen) noexcept
-  {
-    std::shared_ptr<GameScreen> waitScreen(new SfBlockingScreen(
-        window,
-        gameService,
-        gameDisplay,
-        "Connecting to server...",
-        {/*"Cancel"*/},
-        {
-            /*[parentScreen, gameService]()
-            {
-              // TODO: send cancelConnection
-              //gameService->disconnect();
-              parentScreen->changeSubscreen(nullptr);
-            }*/
-        }));
-
-    parentScreen->changeSubscreen(waitScreen);
-
-    gameService->connect(
-        "",
-        [parentScreen, window, gameDisplay, gameService](int code, std::string const &errMsg)
-        {
-          // if (code == 0)
-          // {
-          //   parentScreen->changeSubscreen(nullptr);
-          // }
-          // else
-          // {
-          //   std::vector<std::string> &&buttonLabels{"Retry", "Cancel"};
-          //   std::vector<std::function<void()>> &&buttonCallbacks{
-          //       [window, gameService, gameDisplay, parentScreen]()
-          //       {
-          //         parentScreen->changeSubscreen(nullptr);
-          //         SfBaseScreen::connectServer(window, gameService, gameDisplay, parentScreen);
-          //       },
-          //       [parentScreen]()
-          //       {
-          //         parentScreen->changeSubscreen(nullptr);
-          //       }};
-
-          //   std::shared_ptr<GameScreen> retryScreen(new SfBlockingScreen(
-          //       window,
-          //       gameService,
-          //       gameDisplay,
-          //       errMsg + " (" + std::to_string(code) + ")",
-          //       buttonLabels,
-          //       buttonCallbacks));
-
-          //   parentScreen->changeSubscreen(retryScreen);
-          // }
-        });
   }
 }

@@ -76,11 +76,5 @@ namespace iab
         std::shared_ptr<GameDisplay> gameDisplay,
         std::shared_ptr<SfBaseScreen> parentScreen,
         std::string const &msg) noexcept;
-
-    static void connectServer(
-        std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameService> gameService,
-        std::shared_ptr<GameDisplay> gameDisplay,
-        std::shared_ptr<SfBaseScreen> parentScreen) noexcept;
   };
 }
