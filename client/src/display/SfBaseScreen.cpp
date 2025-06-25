@@ -21,18 +21,14 @@
 // #endif
 namespace iab
 {
-  SfBaseScreen::SfBaseScreen(
-      std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameService> gameService) noexcept
+  SfBaseScreen::SfBaseScreen(std::shared_ptr<sf::RenderWindow> window) noexcept
       : window_(window),
-        gameService_(gameService),
         clock_(new sf::Clock),
         isActive_(true),
         lastSubscreen_(nullptr),
         currentSubscreen_(nullptr)
   {
     BOOST_ASSERT_MSG(window, "window_ of SfBaseScreen cannot be null.");
-    BOOST_ASSERT_MSG(gameService, "gameService_ of SfBaseScreen cannot be null.");
   }
 
   void SfBaseScreen::update()
@@ -88,10 +84,11 @@ namespace iab
 
   void SfBaseScreen::onWindowClosed()
   {
-    askExitConfirmation(window_, gameService_, shared_from_this(), "Do you want to quit?");
+    askExitConfirmation(window_, shared_from_this(), "Do you want to quit?");
   }
 
-  void SfBaseScreen::changeSubscreen(std::shared_ptr<GameScreen> newSubscreen) noexcept
+  void SfBaseScreen::changeSubscreen(
+      std::shared_ptr<GameScreen> newSubscreen) noexcept
   {
     {
       std::lock_guard lock(subscreenMutex_);
@@ -111,7 +108,6 @@ namespace iab
 
   void SfBaseScreen::askExitConfirmation(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameService> gameService,
       std::shared_ptr<SfBaseScreen> parentScreen,
       std::string const &msg) noexcept
   {
@@ -127,7 +123,7 @@ namespace iab
         }};
 
     std::shared_ptr<GameScreen> confirmationScreen(new SfConfirmationScreen(
-        window, gameService, msg, buttonLabels, buttonCallbacks));
+        window, msg, buttonLabels, buttonCallbacks));
 
     parentScreen->changeSubscreen(confirmationScreen);
   }

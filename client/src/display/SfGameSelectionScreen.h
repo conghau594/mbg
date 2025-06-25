@@ -16,7 +16,6 @@ namespace iab
   public:
     SfGameSelectionScreen(
         std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameService> gameService,
         std::shared_ptr<GameDisplay> gameDisplay,
         std::vector<std::string> const &gameNames) noexcept;
 

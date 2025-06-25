@@ -14,10 +14,9 @@ namespace iab
 {
   SfChessScreen::SfChessScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameService> gameService,
       std::shared_ptr<GameDisplay> gameDisplay,
       SfTileMap tileMap) noexcept
-      : SfBaseScreen(window, gameService),
+      : SfBaseScreen(window),
         gameDisplay_(gameDisplay),
         tileMap_(std::move(tileMap)),
         pressedButtonIndex_(-1)
@@ -50,11 +49,7 @@ namespace iab
           [this]()
           {
             std::shared_ptr<GameScreen> waitScreen(new SfConfirmationScreen(
-                window(),
-                gameService(),
-                "Wait a second...",
-                {},
-                {}));
+                window(), "Wait a second...", {}, {}));
 
             // TODO: Send resign request
             gameDisplay_->popScreen();
@@ -69,7 +64,7 @@ namespace iab
           }};
 
       std::shared_ptr<GameScreen> pauseScreen(new SfConfirmationScreen(
-          window(), gameService(), msg, buttonLabels, buttonCallbacks));
+          window(), msg, buttonLabels, buttonCallbacks));
 
       gameDisplay_->pushScreen(pauseScreen);
       // deactivate();

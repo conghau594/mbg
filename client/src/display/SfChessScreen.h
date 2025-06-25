@@ -18,7 +18,6 @@ namespace iab
   public:
     SfChessScreen(
         std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameService> gameService,
         std::shared_ptr<GameDisplay> gameDisplay,
         SfTileMap tileMap) noexcept;
 

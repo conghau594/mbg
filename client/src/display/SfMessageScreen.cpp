@@ -15,11 +15,10 @@ namespace iab
 {
   SfMessageScreen::SfMessageScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameService> gameService,
       std::string message,
       std::vector<std::string> buttonLabels,
       std::vector<std::function<void()>> buttonCallbacks) noexcept
-      : SfBaseScreen(window, gameService),
+      : SfBaseScreen(window),
         message_(std::move(message)),
         buttonLabels_(std::move(buttonLabels)),
         buttonCallbacks_(std::move(buttonCallbacks)),

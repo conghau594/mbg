@@ -16,18 +16,18 @@ namespace iab
   public:
     auto createGameApp() noexcept -> GameApp override
     {
-      unsigned constexpr height = 860;
-      unsigned constexpr width = 800;
-      const char *title = "Chess Game"; // "Intelligent Agent Combats"
+      sf::Vector2u constexpr WINDOW_SIZE(800, 860);
+      sf::Vector2u constexpr WINDOW_MIN_SIZE(300, 360);
+      const char *WINDOW_TITLE = "Chess Game"; // "Intelligent Agent Combats"
       // TODO: consider when to use updatePeriod
       // size_t constexpr updatePeriod = 15'000; //
 
       std::shared_ptr<sf::RenderWindow> window(new sf::RenderWindow(
-          sf::VideoMode({width, height}),
-          title,
+          sf::VideoMode(WINDOW_SIZE),
+          WINDOW_TITLE,
           sf::Style::Titlebar | sf::Style::Close));
 
-      window->setMinimumSize(sf::Vector2u{300, 360});
+      window->setMinimumSize(WINDOW_MIN_SIZE);
 
       window->setVerticalSyncEnabled(true);
       //  window->setFramerateLimit(0);
@@ -39,7 +39,7 @@ namespace iab
           new SfGameDisplay(window, gameService));
 
       std::shared_ptr<GameScreen> initialScreen(new SfLoginScreen(
-          window, gameService, gameDisplay));
+          window, gameDisplay));
 
       gameDisplay->pushScreen(initialScreen);
 

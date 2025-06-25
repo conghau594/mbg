@@ -28,6 +28,8 @@ namespace iab
     ~SfGameDisplay() noexcept;
 
     void run() override;
+    std::future<Response> send(Request request) noexcept override;
+
     void pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept override;
     void popScreen() noexcept override;
     void changeScreen(std::shared_ptr<GameScreen> newScreen) noexcept override;

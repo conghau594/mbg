@@ -35,7 +35,6 @@ namespace iab
   public:
     SfMessageScreen(
         std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameService> gameService,
         std::string message,
         std::vector<std::string> buttonLabels = {},
         std::vector<std::function<void()>> buttonCallbacks = {}) noexcept;

@@ -20,10 +20,9 @@ namespace iab
 {
   SfConnectionWaitingScreen::SfConnectionWaitingScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameService> gameService,
       std::shared_ptr<GameScreen> parentScreen,
       std::future<Response> const &futureLoginResponse) noexcept
-      : SfMessageScreen(window, gameService, "Connecting to server...", {}, {}),
+      : SfMessageScreen(window, "Connecting to server...", {}, {}),
         futureLoginResponse_(futureLoginResponse),
         parentScreen_(parentScreen)
   {
@@ -41,11 +40,11 @@ namespace iab
     SfMessageScreen::update(elapsed);
   }
 
+  /////////////////////////////////////////////////////////////////////////////
   SfLoginScreen::SfLoginScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameService> gameService,
       std::shared_ptr<GameDisplay> gameDisplay) noexcept
-      : SfBaseScreen(window, gameService),
+      : SfBaseScreen(window),
         gameDisplay_(gameDisplay),
         passwordBuffer_(0),
         usernameBuffer_(0),
@@ -75,7 +74,7 @@ namespace iab
           std::vector<std::string> gameTypeNames(
               std::begin(GameType::NAMES), std::end(GameType::NAMES));
           std::shared_ptr<GameScreen> gameSelectionScreen(new SfGameSelectionScreen(
-              window(), gameService(), gameDisplay_, gameTypeNames));
+              window(), gameDisplay_, gameTypeNames));
 
           changeSubscreen(nullptr);
           gameDisplay_->pushScreen(gameSelectionScreen);
@@ -97,11 +96,7 @@ namespace iab
                                 std::to_string(errcode.value) + ")";
 
           std::shared_ptr<GameScreen> retryScreen(new SfMessageScreen(
-              window(),
-              gameService(),
-              message,
-              buttonLabels,
-              buttonCallbacks));
+              window(), message, buttonLabels, buttonCallbacks));
 
           changeSubscreen(retryScreen);
         }
@@ -125,11 +120,7 @@ namespace iab
     }
     else if (pressedButtonIndex_ == 1)
     {
-      askExitConfirmation(
-          window(),
-          gameService(),
-          shared_from_this(),
-          "Are you sure?");
+      askExitConfirmation(window(), shared_from_this(), "Are you sure?");
     }
 
     pressedButtonIndex_ = -1;
@@ -229,12 +220,9 @@ namespace iab
   void SfLoginScreen::sendLoginRequest() noexcept
   {
     Request::Login request{usernameBuffer_, passwordBuffer_};
-    futureLoginResponse_ = gameService()->send(request);
+    futureLoginResponse_ = gameDisplay_->send(request);
     std::shared_ptr<GameScreen> waitScreen(new SfConnectionWaitingScreen(
-        window(),
-        gameService(),
-        shared_from_this(),
-        futureLoginResponse_));
+        window(), shared_from_this(), futureLoginResponse_));
 
     changeSubscreen(waitScreen);
   }

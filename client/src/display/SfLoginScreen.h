@@ -17,7 +17,6 @@ namespace iab
   public:
     SfConnectionWaitingScreen(
         std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameService> gameService,
         std::shared_ptr<GameScreen> parentScreen,
         std::future<Response> const &futureLoginResponse) noexcept;
 
@@ -36,7 +35,6 @@ namespace iab
   public:
     SfLoginScreen(
         std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameService> gameService,
         std::shared_ptr<GameDisplay> gameDisplay) noexcept;
 
   private:

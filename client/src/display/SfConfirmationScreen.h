@@ -14,7 +14,6 @@ namespace iab
   public:
     inline SfConfirmationScreen(
         std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameService> gameService,
         std::string const &message,
         std::vector<std::string> buttonLabels,
         std::vector<std::function<void()>> buttonCallbacks) noexcept;
@@ -25,12 +24,10 @@ namespace iab
 
   SfConfirmationScreen::SfConfirmationScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameService> gameService,
       std::string const &message,
       std::vector<std::string> buttonLabels,
       std::vector<std::function<void()>> buttonCallbacks) noexcept
-      : SfMessageScreen(
-            window, gameService, message, buttonLabels, buttonCallbacks)
+      : SfMessageScreen(window, message, buttonLabels, buttonCallbacks)
   {
   }
 

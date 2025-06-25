@@ -34,7 +34,7 @@ namespace iab
       std::string gameId;
 
       int pieceType;
-      int turn;
+      int side;
 
       struct
       {

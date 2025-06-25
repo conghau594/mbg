@@ -21,11 +21,10 @@ namespace iab
 {
   SfPlayerSelectionScreen::SfPlayerSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameService> gameService,
       std::shared_ptr<GameDisplay> gameDisplay,
       std::vector<std::string> playerTypeNames,
       int gameType) noexcept
-      : SfBaseScreen(window, gameService),
+      : SfBaseScreen(window),
         gameDisplay_(gameDisplay),
         pressedButtonIndex_(-1),
         playerTypeNames_(std::move(playerTypeNames)),

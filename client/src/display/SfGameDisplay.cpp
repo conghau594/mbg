@@ -1,8 +1,11 @@
 // SfGameDisplay.cpp
 
+#include "SfGameDisplay.h"
+
 #include <optional>
 #include <memory>
 #include <string>
+#include <future>
 
 #include <boost/assert.hpp>
 
@@ -11,7 +14,9 @@
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 
 #include "GameScreen.h"
-#include "SfGameDisplay.h"
+#include "service/Request.h"
+#include "service/Response.h"
+#include "service/GameService.h"
 
 namespace iab
 {
@@ -61,6 +66,11 @@ namespace iab
       }
       currentScreen_->update();
     }
+  }
+
+  std::future<Response> SfGameDisplay::send(Request request) noexcept
+  {
+    return gameService_->send(request);
   }
 
   void SfGameDisplay::pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept
