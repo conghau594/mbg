@@ -17,7 +17,8 @@ namespace iab
       std::shared_ptr<GameService> gameService,
       std::shared_ptr<GameDisplay> gameDisplay,
       SfTileMap tileMap) noexcept
-      : SfBaseScreen(window, gameService, gameDisplay),
+      : SfBaseScreen(window, gameService),
+        gameDisplay_(gameDisplay),
         tileMap_(std::move(tileMap)),
         pressedButtonIndex_(-1)
   {
@@ -51,27 +52,26 @@ namespace iab
             std::shared_ptr<GameScreen> waitScreen(new SfConfirmationScreen(
                 window(),
                 gameService(),
-                gameDisplay(),
                 "Wait a second...",
                 {},
                 {}));
 
             // TODO: Send resign request
-            gameDisplay()->popScreen();
-            gameDisplay()->pushScreen(waitScreen);
+            gameDisplay_->popScreen();
+            gameDisplay_->pushScreen(waitScreen);
 
-            gameDisplay()->popScreen();
-            gameDisplay()->popScreen();
+            gameDisplay_->popScreen();
+            gameDisplay_->popScreen();
           },
           [this]()
           {
-            gameDisplay()->popScreen();
+            gameDisplay_->popScreen();
           }};
 
       std::shared_ptr<GameScreen> pauseScreen(new SfConfirmationScreen(
-          window(), gameService(), gameDisplay(), msg, buttonLabels, buttonCallbacks));
+          window(), gameService(), msg, buttonLabels, buttonCallbacks));
 
-      gameDisplay()->pushScreen(pauseScreen);
+      gameDisplay_->pushScreen(pauseScreen);
       // deactivate();
     }
 

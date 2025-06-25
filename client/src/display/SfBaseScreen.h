@@ -29,7 +29,6 @@ namespace iab
         public GameScreen
   {
     std::shared_ptr<sf::RenderWindow> window_;
-    std::shared_ptr<GameDisplay> gameDisplay_;
     std::shared_ptr<GameService> gameService_;
 
     std::shared_ptr<GameScreen> lastSubscreen_;
@@ -41,8 +40,7 @@ namespace iab
   public:
     SfBaseScreen(
         std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameService> gameService,
-        std::shared_ptr<GameDisplay> gameDisplay) noexcept;
+        std::shared_ptr<GameService> gameService) noexcept;
 
     void update() override final;
     void onEnter() override final;
@@ -67,13 +65,10 @@ namespace iab
         -> std::shared_ptr<sf::RenderWindow> const & { return window_; }
     [[nodiscard]] auto gameService() const noexcept
         -> std::shared_ptr<GameService> const & { return gameService_; }
-    [[nodiscard]] auto gameDisplay() const noexcept
-        -> std::shared_ptr<GameDisplay> const & { return gameDisplay_; }
 
     static void askExitConfirmation(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameService> gameService,
-        std::shared_ptr<GameDisplay> gameDisplay,
         std::shared_ptr<SfBaseScreen> parentScreen,
         std::string const &msg) noexcept;
   };

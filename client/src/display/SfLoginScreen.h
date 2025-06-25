@@ -4,12 +4,12 @@
 #include <future>
 
 #include "SfBaseScreen.h"
-#include "SfBlockingScreen.h"
+#include "SfMessageScreen.h"
 #include "service/Response.h"
 
 namespace iab
 {
-  class SfConnectionWaitingScreen : public SfBlockingScreen
+  class SfConnectionWaitingScreen : public SfMessageScreen
   {
     std::future<Response> const &futureLoginResponse_;
     std::shared_ptr<GameScreen> parentScreen_;
@@ -18,7 +18,6 @@ namespace iab
     SfConnectionWaitingScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameService> gameService,
-        std::shared_ptr<GameDisplay> gameDisplay,
         std::shared_ptr<GameScreen> parentScreen,
         std::future<Response> const &futureLoginResponse) noexcept;
 
@@ -28,6 +27,7 @@ namespace iab
 
   class SfLoginScreen final : public SfBaseScreen
   {
+    std::shared_ptr<GameDisplay> gameDisplay_;
     std::future<Response> futureLoginResponse_;
     char usernameBuffer_[128];
     char passwordBuffer_[128];

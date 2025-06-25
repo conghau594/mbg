@@ -9,6 +9,7 @@ namespace iab
 {
   class SfGameSelectionScreen final : public SfBaseScreen
   {
+    std::shared_ptr<GameDisplay> gameDisplay_;
     std::vector<std::string> gameNames_;
     int pressedButtonIndex_;
 

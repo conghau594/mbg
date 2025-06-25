@@ -8,7 +8,7 @@
 #include <imgui_internal.h>
 
 #include "SfGameDisplay.h"
-#include "SfBlockingScreen.h"
+#include "SfMessageScreen.h"
 #include "SfGameSelectionScreen.h"
 
 #include "model/GameType.h"
@@ -21,11 +21,9 @@ namespace iab
   SfConnectionWaitingScreen::SfConnectionWaitingScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
-      std::shared_ptr<GameDisplay> gameDisplay,
       std::shared_ptr<GameScreen> parentScreen,
       std::future<Response> const &futureLoginResponse) noexcept
-      : SfBlockingScreen(
-            window, gameService, gameDisplay, "Connecting to server...", {}, {}),
+      : SfMessageScreen(window, gameService, "Connecting to server...", {}, {}),
         futureLoginResponse_(futureLoginResponse),
         parentScreen_(parentScreen)
   {
@@ -40,14 +38,15 @@ namespace iab
       return;
     }
 
-    SfBlockingScreen::update(elapsed);
+    SfMessageScreen::update(elapsed);
   }
 
   SfLoginScreen::SfLoginScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
       std::shared_ptr<GameDisplay> gameDisplay) noexcept
-      : SfBaseScreen(window, gameService, gameDisplay),
+      : SfBaseScreen(window, gameService),
+        gameDisplay_(gameDisplay),
         passwordBuffer_(0),
         usernameBuffer_(0),
         pressedButtonIndex_(-1)
@@ -76,10 +75,10 @@ namespace iab
           std::vector<std::string> gameTypeNames(
               std::begin(GameType::NAMES), std::end(GameType::NAMES));
           std::shared_ptr<GameScreen> gameSelectionScreen(new SfGameSelectionScreen(
-              window(), gameService(), gameDisplay(), gameTypeNames));
+              window(), gameService(), gameDisplay_, gameTypeNames));
 
           changeSubscreen(nullptr);
-          gameDisplay()->pushScreen(gameSelectionScreen);
+          gameDisplay_->pushScreen(gameSelectionScreen);
         }
         else
         {
@@ -97,10 +96,9 @@ namespace iab
           std::string message = errcode.message + " (" +
                                 std::to_string(errcode.value) + ")";
 
-          std::shared_ptr<GameScreen> retryScreen(new SfBlockingScreen(
+          std::shared_ptr<GameScreen> retryScreen(new SfMessageScreen(
               window(),
               gameService(),
-              gameDisplay(),
               message,
               buttonLabels,
               buttonCallbacks));
@@ -130,7 +128,6 @@ namespace iab
       askExitConfirmation(
           window(),
           gameService(),
-          gameDisplay(),
           shared_from_this(),
           "Are you sure?");
     }
@@ -236,7 +233,6 @@ namespace iab
     std::shared_ptr<GameScreen> waitScreen(new SfConnectionWaitingScreen(
         window(),
         gameService(),
-        gameDisplay(),
         shared_from_this(),
         futureLoginResponse_));
 

@@ -10,7 +10,7 @@
 
 #include "SfBaseScreen.h"
 #include "SfPlayerSelectionScreen.h"
-#include "SfBlockingScreen.h"
+#include "SfMessageScreen.h"
 #include "GameDisplay.h"
 
 //=============================================================================
@@ -25,7 +25,8 @@ namespace iab
       std::shared_ptr<GameDisplay> gameDisplay,
       std::vector<std::string> playerTypeNames,
       int gameType) noexcept
-      : SfBaseScreen(window, gameService, gameDisplay),
+      : SfBaseScreen(window, gameService),
+        gameDisplay_(gameDisplay),
         pressedButtonIndex_(-1),
         playerTypeNames_(std::move(playerTypeNames)),
         gameType_(gameType)
@@ -67,7 +68,7 @@ namespace iab
       //   gameService()->findOpponent("", gameType_, playerType, nullptr);
 
       //   // TODO: send requestGame(gameType_, playerType);
-      //   std::shared_ptr<GameScreen> waitScreen(new SfBlockingScreen(
+      //   std::shared_ptr<GameScreen> waitScreen(new SfMessageScreen(
       //       window(),
       //       gameService(),
       //       gameDisplay(),
@@ -108,7 +109,7 @@ namespace iab
     }
     else if (pressedButtonIndex_ == int(playerTypeNames_.size()))
     {
-      gameDisplay()->popScreen();
+      gameDisplay_->popScreen();
       // deactivate();
     }
 

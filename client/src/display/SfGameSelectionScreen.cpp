@@ -14,7 +14,7 @@
 #include "SfGameDisplay.h"
 #include "SfBaseScreen.h"
 #include "SfConfirmationScreen.h"
-#include "SfBlockingScreen.h"
+#include "SfMessageScreen.h"
 #include "SfPlayerSelectionScreen.h"
 
 namespace iab
@@ -24,7 +24,8 @@ namespace iab
       std::shared_ptr<GameService> gameService,
       std::shared_ptr<GameDisplay> gameDisplay,
       std::vector<std::string> const &gameNames) noexcept
-      : SfBaseScreen(window, gameService, gameDisplay),
+      : SfBaseScreen(window, gameService),
+        gameDisplay_(gameDisplay),
         gameNames_(std::move(gameNames)),
         pressedButtonIndex_(-1)
   {
@@ -55,9 +56,9 @@ namespace iab
       std::vector<std::string> playerTypeNames(
           std::begin(PlayerType::NAMES), std::end(PlayerType::NAMES));
       std::shared_ptr<GameScreen> playerSelectionScreen(new SfPlayerSelectionScreen(
-          window(), gameService(), gameDisplay(), playerTypeNames, gameType));
+          window(), gameService(), gameDisplay_, playerTypeNames, gameType));
 
-      gameDisplay()->pushScreen(playerSelectionScreen);
+      gameDisplay_->pushScreen(playerSelectionScreen);
       // deactivate();
     }
     else if (pressedButtonIndex_ == int(gameNames_.size()))
@@ -65,7 +66,6 @@ namespace iab
       askExitConfirmation(
           window(),
           gameService(),
-          gameDisplay(),
           shared_from_this(),
           "Are you sure?");
     }

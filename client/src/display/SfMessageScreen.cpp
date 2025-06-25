@@ -1,4 +1,4 @@
-// SfBlockingScreen.cpp
+// SfMessageScreen.cpp
 
 #include <optional>
 #include <memory>
@@ -9,18 +9,17 @@
 #include <imgui.h>      // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 
-#include "SfBlockingScreen.h"
+#include "SfMessageScreen.h"
 
 namespace iab
 {
-  SfBlockingScreen::SfBlockingScreen(
+  SfMessageScreen::SfMessageScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
-      std::shared_ptr<GameDisplay> gameDisplay_,
       std::string message,
       std::vector<std::string> buttonLabels,
       std::vector<std::function<void()>> buttonCallbacks) noexcept
-      : SfBaseScreen(window, gameService, gameDisplay_),
+      : SfBaseScreen(window, gameService),
         message_(std::move(message)),
         buttonLabels_(std::move(buttonLabels)),
         buttonCallbacks_(std::move(buttonCallbacks)),
@@ -30,15 +29,15 @@ namespace iab
                      "Number of button labels must be less than or equal to number of button callbacks");
   }
 
-  void SfBlockingScreen::doEnter() noexcept
+  void SfMessageScreen::doEnter() noexcept
   {
   }
 
-  void SfBlockingScreen::doExit() noexcept
+  void SfMessageScreen::doExit() noexcept
   {
   }
 
-  void SfBlockingScreen::update(sf::Time const &elapsed) noexcept
+  void SfMessageScreen::update(sf::Time const &elapsed) noexcept
   {
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
@@ -56,12 +55,12 @@ namespace iab
     }
   }
 
-  void SfBlockingScreen::onWindowEventExceptClosed(
+  void SfMessageScreen::onWindowEventExceptClosed(
       std::optional<sf::Event> const &) noexcept
   {
   }
 
-  void SfBlockingScreen::layOutScreen() noexcept
+  void SfMessageScreen::layOutScreen() noexcept
   {
     int constexpr FONT_CONSOLA_24 = 4;
     ImFont *font24 = ImGui::GetIO().Fonts->Fonts[FONT_CONSOLA_24];

@@ -6,16 +6,15 @@
 #include <string>
 
 #include "GameDisplay.h"
-#include "SfBlockingScreen.h"
+#include "SfMessageScreen.h"
 namespace iab
 {
-  class SfConfirmationScreen final : public SfBlockingScreen
+  class SfConfirmationScreen final : public SfMessageScreen
   {
   public:
     inline SfConfirmationScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameService> gameService,
-        std::shared_ptr<GameDisplay> gameDisplay,
         std::string const &message,
         std::vector<std::string> buttonLabels,
         std::vector<std::function<void()>> buttonCallbacks) noexcept;
@@ -27,12 +26,11 @@ namespace iab
   SfConfirmationScreen::SfConfirmationScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameService> gameService,
-      std::shared_ptr<GameDisplay> gameDisplay,
       std::string const &message,
       std::vector<std::string> buttonLabels,
       std::vector<std::function<void()>> buttonCallbacks) noexcept
-      : SfBlockingScreen(
-            window, gameService, gameDisplay, message, buttonLabels, buttonCallbacks)
+      : SfMessageScreen(
+            window, gameService, message, buttonLabels, buttonCallbacks)
   {
   }
 

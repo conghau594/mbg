@@ -6,8 +6,10 @@
 
 namespace iab
 {
+  class GameDisplay;
   class SfChessScreen : public SfBaseScreen
   {
+    std::shared_ptr<GameDisplay> gameDisplay_;
     SfTileMap tileMap_;
     sf::Vector2u mapRegionTopLeft_;
     sf::Vector2u mapRegionBotRight_;
@@ -17,7 +19,7 @@ namespace iab
     SfChessScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameService> gameService,
-        std::shared_ptr<GameDisplay> gameDisplay_,
+        std::shared_ptr<GameDisplay> gameDisplay,
         SfTileMap tileMap) noexcept;
 
   private:
