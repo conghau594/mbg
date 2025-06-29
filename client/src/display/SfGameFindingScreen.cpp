@@ -16,9 +16,9 @@ namespace bgg
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameScreen> parentScreen,
       std::future<ServerMessage> const &futureCancelResponse)
-      : SfMessageScreen(window, "Canceling...", {}, {}),
+      : SfMessageScreen(std::move(window), "Canceling...", {}, {}),
         futureCancelResponse_(futureCancelResponse),
-        parentScreen_(parentScreen)
+        parentScreen_(std::move(parentScreen))
   {
   }
 
@@ -40,12 +40,12 @@ namespace bgg
       std::shared_ptr<GameDisplay> gameDisplay,
       int gameType,
       int playerType)
-      : gameDisplay_(gameDisplay),
+      : gameDisplay_(std::move(gameDisplay)),
         gameType_(gameType),
         playerType_(playerType),
         isCancelButtonPressed_(false),
         SfMessageScreen(
-            window,
+            std::move(window),
             "Waiting for oppenent...",
             {"Cancel"},
             {[this]

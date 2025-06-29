@@ -19,10 +19,12 @@ namespace bgg
   SfGameDisplay::SfGameDisplay(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<ClientEventBus> eventBus)
-      : window_(window), eventBus_(eventBus), currentScreen_(nullptr)
+      : window_(std::move(window)),
+        eventBus_(std::move(eventBus)),
+        currentScreen_(nullptr)
   {
-    BOOST_ASSERT_MSG(window, "window_ of SfGameDisplay cannot be null.");
-    BOOST_ASSERT_MSG(eventBus, "eventBus_ of GameApp cannot be null.");
+    BOOST_ASSERT_MSG(window_, "window_ of SfGameDisplay cannot be null.");
+    BOOST_ASSERT_MSG(eventBus_, "eventBus_ of GameApp cannot be null.");
 
     if (!ImGui::SFML::Init(*window_))
     { // TODO: Define exception for this
@@ -76,8 +78,8 @@ namespace bgg
       screenStack_.back()->onExit();
     }
 
-    screenStack_.push_back(newScreen);
-    newScreen->onEnter();
+    screenStack_.push_back(std::move(newScreen));
+    screenStack_.back()->onEnter();
   }
 
   void SfGameDisplay::popScreen() noexcept
@@ -100,7 +102,7 @@ namespace bgg
   {
     auto &lastScreen = screenStack_.back();
     lastScreen->onExit();
-    lastScreen = newScreen;
+    lastScreen = std::move(newScreen);
     lastScreen->onEnter();
   }
 }

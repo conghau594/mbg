@@ -23,9 +23,9 @@ namespace bgg
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameDisplay> gameDisplay,
       std::vector<std::string> const &gameNames) noexcept
-      : SfBaseScreen(window),
-        gameDisplay_(gameDisplay),
-        gameNames_(std::move(gameNames)),
+      : SfBaseScreen(std::move(window)),
+        gameDisplay_(std::move(gameDisplay)),
+        gameNames_(gameNames),
         pressedButtonIndex_(-1)
   {
   }

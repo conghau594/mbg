@@ -15,13 +15,13 @@ namespace bgg
 {
   SfMessageScreen::SfMessageScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::string message,
-      std::vector<std::string> buttonLabels,
-      std::vector<std::function<void()>> buttonCallbacks) noexcept
-      : SfBaseScreen(window),
+      std::string const &message,
+      std::vector<std::string> const &buttonLabels,
+      std::vector<std::function<void()>> const &buttonCallbacks) noexcept
+      : SfBaseScreen(std::move(window)),
         message_(std::move(message)),
-        buttonLabels_(std::move(buttonLabels)),
-        buttonCallbacks_(std::move(buttonCallbacks)),
+        buttonLabels_(buttonLabels),
+        buttonCallbacks_(buttonCallbacks),
         pressedButtonIndex_(-1)
   {
     BOOST_ASSERT_MSG(buttonLabels_.size() <= buttonCallbacks_.size(),

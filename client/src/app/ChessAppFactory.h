@@ -35,7 +35,7 @@ namespace bgg
 
       std::shared_ptr<ClientEventBus> eventBus = std::make_shared<ClientEventBus>();
       // create GameService object
-      std::shared_ptr<GameService> gameService = std::make_shared<MockGameService>();
+      std::shared_ptr<GameService> gameService = std::make_shared<MockGameService>(eventBus);
 
       // create GameDisplay object
       std::shared_ptr<GameDisplay> gameDisplay = std::make_shared<SfGameDisplay>(

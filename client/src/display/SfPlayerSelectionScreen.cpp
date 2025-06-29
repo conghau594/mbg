@@ -19,12 +19,12 @@ namespace bgg
   SfPlayerSelectionScreen::SfPlayerSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameDisplay> gameDisplay,
-      std::vector<std::string> playerTypeNames,
+      std::vector<std::string> const &playerTypeNames,
       int gameType) noexcept
-      : SfBaseScreen(window),
-        gameDisplay_(gameDisplay),
+      : SfBaseScreen(std::move(window)),
+        gameDisplay_(std::move(gameDisplay)),
         pressedButtonIndex_(-1),
-        playerTypeNames_(std::move(playerTypeNames)),
+        playerTypeNames_(playerTypeNames),
         gameType_(gameType)
   {
   }
@@ -53,8 +53,8 @@ namespace bgg
     {
       int playerType = pressedButtonIndex_;
 
-      std::shared_ptr<GameScreen> findingScreen(new SfGameFindingScreen(
-          window(), gameDisplay_, gameType_, playerType));
+      std::shared_ptr<GameScreen> findingScreen = std::make_shared<SfGameFindingScreen>(
+          window(), gameDisplay_, gameType_, playerType);
 
       gameDisplay_->pushScreen(findingScreen);
     }

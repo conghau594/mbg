@@ -22,13 +22,13 @@
 namespace bgg
 {
   SfBaseScreen::SfBaseScreen(std::shared_ptr<sf::RenderWindow> window) noexcept
-      : window_(window),
+      : window_(std::move(window)),
         clock_(new sf::Clock),
         isActive_(true),
         lastSubscreen_(nullptr),
         currentSubscreen_(nullptr)
   {
-    BOOST_ASSERT_MSG(window, "window_ of SfBaseScreen cannot be null.");
+    BOOST_ASSERT_MSG(window_, "window_ of SfBaseScreen cannot be null.");
   }
 
   void SfBaseScreen::update()
@@ -97,11 +97,11 @@ namespace bgg
       currentSubscreen_->onExit();
     }
 
-    currentSubscreen_ = newSubscreen;
+    currentSubscreen_ = std::move(newSubscreen);
 
-    if (newSubscreen != nullptr)
+    if (currentSubscreen_ != nullptr)
     {
-      newSubscreen->onEnter();
+      currentSubscreen_->onEnter();
     }
   }
 

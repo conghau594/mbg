@@ -35,9 +35,9 @@ namespace bgg
   public:
     SfMessageScreen(
         std::shared_ptr<sf::RenderWindow> window,
-        std::string message,
-        std::vector<std::string> buttonLabels = {},
-        std::vector<std::function<void()>> buttonCallbacks = {}) noexcept;
+        std::string const &message,
+        std::vector<std::string> const &buttonLabels = {},
+        std::vector<std::function<void()>> const &buttonCallbacks = {}) noexcept;
 
   protected:
     void update(sf::Time const &elapsed) noexcept override;

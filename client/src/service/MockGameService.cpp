@@ -12,9 +12,10 @@
 
 namespace bgg
 {
-  MockGameService::MockGameService() noexcept
+  MockGameService::MockGameService(std::shared_ptr<ClientEventBus> eventBus) noexcept
       : threadPool_(3),
-        uuidGenerator_(new boost::uuids::random_generator)
+        uuidGenerator_(std::make_shared<boost::uuids::random_generator>()),
+        eventBus_(std::move(eventBus))
   {
   }
 

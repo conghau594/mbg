@@ -24,9 +24,9 @@ namespace bgg // stands for: board games galore
   // ==========================================================================
   GameApp::GameApp(
       std::shared_ptr<GameDisplay> gameDisplay) noexcept
-      : gameDisplay_(gameDisplay)
+      : gameDisplay_(std::move(gameDisplay))
   {
-    BOOST_ASSERT_MSG(gameDisplay, "gameDisplay_ of GameApp cannot be null.");
+    BOOST_ASSERT_MSG(gameDisplay_, "gameDisplay_ of GameApp cannot be null.");
   }
 
   void GameApp::run()

@@ -11,9 +11,9 @@
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
-      //"externalConsole": true,
-      "preLaunchTask": "build-debug-with-preset", // <-- task to build the project
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "preLaunchTask": "build-debug-with-preset" // <-- task to build the project
+      //"justMyCode": true
     },
     {
       "name": "launch-release",

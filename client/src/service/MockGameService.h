@@ -2,9 +2,10 @@
 #pragma once
 
 #include "GameService.h"
-#include "ClientRequest.h"
-#include "ServerMessage.h"
+#include "ClientEventBus.h"
 #include "base/ThreadPool.h"
+
+#include <iostream>
 
 namespace boost
 {
@@ -20,9 +21,10 @@ namespace bgg
   {
     util::ThreadPool threadPool_;
     std::shared_ptr<boost::uuids::random_generator> uuidGenerator_;
+    std::shared_ptr<ClientEventBus> eventBus_;
 
   public:
-    MockGameService() noexcept;
+    MockGameService(std::shared_ptr<ClientEventBus> eventBus) noexcept;
     void send(ServerMessage const &msg) noexcept override;
 
     // std::future<ServerMessage> operator()(

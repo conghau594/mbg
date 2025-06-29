@@ -16,8 +16,8 @@ namespace bgg
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameDisplay> gameDisplay,
       SfTileMap const &tileMap) noexcept
-      : SfBaseScreen(window),
-        gameDisplay_(gameDisplay),
+      : SfBaseScreen(std::move(window)),
+        gameDisplay_(std::move(gameDisplay)),
         tileMap_(std::move(tileMap)),
         pressedButtonIndex_(-1)
   {

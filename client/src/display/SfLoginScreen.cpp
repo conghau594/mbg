@@ -22,9 +22,9 @@ namespace bgg
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameScreen> parentScreen,
       std::future<ServerMessage> const &futureLoginResponse) noexcept
-      : SfMessageScreen(window, "Connecting to server...", {}, {}),
+      : SfMessageScreen(std::move(window), "Connecting to server...", {}, {}),
         futureLoginResponse_(futureLoginResponse),
-        parentScreen_(parentScreen)
+        parentScreen_(std::move(parentScreen))
   {
   }
 
@@ -44,8 +44,8 @@ namespace bgg
   SfLoginScreen::SfLoginScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameDisplay> gameDisplay) noexcept
-      : SfBaseScreen(window),
-        gameDisplay_(gameDisplay),
+      : SfBaseScreen(std::move(window)),
+        gameDisplay_(std::move(gameDisplay)),
         passwordBuffer_(0),
         usernameBuffer_(0),
         pressedButtonIndex_(-1)
