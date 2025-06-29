@@ -1,6 +1,6 @@
 # CMakeLists.txt
 cmake_minimum_required(VERSION 3.28)
-project(mbgclient LANGUAGES CXX)
+project(bggclient LANGUAGES CXX)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -207,13 +207,13 @@ endforeach()
 # Add executable and link libraries                                           #
 ###############################################################################
 
-add_executable(mbgclient 
+add_executable(bggclient 
   main.cpp
   ${SOURCES}
 )
 
-target_compile_features(mbgclient PRIVATE cxx_std_20)
-target_link_libraries(mbgclient PRIVATE
+target_compile_features(bggclient PRIVATE cxx_std_20)
+target_link_libraries(bggclient PRIVATE
   SFML::Graphics 
   SFML::Audio 
   SFML::Window
@@ -224,7 +224,7 @@ target_link_libraries(mbgclient PRIVATE
   Boost::uuid
 )
 
-target_include_directories(mbgclient PRIVATE 
+target_include_directories(bggclient PRIVATE 
   ${CMAKE_SOURCE_DIR}/src)
 
 
@@ -233,12 +233,12 @@ foreach(tgt ${all_targets})
   message(STATUS "CMake target: ${tgt}")
 endforeach()
 
-get_target_property(INCLUDE_DIRS mbgclient INCLUDE_DIRECTORIES)
-message(STATUS "Include directories for mbgclient: ${INCLUDE_DIRS}")
+get_target_property(INCLUDE_DIRS bggclient INCLUDE_DIRECTORIES)
+message(STATUS "Include directories for bggclient: ${INCLUDE_DIRS}")
 ###############################################################################
 # Install App                                                                 #
 ###############################################################################
-install(TARGETS mbgclient
+install(TARGETS bggclient
   RUNTIME DESTINATION bin
 )
 install(DIRECTORY assets/
