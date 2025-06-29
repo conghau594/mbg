@@ -25,10 +25,10 @@ namespace util
             this->processTaskQueue();
           });
 
-      for (auto &thread : threadList_)
-      {
-        auto threadId = thread.get_id();
-      }
+      // for (auto &thread : threadList_)
+      // {
+      //   auto threadId = thread.get_id();
+      // }
     }
   }
 

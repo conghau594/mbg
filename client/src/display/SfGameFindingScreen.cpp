@@ -5,7 +5,7 @@
 #include "SfMessageScreen.h"
 #include "GameDisplay.h"
 
-#include "service/ClientRequest.h"
+#include "service/ClientEvent.h"
 #include "service/ServerMessage.h"
 
 #include "SfChessScreen.h"

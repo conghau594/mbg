@@ -66,9 +66,9 @@ namespace bgg
     }
   }
 
-  void SfGameDisplay::send(ClientRequest const &request) noexcept
+  void SfGameDisplay::send(ClientEvent const &request) noexcept
   {
-    eventBus_->emit<ClientRequest>(request);
+    eventBus_->emit<ClientEvent>(request);
   }
 
   void SfGameDisplay::pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept

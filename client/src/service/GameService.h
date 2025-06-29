@@ -10,6 +10,6 @@ namespace bgg
   public:
     virtual ~GameService() = default;
 
-    virtual void send(ServerMessage const &request) = 0;
+    virtual void emit(ServerMessage const &request) = 0;
   };
 }

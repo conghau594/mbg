@@ -25,22 +25,21 @@ namespace bgg
 
   public:
     MockGameService(std::shared_ptr<ClientEventBus> eventBus) noexcept;
-    void send(ServerMessage const &msg) noexcept override;
+    void emit(ServerMessage const &msg) noexcept override;
+
+    void sendLoginRequest(LoginRequest const &loginRqt) noexcept;
 
     // std::future<ServerMessage> operator()(
-    //     ClientRequest::Login const &loginRqt) noexcept;
+    //     ClientEvent::FindGameRequest const &findGameRqt) noexcept;
 
     // std::future<ServerMessage> operator()(
-    //     ClientRequest::FindGame const &findGameRqt) noexcept;
+    //     ClientEvent::CancelMatchmaking const &cancelMatchmakingRqt) noexcept;
 
     // std::future<ServerMessage> operator()(
-    //     ClientRequest::CancelMatchmaking const &cancelMatchmakingRqt) noexcept;
+    //     ClientEvent::CommitMove const &commitMoveRqt) noexcept;
 
     // std::future<ServerMessage> operator()(
-    //     ClientRequest::CommitMove const &commitMoveRqt) noexcept;
-
-    // std::future<ServerMessage> operator()(
-    //     ClientRequest::ResignGame const &resignGameRqt) noexcept;
+    //     ClientEvent::ResignGame const &resignGameRqt) noexcept;
 
     static void simulateNetworkLatencyAndFailure(
         int failurePercent = 0, int minDelay = 100, int maxDelay = 2000);

@@ -30,7 +30,7 @@ namespace util
     ~ThreadPool();
 
     template <class F, class... ARGS>
-    auto push(F &&f, ARGS &&...args)
+    [[nodiscard]] auto push(F &&f, ARGS &&...args)
         -> std::future<std::invoke_result_t<F, ARGS...>>;
 
     void stop();

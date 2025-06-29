@@ -47,7 +47,7 @@ namespace bgg
       gameDisplay->pushScreen(initialScreen);
 
       // return GameApp object
-      return GameApp(gameDisplay);
+      return GameApp(gameDisplay, gameService);
     }
   };
 } // namespace bgg

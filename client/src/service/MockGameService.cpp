@@ -1,10 +1,6 @@
 // MockGameService.cpp
 #include <iostream>
 #include <numeric>
-
-#include "ClientRequest.h"
-#include "ServerMessage.h"
-
 #include <boost/uuid.hpp>
 
 #include "base/RandomUtils.h"
@@ -13,56 +9,61 @@
 namespace bgg
 {
   MockGameService::MockGameService(std::shared_ptr<ClientEventBus> eventBus) noexcept
-      : threadPool_(3),
+      : threadPool_(2),
         uuidGenerator_(std::make_shared<boost::uuids::random_generator>()),
         eventBus_(std::move(eventBus))
   {
+    eventBus_->subscribe<ClientEvent, LoginRequest>(
+        [this](LoginRequest const &loginRqt)
+        {
+          sendLoginRequest(loginRqt);
+          std::cout << "\nListen from MockGameService."
+                    << "\nSee username = " << loginRqt.username
+                    << "\n    password = " << loginRqt.password;
+        });
   }
 
-  void MockGameService::send(ServerMessage const &request) noexcept
+  void MockGameService::emit(ServerMessage const &msg) noexcept
   {
-    return; // request.visit(*this);
+    eventBus_->emit<ServerMessage>(msg);
+  }
+
+  void MockGameService::sendLoginRequest(LoginRequest const &loginRqt) noexcept
+  {
+    threadPool_.push(
+        [this]()
+        {
+          int errCodeValue = 0;
+          std::string msg;
+          std::string userId;
+          try
+          {
+            simulateNetworkLatencyAndFailure(10, 500, 5000);
+
+            // login successfully, the create user ID
+            boost::uuids::uuid id = (*uuidGenerator_)();
+            if (id.is_nil())
+            {
+              msg = "Failed to create UUID";
+              errCodeValue = -1;
+            }
+            else
+            {
+              userId = boost::uuids::to_string(id);
+            }
+          }
+          catch (std::runtime_error const &e)
+          {
+            msg = e.what();
+            errCodeValue = -1;
+          }
+
+          emit(LoginResponse{ErrorCode{errCodeValue, "Mock", msg}, userId});
+        });
   }
 
   // std::future<ServerMessage> MockGameService::operator()(
-  //     ClientRequest::Login const &) noexcept
-  // {
-  //   auto futureResponse = threadPool_.push(
-  //       [this]() -> ServerMessage
-  //       {
-  //         int errCodeValue = 0;
-  //         std::string msg;
-  //         std::string userId;
-  //         try
-  //         {
-  //           simulateNetworkLatencyAndFailure(10, 500, 5000);
-
-  //           // login successfully, the create user ID
-  //           boost::uuids::uuid id = (*uuidGenerator_)();
-  //           if (id.is_nil())
-  //           {
-  //             msg = "Failed to create UUID";
-  //             errCodeValue = -1;
-  //           }
-  //           else
-  //           {
-  //             userId = boost::uuids::to_string(id);
-  //           }
-  //         }
-  //         catch (std::runtime_error const &e)
-  //         {
-  //           msg = e.what();
-  //           errCodeValue = -1;
-  //         }
-
-  //         return ServerMessage::Login{ErrorCode{errCodeValue, "Mock", msg}, userId};
-  //       });
-
-  //   return futureResponse;
-  // }
-
-  // std::future<ServerMessage> MockGameService::operator()(
-  //     ClientRequest::FindGame const &) noexcept
+  //     ClientEvent::FindGameRequest const &) noexcept
   // {
   //   auto futureResponse = threadPool_.push(
   //       [this]() -> ServerMessage
@@ -76,7 +77,7 @@ namespace bgg
   //         {
   //           simulateNetworkLatencyAndFailure(10, 12000, 15000);
 
-  //           // FindGame successfully, then create user ID
+  //           // FindGameRequest successfully, then create user ID
   //           boost::uuids::uuid id = (*uuidGenerator_)();
   //           if (id.is_nil())
   //           {
@@ -95,7 +96,7 @@ namespace bgg
   //           errCodeValue = -1;
   //         }
 
-  //         return ServerMessage::FindGame{
+  //         return ServerMessage::FindGameRequest{
   //             ErrorCode{errCodeValue, "Mock", msg}, gameId, side};
   //       });
 
@@ -103,7 +104,7 @@ namespace bgg
   // }
 
   // std::future<ServerMessage> MockGameService::operator()(
-  //     ClientRequest::CancelMatchmaking const &) noexcept
+  //     ClientEvent::CancelMatchmaking const &) noexcept
   // {
   //   auto futureResponse = threadPool_.push(
   //       [this]() -> ServerMessage
@@ -127,13 +128,13 @@ namespace bgg
   // }
 
   // std::future<ServerMessage> MockGameService::operator()(
-  //     ClientRequest::CommitMove const &commitMoveRqt) noexcept
+  //     ClientEvent::CommitMove const &commitMoveRqt) noexcept
   // {
   //   return std::future<ServerMessage>();
   // }
 
   // std::future<ServerMessage> MockGameService::operator()(
-  //     ClientRequest::ResignGame const &resignGameRqt) noexcept
+  //     ClientEvent::ResignGame const &resignGameRqt) noexcept
   // {
   //   return std::future<ServerMessage>();
   // }

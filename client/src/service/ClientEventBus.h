@@ -3,13 +3,13 @@
 
 #include "peeb/EventBus.hpp"
 #include "ServerMessage.h"
-#include "ClientRequest.h"
+#include "ClientEvent.h"
 
 namespace bgg
 {
 
   using ClientEventBus = peeb::Bus<
-      ClientRequest,
+      ClientEvent,
       ServerMessage>;
 
 } // namespace bgg
