@@ -19,7 +19,7 @@
 #include <iostream>
 
 // #endif
-namespace iab
+namespace bgg
 {
   SfBaseScreen::SfBaseScreen(std::shared_ptr<sf::RenderWindow> window) noexcept
       : window_(window),
@@ -90,15 +90,14 @@ namespace iab
   void SfBaseScreen::changeSubscreen(
       std::shared_ptr<GameScreen> newSubscreen) noexcept
   {
-    {
-      std::lock_guard lock(subscreenMutex_);
-      if (currentSubscreen_ != nullptr)
-      {
-        currentSubscreen_->onExit();
-      }
 
-      currentSubscreen_ = newSubscreen;
+    // std::lock_guard lock(subscreenMutex_);
+    if (currentSubscreen_ != nullptr)
+    {
+      currentSubscreen_->onExit();
     }
+
+    currentSubscreen_ = newSubscreen;
 
     if (newSubscreen != nullptr)
     {

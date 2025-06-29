@@ -1,1 +1,1 @@
-`iab` = Intelligent Agent Battles
+# `bgg` = Board Games Galore

@@ -10,12 +10,12 @@
 #include "SfChessScreen.h"
 #include "SfConfirmationScreen.h"
 
-namespace iab
+namespace bgg
 {
   SfChessScreen::SfChessScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameDisplay> gameDisplay,
-      SfTileMap tileMap) noexcept
+      SfTileMap const &tileMap) noexcept
       : SfBaseScreen(window),
         gameDisplay_(gameDisplay),
         tileMap_(std::move(tileMap)),

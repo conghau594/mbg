@@ -4,7 +4,7 @@
 #include "SfBaseScreen.h"
 #include "SfTileMap.h"
 
-namespace iab
+namespace bgg
 {
   class GameDisplay;
   class SfChessScreen : public SfBaseScreen
@@ -19,7 +19,7 @@ namespace iab
     SfChessScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameDisplay> gameDisplay,
-        SfTileMap tileMap) noexcept;
+        SfTileMap const &tileMap) noexcept;
 
   private:
     void update(sf::Time const &elapsed) override;

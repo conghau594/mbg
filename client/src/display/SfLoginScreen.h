@@ -5,20 +5,20 @@
 
 #include "SfBaseScreen.h"
 #include "SfMessageScreen.h"
-#include "service/Response.h"
+#include "service/ServerMessage.h"
 
-namespace iab
+namespace bgg
 {
-  class SfConnectionWaitingScreen : public SfMessageScreen
+  class SfConnectionWaitingScreen final : public SfMessageScreen
   {
-    std::future<Response> const &futureLoginResponse_;
+    std::future<ServerMessage> const &futureLoginResponse_;
     std::shared_ptr<GameScreen> parentScreen_;
 
   public:
     SfConnectionWaitingScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameScreen> parentScreen,
-        std::future<Response> const &futureLoginResponse) noexcept;
+        std::future<ServerMessage> const &futureLoginResponse) noexcept;
 
   private:
     void update(sf::Time const &elapsed) noexcept override;
@@ -27,7 +27,7 @@ namespace iab
   class SfLoginScreen final : public SfBaseScreen
   {
     std::shared_ptr<GameDisplay> gameDisplay_;
-    std::future<Response> futureLoginResponse_;
+    std::future<ServerMessage> futureLoginResponse_;
     char usernameBuffer_[128];
     char passwordBuffer_[128];
     int pressedButtonIndex_;
@@ -48,4 +48,4 @@ namespace iab
     void layOutScreen() noexcept;
     void sendLoginRequest() noexcept;
   };
-} // namespace iab
+} // namespace bgg

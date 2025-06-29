@@ -1,7 +1,7 @@
 // Logger.h
 #pragma once
 
-namespace iab
+namespace bgg
 {
   class Logger
   {

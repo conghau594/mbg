@@ -2,7 +2,7 @@
 #pragma once
 
 #include <memory>
-#include <mutex>
+// #include <mutex>
 
 #include "GameScreen.h"
 
@@ -20,7 +20,7 @@ namespace sf
   class Time;
 }
 
-namespace iab
+namespace bgg
 {
   class GameDisplay;
   class SfBaseScreen
@@ -31,13 +31,12 @@ namespace iab
 
     std::shared_ptr<GameScreen> lastSubscreen_;
     std::shared_ptr<GameScreen> currentSubscreen_;
-    std::mutex subscreenMutex_;
+    // std::mutex subscreenMutex_;
     std::shared_ptr<sf::Clock> clock_;
     bool isActive_;
 
   public:
-    SfBaseScreen(
-        std::shared_ptr<sf::RenderWindow> window) noexcept;
+    SfBaseScreen(std::shared_ptr<sf::RenderWindow> window) noexcept;
 
     void update() override final;
     void onEnter() override final;

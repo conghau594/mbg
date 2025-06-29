@@ -1,12 +1,16 @@
 // SfPlayerSelectionScreen.h
 #pragma once
 
+#include <future>
+
 #include <SFML/System/Time.hpp>
 
 #include "SfBaseScreen.h"
+#include "SfMessageScreen.h"
+#include "service/ServerMessage.h"
 
 struct ImFont;
-namespace iab
+namespace bgg
 {
   class SfPlayerSelectionScreen final : public SfBaseScreen
   {
@@ -33,4 +37,4 @@ namespace iab
     void layOutScreen() noexcept;
   };
 
-} // namespace iab
+} // namespace bgg

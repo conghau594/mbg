@@ -11,7 +11,7 @@
 
 #include "SfMessageScreen.h"
 
-namespace iab
+namespace bgg
 {
   SfMessageScreen::SfMessageScreen(
       std::shared_ptr<sf::RenderWindow> window,
@@ -34,6 +34,7 @@ namespace iab
 
   void SfMessageScreen::doExit() noexcept
   {
+    changeSubscreen(nullptr);
   }
 
   void SfMessageScreen::update(sf::Time const &elapsed) noexcept

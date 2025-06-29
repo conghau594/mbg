@@ -9,7 +9,8 @@
 #include "display/SfGameDisplay.h"
 #include "display/SfLoginScreen.h"
 
-namespace iab
+#include "peeb/EventBus.hpp"
+namespace bgg
 {
   class ChessAppFactory final : public GameAppFactory
   {
@@ -22,24 +23,26 @@ namespace iab
       // TODO: consider when to use updatePeriod
       // size_t constexpr updatePeriod = 15'000; //
 
-      std::shared_ptr<sf::RenderWindow> window(new sf::RenderWindow(
+      std::shared_ptr<sf::RenderWindow> window = std::make_shared<sf::RenderWindow>(
           sf::VideoMode(WINDOW_SIZE),
           WINDOW_TITLE,
-          sf::Style::Titlebar | sf::Style::Close));
+          sf::Style::Titlebar | sf::Style::Close);
 
       window->setMinimumSize(WINDOW_MIN_SIZE);
 
       window->setVerticalSyncEnabled(true);
       //  window->setFramerateLimit(0);
 
+      std::shared_ptr<ClientEventBus> eventBus = std::make_shared<ClientEventBus>();
       // create GameService object
-      std::shared_ptr<GameService> gameService(new MockGameService);
-      // create GameDisplay object
-      std::shared_ptr<GameDisplay> gameDisplay(
-          new SfGameDisplay(window, gameService));
+      std::shared_ptr<GameService> gameService = std::make_shared<MockGameService>();
 
-      std::shared_ptr<GameScreen> initialScreen(new SfLoginScreen(
-          window, gameDisplay));
+      // create GameDisplay object
+      std::shared_ptr<GameDisplay> gameDisplay = std::make_shared<SfGameDisplay>(
+          window, eventBus);
+
+      std::shared_ptr<GameScreen> initialScreen = std::make_shared<SfLoginScreen>(
+          window, gameDisplay);
 
       gameDisplay->pushScreen(initialScreen);
 
@@ -47,4 +50,4 @@ namespace iab
       return GameApp(gameDisplay);
     }
   };
-} // namespace iab
+} // namespace bgg

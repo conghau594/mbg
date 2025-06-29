@@ -3,14 +3,14 @@
 
 #include <string>
 
-namespace iab
+namespace bgg
 {
   class ErrorCode
   {
   public:
-    int value;
-    std::string category;
-    std::string message;
+    int const value;
+    std::string const category;
+    std::string const message;
 
     ErrorCode(ErrorCode const &) noexcept = default;
 

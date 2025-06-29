@@ -22,7 +22,7 @@ namespace sf
   class Clock;
 }
 
-namespace iab
+namespace bgg
 {
 
   class SfMessageScreen : public SfBaseScreen

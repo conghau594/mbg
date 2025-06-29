@@ -14,14 +14,14 @@
 #include "model/GameType.h"
 
 #include "service/GameService.h"
-#include "service/Request.h"
+#include "service/ClientRequest.h"
 
-namespace iab
+namespace bgg
 {
   SfConnectionWaitingScreen::SfConnectionWaitingScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameScreen> parentScreen,
-      std::future<Response> const &futureLoginResponse) noexcept
+      std::future<ServerMessage> const &futureLoginResponse) noexcept
       : SfMessageScreen(window, "Connecting to server...", {}, {}),
         futureLoginResponse_(futureLoginResponse),
         parentScreen_(parentScreen)
@@ -30,14 +30,14 @@ namespace iab
 
   void SfConnectionWaitingScreen::update(sf::Time const &elapsed) noexcept
   {
+    SfMessageScreen::update(elapsed);
+
     if (futureLoginResponse_.valid() &&
         futureLoginResponse_.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
     {
       parentScreen_->changeSubscreen(nullptr);
       return;
     }
-
-    SfMessageScreen::update(elapsed);
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -65,11 +65,11 @@ namespace iab
     if (futureLoginResponse_.valid() &&
         futureLoginResponse_.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
     {
-      Response response = futureLoginResponse_.get();
-      if (auto loginResponse = response.getIf<Response::Login>())
+      ServerMessage response = futureLoginResponse_.get();
+      if (auto loginResponse = response.getIf<LoginResponse>())
       {
         ErrorCode const &errcode = loginResponse->errcode;
-        if (errcode.value == 0)
+        if (errcode.value == 0) // no error -> login successfully
         {
           std::vector<std::string> gameTypeNames(
               std::begin(GameType::NAMES), std::end(GameType::NAMES));
@@ -219,11 +219,11 @@ namespace iab
 
   void SfLoginScreen::sendLoginRequest() noexcept
   {
-    Request::Login request{usernameBuffer_, passwordBuffer_};
-    futureLoginResponse_ = gameDisplay_->send(request);
+    LoginRequest request{usernameBuffer_, passwordBuffer_};
+    /*futureLoginResponse_ =*/gameDisplay_->send(request);
     std::shared_ptr<GameScreen> waitScreen(new SfConnectionWaitingScreen(
         window(), shared_from_this(), futureLoginResponse_));
 
     changeSubscreen(waitScreen);
   }
-} // namespace iab
+} // namespace bgg

@@ -4,7 +4,7 @@
 
 #include "SfTileMap.h"
 
-namespace iab
+namespace bgg
 {
   SfTileMap::SfTileMap(
       std::filesystem::path const &tileSetPath,

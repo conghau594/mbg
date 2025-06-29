@@ -3,7 +3,7 @@
 
 #include "base/EnumUtils.h"
 
-namespace iab
+namespace bgg
 {
 #define WESTERN_PIECE_TYPE_ENTRIES(E) \
   E(KING)                             \

@@ -5,8 +5,8 @@ int main()
 {
   try
   {
-    std::shared_ptr<iab::GameAppFactory> appFactory(new iab::ChessAppFactory);
-    iab::GameApp app = appFactory->createGameApp();
+    std::shared_ptr<bgg::GameAppFactory> appFactory(new bgg::ChessAppFactory);
+    bgg::GameApp app = appFactory->createGameApp();
     app.run();
   }
   catch (std::exception const & /*e*/)

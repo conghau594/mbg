@@ -3,7 +3,7 @@
 
 #include "base/EnumUtils.h"
 
-namespace iab
+namespace bgg
 {
 
 #define GAME_TYPE_ENTRIES(E) \

@@ -1,4 +1,6 @@
 // SfPlayerSelectionScreen.cpp
+#include "SfPlayerSelectionScreen.h"
+
 #include <boost/assert.hpp>
 
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -8,16 +10,11 @@
 #include "model/PlayerType.h"
 #include "service/GameService.h"
 
-#include "SfBaseScreen.h"
-#include "SfPlayerSelectionScreen.h"
-#include "SfMessageScreen.h"
 #include "GameDisplay.h"
+#include "SfBaseScreen.h"
+#include "SfGameFindingScreen.h"
 
-//=============================================================================
-// JUST TESTING
-#include "SfChessScreen.h"
-//=============================================================================
-namespace iab
+namespace bgg
 {
   SfPlayerSelectionScreen::SfPlayerSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
@@ -54,62 +51,16 @@ namespace iab
     if (pressedButtonIndex_ >= 0 &&
         pressedButtonIndex_ < int(playerTypeNames_.size()))
     {
+      int playerType = pressedButtonIndex_;
 
-      // if (!gameService()->isConnected())
-      // {
-      //   connectServer(window(), gameService(), gameDisplay(), shared_from_this());
-      // }
+      std::shared_ptr<GameScreen> findingScreen(new SfGameFindingScreen(
+          window(), gameDisplay_, gameType_, playerType));
 
-      // if (gameService()->isConnected())
-      // {
-      //   int playerType = pressedButtonIndex_;
-
-      //   gameService()->findOpponent("", gameType_, playerType, nullptr);
-
-      //   // TODO: send requestGame(gameType_, playerType);
-      //   std::shared_ptr<GameScreen> waitScreen(new SfMessageScreen(
-      //       window(),
-      //       gameService(),
-      //       gameDisplay(),
-      //       "Waiting for opponent...",
-      //       {/*"Cancel"*/},
-      //       {
-      //           /*[this]()
-      //           {
-      //             // TODO: send cancelGameRequest
-      //             changeSubscreen(nullptr);
-      //           }*/
-      //       }));
-
-      //   changeSubscreen(waitScreen);
-      // }
-      // //=============================================================================
-      // // Just for test, push the SfChessScreen:
-      // // define the level with an array of tile indices
-      // constexpr unsigned const level[] = {
-      //     0, 1, 0, 1, 0, 1, 0, 1,
-      //     1, 0, 1, 0, 1, 0, 1, 0,
-      //     0, 1, 0, 1, 0, 1, 0, 1,
-      //     1, 0, 1, 0, 1, 0, 1, 0,
-      //     0, 1, 0, 1, 0, 1, 0, 1,
-      //     1, 0, 1, 0, 1, 0, 1, 0,
-      //     0, 1, 0, 1, 0, 1, 0, 1,
-      //     1, 0, 1, 0, 1, 0, 1, 0};
-
-      // SfTileMap tileMap(
-      //     "resource/western-chess-tile-set.png",
-      //     {200, 200},
-      //     level,
-      //     {8, 8});
-      // std::shared_ptr<GameScreen> chessScreen(new SfChessScreen(
-      //     window(), gameService(), gameDisplay(), tileMap));
-      // gameDisplay()->pushScreen(chessScreen);
-      // //=============================================================================
+      gameDisplay_->pushScreen(findingScreen);
     }
-    else if (pressedButtonIndex_ == int(playerTypeNames_.size()))
+    else if (pressedButtonIndex_ == int(playerTypeNames_.size())) // if Back button is pressed
     {
       gameDisplay_->popScreen();
-      // deactivate();
     }
 
     pressedButtonIndex_ = -1;
@@ -172,4 +123,4 @@ namespace iab
     ImGui::End();
     ImGui::PopFont();
   }
-} // namespace iab
+} // namespace bgg

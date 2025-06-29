@@ -7,7 +7,7 @@
 
 #include "GameDisplay.h"
 #include "SfMessageScreen.h"
-namespace iab
+namespace bgg
 {
   class SfConfirmationScreen final : public SfMessageScreen
   {

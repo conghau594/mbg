@@ -1,7 +1,7 @@
 // SignalHub.h
 #pragma once
 
-namespace iab
+namespace bgg
 {
   class SignalHub
   {

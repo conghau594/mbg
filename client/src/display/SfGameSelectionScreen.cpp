@@ -17,7 +17,7 @@
 #include "SfMessageScreen.h"
 #include "SfPlayerSelectionScreen.h"
 
-namespace iab
+namespace bgg
 {
   SfGameSelectionScreen::SfGameSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
@@ -62,8 +62,7 @@ namespace iab
     }
     else if (pressedButtonIndex_ == int(gameNames_.size()))
     {
-      askExitConfirmation(
-          window(), shared_from_this(), "Are you sure?");
+      askExitConfirmation(window(), shared_from_this(), "Are you sure?");
     }
 
     pressedButtonIndex_ = -1;
@@ -118,4 +117,4 @@ namespace iab
 
     ImGui::PopFont();
   }
-} // namespace iab
+} // namespace bgg

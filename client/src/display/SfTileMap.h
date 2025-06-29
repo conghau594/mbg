@@ -8,7 +8,7 @@
 #include <SFML/Graphics/Transformable.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 
-namespace iab
+namespace bgg
 {
   class SfTileMap : public sf::Drawable, public sf::Transformable
   {

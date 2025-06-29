@@ -5,7 +5,6 @@
 #include <optional>
 #include <memory>
 #include <string>
-#include <future>
 
 #include <boost/assert.hpp>
 
@@ -14,19 +13,16 @@
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 
 #include "GameScreen.h"
-#include "service/Request.h"
-#include "service/Response.h"
-#include "service/GameService.h"
 
-namespace iab
+namespace bgg
 {
   SfGameDisplay::SfGameDisplay(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameService> gameService)
-      : window_(window), gameService_(gameService), currentScreen_(nullptr)
+      std::shared_ptr<ClientEventBus> eventBus)
+      : window_(window), eventBus_(eventBus), currentScreen_(nullptr)
   {
     BOOST_ASSERT_MSG(window, "window_ of SfGameDisplay cannot be null.");
-    BOOST_ASSERT_MSG(gameService, "gameService_ of GameApp cannot be null.");
+    BOOST_ASSERT_MSG(eventBus, "eventBus_ of GameApp cannot be null.");
 
     if (!ImGui::SFML::Init(*window_))
     { // TODO: Define exception for this
@@ -68,9 +64,9 @@ namespace iab
     }
   }
 
-  std::future<Response> SfGameDisplay::send(Request request) noexcept
+  void SfGameDisplay::send(ClientRequest const &request) noexcept
   {
-    return gameService_->send(request);
+    eventBus_->emit<ClientRequest>(request);
   }
 
   void SfGameDisplay::pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept

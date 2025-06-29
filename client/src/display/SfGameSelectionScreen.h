@@ -2,10 +2,11 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 #include "SfBaseScreen.h"
 
-namespace iab
+namespace bgg
 {
   class SfGameSelectionScreen final : public SfBaseScreen
   {
@@ -30,4 +31,4 @@ namespace iab
     void layOutScreen() noexcept;
   };
 
-} // namespace iab
+} // namespace bgg

@@ -6,7 +6,7 @@
 
 #include "display/GameDisplay.h"
 
-namespace iab
+namespace bgg // stands for: board games galore
 {
   class GameDisplay;
 
