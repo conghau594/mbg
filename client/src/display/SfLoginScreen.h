@@ -30,12 +30,13 @@ namespace bgg
     std::future<ServerMessage> futureLoginResponse_;
     char usernameBuffer_[128];
     char passwordBuffer_[128];
+    std::size_t loginSubscriptionId_;
     int pressedButtonIndex_;
 
   public:
     SfLoginScreen(
         std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameDisplay> gameDisplay) noexcept;
+        std::shared_ptr<GameDisplay> gameDisplay);
 
   private:
     void update(sf::Time const &elapsedTime) noexcept override;

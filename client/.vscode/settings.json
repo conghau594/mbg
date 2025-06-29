@@ -118,5 +118,6 @@
     "string_view": "cpp",
     "slist": "cpp",
     "*.rh": "cpp"
-  }
+  },
+  "C_Cpp.errorSquiggles": "disabled"
 }

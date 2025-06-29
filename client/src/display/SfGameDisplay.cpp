@@ -71,6 +71,27 @@ namespace bgg
     eventBus_->emit<ClientEvent>(request);
   }
 
+  auto SfGameDisplay::subscribe(ServerMessage const &msg) -> std::size_t
+  {
+    std::optional<std::size_t> id = eventBus_->subscribe<ServerMessage>(msg);
+    if (!id)
+    {
+      throw(std::runtime_error("Cannot subscribe to ServerMessage from SfGameDisplay"));
+    }
+    return id.value();
+  }
+
+  auto SfGameDisplay::unsubscribe(
+      ServerMessage const &dummy, std::size_t const &msgId) -> std::size_t
+  {
+    return eventBus_->unsubscribe<ServerMessage>(dummy, msgId);
+  }
+
+  auto SfGameDisplay::unsubscribe(std::size_t const &msgId) -> std::size_t
+  {
+    return eventBus_->unsubscribe<ServerMessage>(msgId);
+  }
+
   void SfGameDisplay::pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept
   {
     if (!screenStack_.empty())

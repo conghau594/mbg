@@ -8,19 +8,33 @@
 
 namespace bgg
 {
-  MockGameService::MockGameService(std::shared_ptr<ClientEventBus> eventBus) noexcept
-      : threadPool_(2),
+  MockGameService::MockGameService(std::shared_ptr<ClientEventBus> eventBus)
+      : threadPool_(1),
         uuidGenerator_(std::make_shared<boost::uuids::random_generator>()),
         eventBus_(std::move(eventBus))
   {
-    eventBus_->subscribe<ClientEvent, LoginRequest>(
+    std::optional<std::size_t> subscriptionId;
+    subscriptionId = eventBus_->subscribe<ClientEvent, LoginRequest>(
         [this](LoginRequest const &loginRqt)
         {
-          sendLoginRequest(loginRqt);
+          sendRequest(loginRqt);
           std::cout << "\nListen from MockGameService."
-                    << "\nSee username = " << loginRqt.username
-                    << "\n    password = " << loginRqt.password;
+                    << "\n    Username = " << loginRqt.username
+                    << "\n    Password = " << loginRqt.password;
         });
+    if (!subscriptionId)
+    {
+      throw(std::runtime_error("Cannot subscribe LoginRequest from MockGameService"));
+    }
+    subscriptionIdList_.emplace_back(subscriptionId.value());
+  }
+
+  MockGameService::~MockGameService()
+  {
+    for (auto &id : subscriptionIdList_)
+    {
+      eventBus_->unsubscribe<ClientEvent>(id);
+    }
   }
 
   void MockGameService::emit(ServerMessage const &msg) noexcept
@@ -28,7 +42,7 @@ namespace bgg
     eventBus_->emit<ServerMessage>(msg);
   }
 
-  void MockGameService::sendLoginRequest(LoginRequest const &loginRqt) noexcept
+  void MockGameService::sendRequest(LoginRequest const & /*loginRqt*/) noexcept
   {
     threadPool_.push(
         [this]()

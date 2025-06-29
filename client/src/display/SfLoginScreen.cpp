@@ -43,7 +43,7 @@ namespace bgg
   /////////////////////////////////////////////////////////////////////////////
   SfLoginScreen::SfLoginScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameDisplay> gameDisplay) noexcept
+      std::shared_ptr<GameDisplay> gameDisplay)
       : SfBaseScreen(std::move(window)),
         gameDisplay_(std::move(gameDisplay)),
         passwordBuffer_(0),
@@ -58,6 +58,22 @@ namespace bgg
 
   void SfLoginScreen::doEnter() noexcept
   {
+    // std::optional<std::size_t> id = gameDisplay_->subscribe(
+    //     [this](LoginResponse const &loginRsp)
+    //     {
+    //       std::cout << "\nListen from SfGameDisplay"
+    //                 << "\n    User ID  = " << loginRsp.userId
+    //                 << "\n    Errcode  = " << loginRsp.errcode.value
+    //                 << "\n    Category = " << loginRsp.errcode.category
+    //                 << "\n    Message  = " << loginRsp.errcode.message;
+    //     });
+    // if (!id)
+    // {
+    //   throw(std::runtime_error("Connot subscribe LoginResponse from SfLoginScreen"));
+    // }
+
+    // loginSubscriptionId_ = id.value();
+    return;
   }
 
   void SfLoginScreen::update(sf::Time const &elapsed) noexcept

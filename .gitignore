@@ -44,4 +44,3 @@ __pycache__/
 # Ignore ImGui.ini
 imgui.ini
 QuickNotes.md
-peeb/

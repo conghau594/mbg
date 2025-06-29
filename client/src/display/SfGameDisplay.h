@@ -29,6 +29,10 @@ namespace bgg
 
     void run() override;
     void send(ClientEvent const &request) noexcept override;
+    [[nodiscard]] auto subscribe(ServerMessage const &msg) -> std::size_t override;
+    auto unsubscribe(std::size_t const &msgId) -> std::size_t override;
+    auto unsubscribe(
+        ServerMessage const &dummy, std::size_t const &msgId) -> std::size_t override;
 
     void pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept override;
     void popScreen() noexcept override;

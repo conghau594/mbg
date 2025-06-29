@@ -2,6 +2,7 @@
 #pragma once
 
 #include "service/ClientEvent.h"
+#include "service/ServerMessage.h"
 
 namespace std
 {
@@ -18,6 +19,10 @@ namespace bgg
     virtual ~GameDisplay() = default;
     virtual void run() = 0;
     virtual void send(ClientEvent const &request) = 0;
+    virtual auto subscribe(ServerMessage const &msg) -> std::size_t = 0;
+    virtual auto unsubscribe(std::size_t const &msgId) -> std::size_t = 0;
+    virtual auto unsubscribe(
+        ServerMessage const &dummy, std::size_t const &msgId) -> std::size_t = 0;
 
     virtual void pushScreen(std::shared_ptr<GameScreen> newScreen) = 0;
     virtual void popScreen() = 0;
