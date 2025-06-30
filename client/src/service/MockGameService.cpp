@@ -27,6 +27,10 @@ namespace bgg
       throw(std::runtime_error("Cannot subscribe LoginRequest from MockGameService"));
     }
     subscriptionIdList_.emplace_back(subscriptionId.value());
+#ifdef _DEBUG
+    std::clog << "\nMockGameService has subscribed to ClientEvent of "
+              << typeid(LoginRequest).name() << " successfully";
+#endif
   }
 
   MockGameService::~MockGameService()

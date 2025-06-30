@@ -25,14 +25,6 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
     std::map<std::size_t, Listener<DATA>> listenerMap;
     mutable std::shared_mutex mapMutex;
   };
-  ///////////////////////////////////////////////////////////////////////////////
-  template <typename EVENT>
-  concept EventConcept = requires(EVENT const &e) {
-    typename EVENT::Pack;
-    {
-      e.visit([](auto &&) {})
-    };
-  };
 
   // template<typename LISTENTER, typename DATA>
   // concept ListenerConcept = requires(LISTENTER const& listener, DATA const& d)
@@ -171,7 +163,7 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
 
     /////////////////////////////////////////////////////////////////////////////
     /**
-     *
+     * \param dummy The concrete data of EVENT, not the EVENT object ifself.
      * \return number of removed listeners
      */
     auto unsubscribe(EVENT const &dummy, std::size_t const &subscriptionId) noexcept

@@ -37,11 +37,23 @@ namespace bgg
     ErrorCode errcode;
   };
 
+  struct GameStartedEvent
+  {
+    ErrorCode errcode;
+  };
+
+  struct GameUpdatedEvent
+  {
+    ErrorCode errcode;
+  };
+
   using ServerMessage = peeb::Event<
       LoginResponse,
       FindGameResponse,
       CancelMatchmakingResponse,
       CommitMoveResponse,
-      ResignGameResponse>;
+      ResignGameResponse,
+      GameStartedEvent,
+      GameUpdatedEvent>;
 
 } // namespace bgg

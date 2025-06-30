@@ -42,11 +42,14 @@ namespace bgg
     {
       throw std::runtime_error("Failed to update ImGui font texture.");
     }
+
+    subscribeServerMessages();
   }
 
   SfGameDisplay::~SfGameDisplay() noexcept
   {
     ImGui::SFML::Shutdown();
+    unsubscribeServerMessages();
   }
 
   void SfGameDisplay::run()
@@ -71,25 +74,21 @@ namespace bgg
     eventBus_->emit<ClientEvent>(request);
   }
 
-  auto SfGameDisplay::subscribe(ServerMessage const &msg) -> std::size_t
+  void SfGameDisplay::subscribeServerMessages()
   {
-    std::optional<std::size_t> id = eventBus_->subscribe<ServerMessage>(msg);
-    if (!id)
+    using MessagePack = typename ServerMessage::Event::Pack;
+    [this]<std::size_t... I>(std::index_sequence<I...>)
     {
-      throw(std::runtime_error("Cannot subscribe to ServerMessage from SfGameDisplay"));
+      (subscribe<MessagePack::At<I>>(), ...);
+    }(std::make_index_sequence<MessagePack::Count>{});
+  }
+
+  void SfGameDisplay::unsubscribeServerMessages()
+  {
+    for (auto &id : subscriptionIDs_)
+    {
+      eventBus_->unsubscribe(id);
     }
-    return id.value();
-  }
-
-  auto SfGameDisplay::unsubscribe(
-      ServerMessage const &dummy, std::size_t const &msgId) -> std::size_t
-  {
-    return eventBus_->unsubscribe<ServerMessage>(dummy, msgId);
-  }
-
-  auto SfGameDisplay::unsubscribe(std::size_t const &msgId) -> std::size_t
-  {
-    return eventBus_->unsubscribe<ServerMessage>(msgId);
   }
 
   void SfGameDisplay::pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept

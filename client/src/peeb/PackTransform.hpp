@@ -6,6 +6,21 @@
 namespace ppt // abbr of `Parameter Pack Transformer`
 {
   /////////////////////////////////////////////////////////////////////////////
+  template <std::size_t I, typename... Ts>
+  struct At;
+
+  template <typename First, typename... Rest>
+  struct At<0, First, Rest...>
+  {
+    using Type = First;
+  };
+
+  template <std::size_t I, typename First, typename... Rest>
+  struct At<I, First, Rest...>
+  {
+    using Type = typename At<I - 1, Rest...>::Type;
+  };
+  /////////////////////////////////////////////////////////////////////////////
   template <typename RET, typename T>
   using AsFunction = RET(T);
 
@@ -13,6 +28,10 @@ namespace ppt // abbr of `Parameter Pack Transformer`
   template <typename... Ts>
   struct Pack
   {
+    static constexpr std::size_t Count = sizeof...(Ts);
+    template <std::size_t I>
+    using At = typename At<I, Ts...>::Type;
+
     using ToRef = Pack<Ts &...>;
     using ToConst = Pack<const Ts...>;
     using ToConstRef = Pack<Ts const &...>;
