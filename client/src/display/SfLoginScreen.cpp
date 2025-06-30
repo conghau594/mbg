@@ -18,29 +18,6 @@
 
 namespace bgg
 {
-  SfConnectionWaitingScreen::SfConnectionWaitingScreen(
-      std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameScreen> parentScreen,
-      std::future<ServerMessage> const &futureLoginResponse) noexcept
-      : SfMessageScreen(std::move(window), "Connecting to server...", {}, {}),
-        futureLoginResponse_(futureLoginResponse),
-        parentScreen_(std::move(parentScreen))
-  {
-  }
-
-  void SfConnectionWaitingScreen::update(sf::Time const &elapsed) noexcept
-  {
-    SfMessageScreen::update(elapsed);
-
-    if (futureLoginResponse_.valid() &&
-        futureLoginResponse_.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
-    {
-      parentScreen_->changeSubscreen(nullptr);
-      return;
-    }
-  }
-
-  /////////////////////////////////////////////////////////////////////////////
   SfLoginScreen::SfLoginScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameDisplay> gameDisplay)
@@ -50,6 +27,17 @@ namespace bgg
         usernameBuffer_(0),
         pressedButtonIndex_(-1)
   {
+    serverMessageHandler().setHandler<LoginResponse>(
+        [this](LoginResponse const &response) -> bool
+        {
+          onLoginResponse(response);
+          return true;
+        });
+  }
+
+  SfLoginScreen::~SfLoginScreen()
+  {
+    serverMessageHandler().resetHandler<LoginResponse>();
   }
 
   void SfLoginScreen::doExit() noexcept
@@ -58,69 +46,10 @@ namespace bgg
 
   void SfLoginScreen::doEnter() noexcept
   {
-    // std::optional<std::size_t> id = gameDisplay_->subscribe(
-    //     [this](LoginResponse const &loginRsp)
-    //     {
-    //       std::cout << "\nListen from SfGameDisplay"
-    //                 << "\n    User ID  = " << loginRsp.userId
-    //                 << "\n    Errcode  = " << loginRsp.errcode.value
-    //                 << "\n    Category = " << loginRsp.errcode.category
-    //                 << "\n    Message  = " << loginRsp.errcode.message;
-    //     });
-    // if (!id)
-    // {
-    //   throw(std::runtime_error("Connot subscribe LoginResponse from SfLoginScreen"));
-    // }
-
-    // loginSubscriptionId_ = id.value();
-    return;
   }
 
   void SfLoginScreen::update(sf::Time const &elapsed) noexcept
   {
-    if (futureLoginResponse_.valid() &&
-        futureLoginResponse_.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
-    {
-      ServerMessage response = futureLoginResponse_.get();
-      if (auto loginResponse = response.getIf<LoginResponse>())
-      {
-        ErrorCode const &errcode = loginResponse->errcode;
-        if (errcode.value == 0) // no error -> login successfully
-        {
-          std::vector<std::string> gameTypeNames(
-              std::begin(GameType::NAMES), std::end(GameType::NAMES));
-          std::shared_ptr<GameScreen> gameSelectionScreen(new SfGameSelectionScreen(
-              window(), gameDisplay_, gameTypeNames));
-
-          changeSubscreen(nullptr);
-          gameDisplay_->pushScreen(gameSelectionScreen);
-        }
-        else
-        {
-          std::vector<std::string> &&buttonLabels{"Retry", "Cancel"};
-          std::vector<std::function<void()>> &&buttonCallbacks{
-              [this]()
-              {
-                sendLoginRequest();
-              },
-              [this]()
-              {
-                changeSubscreen(nullptr);
-              }};
-
-          std::string message = errcode.message + " (" +
-                                std::to_string(errcode.value) + ")";
-
-          std::shared_ptr<GameScreen> retryScreen(new SfMessageScreen(
-              window(), message, buttonLabels, buttonCallbacks));
-
-          changeSubscreen(retryScreen);
-        }
-      }
-
-      return;
-    }
-
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
     layOutScreen();
@@ -236,10 +165,46 @@ namespace bgg
   void SfLoginScreen::sendLoginRequest() noexcept
   {
     LoginRequest request{usernameBuffer_, passwordBuffer_};
-    /*futureLoginResponse_ =*/gameDisplay_->send(request);
-    std::shared_ptr<GameScreen> waitScreen(new SfConnectionWaitingScreen(
-        window(), shared_from_this(), futureLoginResponse_));
+    gameDisplay_->send(request);
+    std::shared_ptr<GameScreen> waitScreen(new SfMessageScreen(
+        window(), "Connecting to server...", {}, {}));
 
     changeSubscreen(waitScreen);
+  }
+
+  void SfLoginScreen::onLoginResponse(LoginResponse const &response) noexcept
+  {
+    ErrorCode const &errcode = response.errcode;
+    if (errcode.value == 0) // no error -> login successfully
+    {
+      std::vector<std::string> gameTypeNames(
+          std::begin(GameType::NAMES), std::end(GameType::NAMES));
+      std::shared_ptr<GameScreen> gameSelectionScreen(new SfGameSelectionScreen(
+          window(), gameDisplay_, gameTypeNames));
+
+      changeSubscreen(nullptr);
+      gameDisplay_->pushScreen(gameSelectionScreen);
+    }
+    else
+    {
+      std::vector<std::string> &&buttonLabels{"Retry", "Cancel"};
+      std::vector<std::function<void()>> &&buttonCallbacks{
+          [this]()
+          {
+            sendLoginRequest();
+          },
+          [this]()
+          {
+            changeSubscreen(nullptr);
+          }};
+
+      std::string message = errcode.message + " (" +
+                            std::to_string(errcode.value) + ")";
+
+      std::shared_ptr<GameScreen> retryScreen(new SfMessageScreen(
+          window(), message, buttonLabels, buttonCallbacks));
+
+      changeSubscreen(retryScreen);
+    }
   }
 } // namespace bgg

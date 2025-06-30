@@ -43,10 +43,16 @@ namespace bgg
       return;
     }
 
-    sf::Time elapsed = clock_->restart();
-    if (elapsed == sf::Time::Zero || !isActive_)
+    if (!isActive_)
     {
-      // If no time has passed or the screen should deactivate, do nothing
+      window_->clear();
+      window_->display();
+      return;
+    }
+
+    sf::Time elapsed = clock_->restart();
+    if (elapsed == sf::Time::Zero)
+    {
       return;
     }
 
@@ -80,6 +86,22 @@ namespace bgg
     clock_->stop();
     doExit();
     isActive_ = false;
+  }
+
+  void SfBaseScreen::handleServerMessages(std::list<ServerMessage> &messages) noexcept
+  {
+    for (auto msg = messages.begin(); msg != messages.end();)
+    {
+      bool isMsgHandled = msg->visit(serverMessageHandler_);
+      if (isMsgHandled)
+      {
+        msg = messages.erase(msg);
+      }
+      else
+      {
+        std::advance(msg, 1);
+      }
+    }
   }
 
   void SfBaseScreen::onWindowClosed()

@@ -9,34 +9,18 @@
 
 namespace bgg
 {
-  class SfConnectionWaitingScreen final : public SfMessageScreen
-  {
-    std::future<ServerMessage> const &futureLoginResponse_;
-    std::shared_ptr<GameScreen> parentScreen_;
-
-  public:
-    SfConnectionWaitingScreen(
-        std::shared_ptr<sf::RenderWindow> window,
-        std::shared_ptr<GameScreen> parentScreen,
-        std::future<ServerMessage> const &futureLoginResponse) noexcept;
-
-  private:
-    void update(sf::Time const &elapsed) noexcept override;
-  };
-
   class SfLoginScreen final : public SfBaseScreen
   {
     std::shared_ptr<GameDisplay> gameDisplay_;
-    std::future<ServerMessage> futureLoginResponse_;
     char usernameBuffer_[128];
     char passwordBuffer_[128];
-    std::size_t loginSubscriptionId_;
     int pressedButtonIndex_;
 
   public:
     SfLoginScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameDisplay> gameDisplay);
+    ~SfLoginScreen();
 
   private:
     void update(sf::Time const &elapsedTime) noexcept override;
@@ -47,6 +31,8 @@ namespace bgg
     void doEnter() noexcept override;
 
     void layOutScreen() noexcept;
+
     void sendLoginRequest() noexcept;
+    void onLoginResponse(LoginResponse const &response) noexcept;
   };
 } // namespace bgg

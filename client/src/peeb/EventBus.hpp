@@ -9,6 +9,7 @@
 
 #include "PackTransform.hpp"
 #include "EventBusHelper.hpp"
+// #include "Listener.hpp"
 
 #ifdef _DEBUG
 #include <iostream>
@@ -51,7 +52,6 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
     using Event = EVENT;
 
     using MapTuple = EVENT::Pack ::template WrapEachIn<ListenerMapWithMutex>::template EncloseBy<std::tuple>;
-
     using ListenerVariant = EVENT::Pack::ToConstRef ::template ToFunction<void>::template EncloseBy<std::variant>;
 
   private:
@@ -140,8 +140,10 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
     /////////////////////////////////////////////////////////////////////////////
     [[nodiscard]] auto subscribe(auto &&listener) noexcept -> decltype(auto)
     {
-      if constexpr (std::is_convertible_v<decltype(listener), ListenerVariant>)
-        return std::visit(subscribeVisitor_, ListenerVariant(listener));
+      if constexpr (std::is_convertible_v<decltype(listener),
+                                          typename EVENT::ListenerVariant>)
+        return std::visit(subscribeVisitor_,
+                          typename EVENT::ListenerVariant(listener));
       else
         return std::optional<std::size_t>(std::nullopt);
     }

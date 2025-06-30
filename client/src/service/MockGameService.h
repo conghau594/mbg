@@ -27,6 +27,8 @@ namespace bgg
   public:
     MockGameService(std::shared_ptr<ClientEventBus> eventBus);
     ~MockGameService();
+
+  private:
     void emit(ServerMessage const &msg) noexcept override;
 
     void sendRequest(LoginRequest const &loginRqt) noexcept;

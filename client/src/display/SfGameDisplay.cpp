@@ -61,9 +61,14 @@ namespace bgg
         // TODO: Need to add a default/empty screen instread of exiting the app
         break;
       }
+
       if (currentScreen_ != screenStack_.back())
       {
         currentScreen_ = screenStack_.back();
+      }
+      {
+        std::lock_guard lock(messageMutex_);
+        currentScreen_->handleServerMessages(serverMessages_);
       }
       currentScreen_->update();
     }
@@ -87,8 +92,13 @@ namespace bgg
   {
     for (auto &id : subscriptionIDs_)
     {
-      eventBus_->unsubscribe(id);
+      std::size_t removedCount = eventBus_->unsubscribe(id);
+#ifdef _DEBUG
+      std::clog << removedCount << " messages with ID = "
+                << id << "has been remove from SfGameDisplay";
+#endif
     }
+    subscriptionIDs_.clear();
   }
 
   void SfGameDisplay::pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept

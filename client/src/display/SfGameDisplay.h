@@ -38,6 +38,7 @@ namespace bgg
         std::shared_ptr<ClientEventBus> eventBus);
     ~SfGameDisplay() noexcept;
 
+  private:
     void run() override;
     void send(ClientEvent const &request) noexcept override;
 
@@ -45,38 +46,40 @@ namespace bgg
     void popScreen() noexcept override;
     void changeScreen(std::shared_ptr<GameScreen> newScreen) noexcept override;
 
-  private:
     void subscribeServerMessages();
     void unsubscribeServerMessages();
 
     template <typename DATA>
       requires(peeb::is_in_template_v<DATA, ServerMessage>)
-    void subscribe()
-    {
-      std::optional<std::size_t> id;
-      id = eventBus_->subscribe<ServerMessage, DATA>(
-          [this](DATA const &d)
-          {
-            std::lock_guard lock(messageMutex_);
-            serverMessages_.push_back(d);
-#ifdef _DEBUG
-            std::clog << "\nSfGameDisplay has listened ServerMessage of "
-                      << typeid(DATA).name();
-#endif
-          });
-      if (!id)
-      {
-        std::string msg = std::format(
-            "Cannot subscribe to `{}` from SfGameDisplay",
-            typeid(DATA).name());
-        throw(std::runtime_error(msg));
-      }
-      subscriptionIDs_.emplace_back(id.value());
-#ifdef _DEBUG
-      std::clog << "\nSfGameDisplay has subscribed to ServerMessage of "
-                << typeid(DATA).name() << " successfully";
-#endif
-    }
+    inline void subscribe();
   };
 
+  template <typename DATA>
+    requires(peeb::is_in_template_v<DATA, ServerMessage>)
+  void SfGameDisplay::subscribe()
+  {
+    std::optional<std::size_t> id = eventBus_->subscribe<ServerMessage, DATA>(
+        [this](DATA const &d)
+        {
+          std::lock_guard lock(messageMutex_);
+          serverMessages_.push_back(d);
+#ifdef _DEBUG
+          std::clog << "\nSfGameDisplay has listened ServerMessage of "
+                    << typeid(DATA).name();
+#endif
+        });
+
+    if (!id)
+    {
+      std::string msg = std::format(
+          "Cannot subscribe to `{}` from SfGameDisplay",
+          typeid(DATA).name());
+      throw(std::runtime_error(msg));
+    }
+    subscriptionIDs_.emplace_back(id.value());
+#ifdef _DEBUG
+    std::clog << "\nSfGameDisplay has subscribed to ServerMessage of "
+              << typeid(DATA).name() << " successfully";
+#endif
+  }
 } // namespace bgg
