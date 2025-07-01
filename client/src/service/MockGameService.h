@@ -33,17 +33,13 @@ namespace bgg
 
     void sendRequest(LoginRequest const &loginRqt) noexcept;
 
-    // std::future<ServerMessage> operator()(
-    //     ClientEvent::FindGameRequest const &findGameRqt) noexcept;
+    void sendRequest(FindGameRequest const &findGameRqt) noexcept;
 
-    // std::future<ServerMessage> operator()(
-    //     ClientEvent::CancelMatchmaking const &cancelMatchmakingRqt) noexcept;
+    void sendRequest(CancelMatchmakingRequest const &cancelMatchmakingRqt) noexcept;
 
-    // std::future<ServerMessage> operator()(
-    //     ClientEvent::CommitMove const &commitMoveRqt) noexcept;
+    void sendRequest(CommitMoveRequest const &commitMoveRqt) noexcept;
 
-    // std::future<ServerMessage> operator()(
-    //     ClientEvent::ResignGame const &resignGameRqt) noexcept;
+    void sendRequest(ResignGameRequest const &resignGameRqt) noexcept;
 
     static void simulateNetworkLatencyAndFailure(
         int failurePercent = 0, int minDelay = 100, int maxDelay = 2000);

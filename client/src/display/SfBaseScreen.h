@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "GameScreen.h"
-#include "ServerMessageHandler.h"
+#include "peeb/Handler.hpp"
 #include "service/ServerMessage.h"
 
 namespace std
@@ -29,7 +29,7 @@ namespace bgg
       : public std::enable_shared_from_this<SfBaseScreen>,
         public GameScreen
   {
-    ServerMessageHandler serverMessageHandler_;
+    peeb::Handler<ServerMessage> serverMessageHandler_;
 
     std::shared_ptr<sf::RenderWindow> window_;
 
@@ -55,7 +55,7 @@ namespace bgg
         -> std::shared_ptr<sf::RenderWindow> const & { return window_; }
 
     [[nodiscard]] auto serverMessageHandler() noexcept
-        -> ServerMessageHandler & { return serverMessageHandler_; }
+        -> peeb::Handler<ServerMessage> & { return serverMessageHandler_; }
 
     static void askExitConfirmation(
         std::shared_ptr<sf::RenderWindow> window,

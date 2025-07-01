@@ -1,4 +1,4 @@
-// BusHelper.h
+// EventBusHelper.hpp
 #pragma once
 
 #include <type_traits>

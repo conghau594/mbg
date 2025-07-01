@@ -1,4 +1,4 @@
-// "PackTransform.h"
+// PackTransform.hpp
 #pragma once
 
 #include <functional>
@@ -28,6 +28,13 @@ namespace ppt // abbr of `Parameter Pack Transformer`
   template <typename... Ts>
   struct Pack
   {
+    // Unpack -> dung cho Pack 1 phan tu
+    // IsInThis<T> -> bool: check 1 phan tu co nam trong pack ko
+    // IsInThisAnyDepth<T>
+    //  ToPointer
+    //  Clear -> chuyen ve Pack<>
+    //  PopBack, PopFront
+    //  Remove<T>: -> remove all type T
     static constexpr std::size_t Count = sizeof...(Ts);
     template <std::size_t I>
     using At = typename At<I, Ts...>::Type;

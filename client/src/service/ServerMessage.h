@@ -37,12 +37,17 @@ namespace bgg
     ErrorCode errcode;
   };
 
-  struct GameStartedEvent
+  struct GameStartedNotification
   {
     ErrorCode errcode;
   };
 
-  struct GameUpdatedEvent
+  struct GameUpdatedNotification
+  {
+    ErrorCode errcode;
+  };
+
+  struct GameFinishedNotification
   {
     ErrorCode errcode;
   };
@@ -53,7 +58,8 @@ namespace bgg
       CancelMatchmakingResponse,
       CommitMoveResponse,
       ResignGameResponse,
-      GameStartedEvent,
-      GameUpdatedEvent>;
+      GameStartedNotification,
+      GameUpdatedNotification,
+      GameFinishedNotification>;
 
 } // namespace bgg

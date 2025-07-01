@@ -1,66 +1,60 @@
-// ServerMessageHandler.h
+// Handler.hpp
 #pragma once
 
-#include "service/ServerMessage.h"
+#include <tuple>
+#include <functional>
+
+#include "Event.hpp"
 
 #ifdef _DEBUG
 #include <iostream>
 #endif
 
-namespace bgg
+namespace peeb
 {
   /////////////////////////////////////////////////////////////////////////////
   /**
    *
    * \note This class may be reusable because it is not dependent on any GUI framework
    */
-  class ServerMessageHandler
+  template <typename EVENT>
+    requires(EventConcept<EVENT>)
+  class Handler final
   {
-    using HandlerTuples = ServerMessage::Pack::ToConstRef ::template ToFunction<bool>::template EncloseBy<std::tuple>;
+    using Pack = typename EVENT::Pack::ToConstRef::
+        template ToFunction<bool>;
 
-    HandlerTuples handlers_;
+    using Tuple = typename Pack::template EncloseBy<std::tuple>;
+
+    Tuple handlers_;
 
   public:
-    ServerMessageHandler() noexcept
+    Handler() noexcept
     {
       [this]<std::size_t... I>(std::index_sequence<I...>)
       {
         ([this]
          {
-          using DataType = ServerMessage::Pack::At<I>;
+          using DataType = typename EVENT::Pack::template At<I>;
           decltype(auto) handler = std::get<I>(handlers_);
           handler = [](DataType const&) -> bool
           { 
             return false;
           }; }(), ...);
-      }(std::make_index_sequence<ServerMessage::Pack::Count>{});
+      }(std::make_index_sequence<EVENT::Pack::Count>{});
     }
 
     template <typename DATA>
-      requires(peeb::is_in_template_v<DATA, ServerMessage::Pack>)
-    auto operator()(DATA const &d) const noexcept -> decltype(auto)
+      requires(is_in_template_v<DATA, typename EVENT::Pack>)
+    auto operator()(DATA const &d) const noexcept -> bool
     {
       using HandlerType = std::function<bool(DATA const &)>;
       decltype(auto) handler = std::get<HandlerType>(handlers_);
-      bool isHandled = handler(d);
-
-#ifdef _DEBUG
-      if (isHandled)
-      {
-        std::clog << "\nSfBaseScreen has handled ServerMessage of "
-                  << typeid(DATA).name();
-      }
-      // else
-      // {
-      //   std::clog << "\nSfBaseScreen has ignored ServerMessage of "
-      //             << typeid(DATA).name();
-      // }
-#endif
-      return isHandled;
+      return handler(d);
     }
 
     template <typename DATA>
-      requires(peeb::is_in_template_v<DATA, ServerMessage::Pack>)
+      requires(is_in_template_v<DATA, typename EVENT::Pack>)
     void setHandler(std::function<bool(DATA const &)> const &newHandler) noexcept
     {
       using HandlerType = std::function<bool(DATA const &)>;
@@ -69,7 +63,7 @@ namespace bgg
     }
 
     template <typename DATA>
-      requires(peeb::is_in_template_v<DATA, ServerMessage::Pack>)
+      requires(is_in_template_v<DATA, typename EVENT::Pack>)
     void resetHandler() noexcept
     {
       using HandlerType = std::function<bool(DATA const &)>;
@@ -81,4 +75,4 @@ namespace bgg
     }
   };
 
-}
+} // namespace peeb

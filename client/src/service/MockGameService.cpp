@@ -13,24 +13,32 @@ namespace bgg
         uuidGenerator_(std::make_shared<boost::uuids::random_generator>()),
         eventBus_(std::move(eventBus))
   {
-    std::optional<std::size_t> subscriptionId;
-    subscriptionId = eventBus_->subscribe<ClientEvent, LoginRequest>(
-        [this](LoginRequest const &loginRqt)
-        {
-          sendRequest(loginRqt);
-          std::cout << "\nListen from MockGameService."
-                    << "\n    Username = " << loginRqt.username
-                    << "\n    Password = " << loginRqt.password;
-        });
-    if (!subscriptionId)
+    [this]<std::size_t... I>(std::index_sequence<I...>)
     {
-      throw(std::runtime_error("Cannot subscribe LoginRequest from MockGameService"));
-    }
-    subscriptionIdList_.emplace_back(subscriptionId.value());
+      ([this]
+       {
+         using RequestType = ClientEvent::Pack::At<I>;
+         auto subscriptionId = eventBus_->subscribe<ClientEvent, RequestType>(
+             [this](RequestType const &request)
+             {
+               sendRequest(request);
+               std::cout << "\nMockGameService has listened ClientEvent of "
+                         << typeid(RequestType).name();
+             });
+
+         if (!subscriptionId)
+         {
+           throw(std::runtime_error("Cannot subscribe LoginRequest from MockGameService"));
+         }
+         subscriptionIdList_.emplace_back(subscriptionId.value());
+
 #ifdef _DEBUG
-    std::clog << "\nMockGameService has subscribed to ClientEvent of "
-              << typeid(LoginRequest).name() << " successfully";
+         std::clog << "\nMockGameService has subscribed to ClientEvent of "
+                   << typeid(LoginRequest).name() << " successfully";
 #endif
+       }(),
+       ...);
+    }(std::make_index_sequence<ClientEvent::Pack::Count>{});
   }
 
   MockGameService::~MockGameService()
@@ -80,166 +88,103 @@ namespace bgg
         });
   }
 
-  // std::future<ServerMessage> MockGameService::operator()(
-  //     ClientEvent::FindGameRequest const &) noexcept
-  // {
-  //   auto futureResponse = threadPool_.push(
-  //       [this]() -> ServerMessage
-  //       {
-  //         std::string msg;
-  //         int errCodeValue = 0;
-  //         std::string gameId;
-  //         int side = -1;
+  void MockGameService::sendRequest(FindGameRequest const & /*findGameRqt*/) noexcept
+  {
+    threadPool_.push(
+        [this]()
+        {
+          std::string msg;
+          int errCodeValue = 0;
+          std::string gameId;
+          int side = -1;
 
-  //         try
-  //         {
-  //           simulateNetworkLatencyAndFailure(10, 12000, 15000);
+          try
+          {
+            simulateNetworkLatencyAndFailure(10, 12000, 15000);
 
-  //           // FindGameRequest successfully, then create user ID
-  //           boost::uuids::uuid id = (*uuidGenerator_)();
-  //           if (id.is_nil())
-  //           {
-  //             msg = "Failed to create UUID";
-  //             errCodeValue = -1;
-  //           }
-  //           else
-  //           {
-  //             gameId = boost::uuids::to_string(id);
-  //             side = std::abs(std::accumulate(gameId.begin(), gameId.end(), 0)) % 2;
-  //           }
-  //         }
-  //         catch (std::runtime_error const &e)
-  //         {
-  //           msg = e.what();
-  //           errCodeValue = -1;
-  //         }
+            // FindGameRequest successfully, then create user ID
+            boost::uuids::uuid id = (*uuidGenerator_)();
+            if (id.is_nil())
+            {
+              msg = "Failed to create UUID";
+              errCodeValue = -1;
+            }
+            else
+            {
+              gameId = boost::uuids::to_string(id);
+              side = std::abs(std::accumulate(gameId.begin(), gameId.end(), 0)) % 2;
+            }
+          }
+          catch (std::runtime_error const &e)
+          {
+            msg = e.what();
+            errCodeValue = -1;
+          }
 
-  //         return ServerMessage::FindGameRequest{
-  //             ErrorCode{errCodeValue, "Mock", msg}, gameId, side};
-  //       });
+          emit(FindGameResponse{ErrorCode{errCodeValue, "Mock", msg}, gameId, side});
+        });
+  }
 
-  //   return futureResponse;
-  // }
+  void MockGameService::sendRequest(CancelMatchmakingRequest const & /*cancelMatchmakingRqt*/) noexcept
+  {
+    threadPool_.push(
+        [this]()
+        {
+          int errCodeValue = 0;
+          std::string msg;
+          try
+          {
+            simulateNetworkLatencyAndFailure(100, 200, 1000);
+          }
+          catch (std::runtime_error const &e)
+          {
+            msg = e.what();
+            errCodeValue = -1;
+          }
 
-  // std::future<ServerMessage> MockGameService::operator()(
-  //     ClientEvent::CancelMatchmaking const &) noexcept
-  // {
-  //   auto futureResponse = threadPool_.push(
-  //       [this]() -> ServerMessage
-  //       {
-  //         int errCodeValue = 0;
-  //         std::string msg;
-  //         try
-  //         {
-  //           simulateNetworkLatencyAndFailure(100, 200, 1000);
-  //         }
-  //         catch (std::runtime_error const &e)
-  //         {
-  //           msg = e.what();
-  //           errCodeValue = -1;
-  //         }
+          emit(CancelMatchmakingResponse{ErrorCode{errCodeValue, "Mock", msg}});
+        });
+  }
 
-  //         return ServerMessage::CancelMatchmaking{ErrorCode{errCodeValue, "Mock", msg}};
-  //       });
+  void MockGameService::sendRequest(CommitMoveRequest const & /*commitMoveRqt*/) noexcept
+  {
+    threadPool_.push(
+        [this]()
+        {
+          std::string msg;
+          int errCodeValue = 0;
+          try
+          {
+            simulateNetworkLatencyAndFailure(30);
+          }
+          catch (std::runtime_error const &e)
+          {
+            msg = e.what();
+          }
 
-  //   return futureResponse;
-  // }
+          emit(CommitMoveResponse{ErrorCode{errCodeValue, "Mock", msg}});
+        });
+  }
 
-  // std::future<ServerMessage> MockGameService::operator()(
-  //     ClientEvent::CommitMove const &commitMoveRqt) noexcept
-  // {
-  //   return std::future<ServerMessage>();
-  // }
+  void MockGameService::sendRequest(ResignGameRequest const & /*resignGameRqt*/) noexcept
+  {
+    threadPool_.push(
+        [this]()
+        {
+          std::string msg;
+          int errCodeValue = 0;
+          try
+          {
+            simulateNetworkLatencyAndFailure(10);
+          }
+          catch (std::runtime_error const &e)
+          {
+            msg = e.what();
+          }
 
-  // std::future<ServerMessage> MockGameService::operator()(
-  //     ClientEvent::ResignGame const &resignGameRqt) noexcept
-  // {
-  //   return std::future<ServerMessage>();
-  // }
-
-  // void MockGameService::cancelMatchmaking(
-  //     std::string const & /*userId*/,
-  //     Callback const &callback) noexcept
-  // {
-  //   threadPool_.push(
-  //       [this, &callback]()
-  //       {
-  //         if (!isConnected_)
-  //         {
-  //           std::string msg;
-  //           int code = 0;
-  //           try
-  //           {
-  //             simulateNetworkLatencyAndFailure(10);
-  //           }
-  //           catch (std::exception const &e)
-  //           {
-  //             msg = e.what();
-  //           }
-
-  //           // connect successfully
-  //           isConnected_ = true;
-  //           callback(code, msg);
-  //         }
-  //       });
-  // }
-
-  // void MockGameService::resignGame(
-  //     std::string const & /*userId*/,
-  //     std::string const & /*gameId*/,
-  //     Callback const &callback) noexcept
-  // {
-  //   threadPool_.push(
-  //       [this, &callback]()
-  //       {
-  //         if (!isConnected_)
-  //         {
-  //           std::string msg;
-  //           int code = 0;
-  //           try
-  //           {
-  //             simulateNetworkLatencyAndFailure(10);
-  //           }
-  //           catch (std::exception const &e)
-  //           {
-  //             msg = e.what();
-  //           }
-
-  //           // resign successfully
-  //           isConnected_ = true;
-  //           callback(code, msg);
-  //         }
-  //       });
-  // }
-
-  // void MockGameService::commitMove(
-  //     std::string const & /*userId*/,
-  //     std::string const & /*gameId*/,
-  //     Move const *const /*move*/,
-  //     Callback const &callback) noexcept
-  // {
-  //   threadPool_.push(
-  //       [this, &callback]()
-  //       {
-  //         if (!isConnected_)
-  //         {
-  //           std::string msg;
-  //           int code = 0;
-  //           try
-  //           {
-  //             simulateNetworkLatencyAndFailure(30);
-  //           }
-  //           catch (std::exception const &e)
-  //           {
-  //             msg = e.what();
-  //           }
-
-  //           // commit move successfully
-  //           isConnected_ = true;
-  //           callback(code, msg);
-  //         }
-  //       });
-  // }
+          emit(ResignGameResponse{ErrorCode{errCodeValue, "Mock", msg}});
+        });
+  }
 
   void MockGameService::simulateNetworkLatencyAndFailure(
       int failurePercent /*=0*/, int minDelay /*=100*/, int maxDelay /*=2000*/)

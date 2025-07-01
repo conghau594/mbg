@@ -1,4 +1,4 @@
-// ClientEvent.h
+// Event.hpp
 #pragma once
 
 #include <string>

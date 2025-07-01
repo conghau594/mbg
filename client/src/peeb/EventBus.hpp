@@ -1,4 +1,4 @@
-// EventBus.h
+// EventBus.hpp
 #pragma once
 
 #include <tuple>
@@ -51,8 +51,10 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
   public:
     using Event = EVENT;
 
-    using MapTuple = EVENT::Pack ::template WrapEachIn<ListenerMapWithMutex>::template EncloseBy<std::tuple>;
-    using ListenerVariant = EVENT::Pack::ToConstRef ::template ToFunction<void>::template EncloseBy<std::variant>;
+    using MapTuple = EVENT::Pack::
+        template WrapEachIn<ListenerMapWithMutex>::template EncloseBy<std::tuple>;
+    using ListenerVariant = EVENT::Pack::ToConstRef ::
+        template ToFunction<void>::template EncloseBy<std::variant>;
 
   private:
     struct SubscribeVisitor
