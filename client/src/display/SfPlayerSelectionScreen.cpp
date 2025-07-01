@@ -27,6 +27,12 @@ namespace bgg
         playerTypeNames_(playerTypeNames),
         gameType_(gameType)
   {
+    serverMessageHandler().setHandler<FindGameAcceptedNotification>(
+        [this](FindGameAcceptedNotification const &response) -> bool
+        {
+          onFindGameAcceptedNotification(response);
+          return true;
+        });
   }
 
   void SfPlayerSelectionScreen::doExit() noexcept
@@ -51,12 +57,8 @@ namespace bgg
     if (pressedButtonIndex_ >= 0 &&
         pressedButtonIndex_ < int(playerTypeNames_.size()))
     {
-      int playerType = pressedButtonIndex_;
-
-      std::shared_ptr<GameScreen> findingScreen = std::make_shared<SfGameFindingScreen>(
-          window(), gameDisplay_, gameType_, playerType);
-
-      gameDisplay_->pushScreen(findingScreen);
+      playerType_ = pressedButtonIndex_;
+      sendFindGameRequest();
     }
     else if (pressedButtonIndex_ == int(playerTypeNames_.size())) // if Back button is pressed
     {
@@ -122,5 +124,50 @@ namespace bgg
 
     ImGui::End();
     ImGui::PopFont();
+  }
+
+  void SfPlayerSelectionScreen::sendFindGameRequest() noexcept
+  {
+    FindGameRequest request{"", gameType_, playerType_};
+    gameDisplay_->send(request);
+    std::shared_ptr<GameScreen> waitScreen(new SfMessageScreen(
+        window(), "Sending request...", {}, {}));
+
+    changeSubscreen(waitScreen);
+  }
+
+  void SfPlayerSelectionScreen::onFindGameAcceptedNotification(
+      FindGameAcceptedNotification const &response) noexcept
+  {
+    ErrorCode const &errcode = response.errcode;
+    if (errcode.value == 0)
+    {
+      std::shared_ptr<GameScreen> findingScreen = std::make_shared<SfGameFindingScreen>(
+          window(), gameDisplay_, gameType_, playerType_);
+
+      changeSubscreen(nullptr);
+      gameDisplay_->pushScreen(findingScreen);
+    }
+    else
+    {
+      std::vector<std::string> &&buttonLabels{"Retry", "Cancel"};
+      std::vector<std::function<void()>> &&buttonCallbacks{
+          [this]()
+          {
+            sendFindGameRequest();
+          },
+          [this]()
+          {
+            changeSubscreen(nullptr);
+          }};
+
+      std::string message = errcode.message + " (" +
+                            std::to_string(errcode.value) + ")";
+
+      std::shared_ptr<GameScreen> retryScreen(new SfMessageScreen(
+          window(), message, buttonLabels, buttonCallbacks));
+
+      changeSubscreen(retryScreen);
+    }
   }
 } // namespace bgg

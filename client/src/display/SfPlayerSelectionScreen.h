@@ -18,6 +18,7 @@ namespace bgg
     std::vector<std::string> playerTypeNames_;
     int pressedButtonIndex_;
     int gameType_;
+    int playerType_;
 
   public:
     SfPlayerSelectionScreen(
@@ -35,6 +36,9 @@ namespace bgg
     void doEnter() noexcept override;
 
     void layOutScreen() noexcept;
+
+    void sendFindGameRequest() noexcept;
+    void onFindGameAcceptedNotification(FindGameAcceptedNotification const &response) noexcept;
   };
 
 } // namespace bgg

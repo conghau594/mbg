@@ -72,11 +72,8 @@ namespace bgg
   }
 
   void SfLoginScreen::onWindowEventExceptClosed(
-      std::optional<sf::Event> const &event) noexcept
+      std::optional<sf::Event> const & /*event*/) noexcept
   {
-    if (auto mousePressed = event->getIf<sf::Event::MouseButtonPressed>())
-    {
-    }
   }
 
   void SfLoginScreen::layOutScreen() noexcept

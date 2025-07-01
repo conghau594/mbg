@@ -64,7 +64,7 @@ namespace bgg
           std::lock_guard lock(messageMutex_);
           serverMessages_.push_back(d);
 #ifdef _DEBUG
-          std::clog << "\nSfGameDisplay has listened ServerMessage of "
+          std::clog << "\nSfGameDisplay has received ServerMessage of "
                     << typeid(DATA).name();
 #endif
         });

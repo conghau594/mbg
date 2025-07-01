@@ -22,6 +22,11 @@ namespace bgg
     int side;
   };
 
+  struct FindGameAcceptedNotification
+  {
+    ErrorCode errcode;
+  };
+
   struct CancelMatchmakingResponse
   {
     ErrorCode errcode;
@@ -54,11 +59,12 @@ namespace bgg
 
   using ServerMessage = peeb::Event<
       LoginResponse,
+      FindGameAcceptedNotification,
       FindGameResponse,
       CancelMatchmakingResponse,
+      GameStartedNotification,
       CommitMoveResponse,
       ResignGameResponse,
-      GameStartedNotification,
       GameUpdatedNotification,
       GameFinishedNotification>;
 
