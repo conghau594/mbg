@@ -12,29 +12,6 @@
 
 namespace bgg
 {
-  SfMatchmakingCancelScreen::SfMatchmakingCancelScreen(
-      std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<GameScreen> parentScreen,
-      std::future<ServerMessage> const &futureCancelResponse)
-      : SfMessageScreen(std::move(window), "Canceling...", {}, {}),
-        futureCancelResponse_(futureCancelResponse),
-        parentScreen_(std::move(parentScreen))
-  {
-  }
-
-  void SfMatchmakingCancelScreen::update(sf::Time const &elapsed) noexcept
-  {
-    SfMessageScreen::update(elapsed);
-
-    if (futureCancelResponse_.valid() &&
-        futureCancelResponse_.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
-    {
-      parentScreen_->changeSubscreen(nullptr);
-      return;
-    }
-  }
-
-  /////////////////////////////////////////////////////////////////////////////
   SfGameFindingScreen::SfGameFindingScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameDisplay> gameDisplay,
@@ -49,89 +26,25 @@ namespace bgg
             "Waiting for oppenent...",
             {"Cancel"},
             {[this]
-             {
-               /*futureCancelResponse_ =*/gameDisplay_->send(CancelMatchmakingRequest{});
-               std::shared_ptr<GameScreen> cancelingScreen(new SfMatchmakingCancelScreen(
-                   this->window(), shared_from_this(), futureCancelResponse_));
-
-               changeSubscreen(cancelingScreen);
-             }})
+             { sendCancelMatchmakingRequest(); }})
   {
-    FindGameRequest findGameRequest{"", gameType, playerType};
-    /*futureFindGameResponse_ =*/gameDisplay_->send(findGameRequest);
+    serverMessageHandler().setHandler<FindGameResponse>(
+        [this](FindGameResponse const &response) -> bool
+        {
+          onFindGameResponse(response);
+          return true;
+        });
+
+    serverMessageHandler().setHandler<CancelMatchmakingResponse>(
+        [this](CancelMatchmakingResponse const &response) -> bool
+        {
+          onCancelMatchmakingResponse(response);
+          return true;
+        });
   }
 
   void SfGameFindingScreen::update(sf::Time const &elapsed) noexcept
   {
-
-    while (futureCancelResponse_.valid())
-    {
-      if (futureCancelResponse_.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
-      {
-        continue;
-      }
-
-      ServerMessage response = futureCancelResponse_.get();
-      if (auto cancelResponse = response.getIf<CancelMatchmakingResponse>())
-      {
-        ErrorCode const &errcode = cancelResponse->errcode;
-        if (errcode.value == 0) // no error -> canceled successfully
-        {
-          // cancel futureFindGameResponse_
-          futureFindGameResponse_ = std::future<ServerMessage>();
-          gameDisplay_->popScreen();
-          return;
-        }
-        else
-        {
-          std::string message = "Failed to cancel matchmaking\n(" +
-                                errcode.message + " (" +
-                                std::to_string(errcode.value) + "))";
-          break;
-        }
-      }
-    }
-
-    if (futureFindGameResponse_.valid() &&
-        futureFindGameResponse_.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
-    {
-      ServerMessage response = futureFindGameResponse_.get();
-      if (auto findGameResponse = response.getIf<FindGameResponse>())
-      {
-        ErrorCode const &errcode = findGameResponse->errcode;
-        if (errcode.value == 0) // no error -> the game is found
-        {
-          goToGamePlayScreen();
-          return;
-        }
-        else
-        {
-          std::string message = errcode.message + " (" +
-                                std::to_string(errcode.value) + ")";
-          auto okButtonCallback = [this]
-          {
-            gameDisplay_->popScreen();
-          };
-
-          std::shared_ptr<GameScreen> messageScreen(new SfMessageScreen(
-              window(), message, {"OK"}, {okButtonCallback}));
-
-          changeSubscreen(messageScreen);
-          return;
-        }
-      }
-    }
-
-    if (isCancelButtonPressed_) // the Cancel button is pressed only once
-    {
-      /*futureCancelResponse_ = */ gameDisplay_->send(CancelMatchmakingRequest{});
-      std::shared_ptr<GameScreen> cancelScreen(new SfMatchmakingCancelScreen(
-          window(), shared_from_this(), futureCancelResponse_));
-
-      changeSubscreen(cancelScreen);
-      isCancelButtonPressed_ = false;
-      return;
-    }
 
     SfMessageScreen::update(elapsed);
   }
@@ -160,6 +73,63 @@ namespace bgg
         window(), gameDisplay_, tileMap));
 
     gameDisplay_->changeScreen(chessScreen);
-    //=============================================================================
+  }
+
+  void SfGameFindingScreen::sendCancelMatchmakingRequest() noexcept
+  {
+    // TODO: implement later
+    // gameDisplay_->send(CancelMatchmakingRequest{});
+
+    // std::shared_ptr<GameScreen> cancelingScreen = std::make_shared<SfMessageScreen>(
+    //     window(), "Canceling...");
+
+    // changeSubscreen(cancelingScreen);
+  }
+
+  void SfGameFindingScreen::onCancelMatchmakingResponse(CancelMatchmakingResponse const & /*response*/) noexcept
+  {
+    // TODO: implement later
+    //  ErrorCode const &errcode = response.errcode;
+    //  if (errcode.value == 0) // no error -> canceled successfully
+    //  {
+    //    gameDisplay_->popScreen();
+
+    //   return;
+    // }
+    // else
+    // {
+    //   std::string message = "Failed to cancel matchmaking\n(" +
+    //                         errcode.message + " (" +
+    //                         std::to_string(errcode.value) + "))";
+    //   // break;
+    // }
+  }
+
+  void SfGameFindingScreen::onFindGameResponse(FindGameResponse const &response) noexcept
+  {
+    // TODO: this is just a simple implementation without synchronization with
+    //       CancelMatchmakingRequest -> need to reimplement
+    ErrorCode const &errcode = response.errcode;
+    if (errcode.value == 0) // no error -> the game is found
+    {
+      goToGamePlayScreen();
+      return;
+    }
+    else
+    {
+      std::string message = errcode.message + " (" +
+                            std::to_string(errcode.value) + ")";
+      auto okButtonCallback = [this]
+      {
+        changeSubscreen(nullptr);
+        gameDisplay_->popScreen();
+      };
+
+      std::shared_ptr<GameScreen> messageScreen(new SfMessageScreen(
+          window(), message, {"OK"}, {okButtonCallback}));
+
+      changeSubscreen(messageScreen);
+      return;
+    }
   }
 } // namespace bgg

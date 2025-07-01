@@ -54,8 +54,8 @@ namespace bgg
       int gameType = pressedButtonIndex_;
       std::vector<std::string> playerTypeNames(
           std::begin(PlayerType::NAMES), std::end(PlayerType::NAMES));
-      std::shared_ptr<GameScreen> playerSelectionScreen(new SfPlayerSelectionScreen(
-          window(), gameDisplay_, playerTypeNames, gameType));
+      std::shared_ptr<GameScreen> playerSelectionScreen = std::make_shared<SfPlayerSelectionScreen>(
+          window(), gameDisplay_, playerTypeNames, gameType);
 
       gameDisplay_->pushScreen(playerSelectionScreen);
       // deactivate();

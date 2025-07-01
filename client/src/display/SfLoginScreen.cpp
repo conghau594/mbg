@@ -163,8 +163,8 @@ namespace bgg
   {
     LoginRequest request{usernameBuffer_, passwordBuffer_};
     gameDisplay_->send(request);
-    std::shared_ptr<GameScreen> waitScreen(new SfMessageScreen(
-        window(), "Connecting to server...", {}, {}));
+    std::shared_ptr<GameScreen> waitScreen = std::make_shared<SfMessageScreen>(
+        window(), "Connecting to server...");
 
     changeSubscreen(waitScreen);
   }
@@ -176,8 +176,8 @@ namespace bgg
     {
       std::vector<std::string> gameTypeNames(
           std::begin(GameType::NAMES), std::end(GameType::NAMES));
-      std::shared_ptr<GameScreen> gameSelectionScreen(new SfGameSelectionScreen(
-          window(), gameDisplay_, gameTypeNames));
+      std::shared_ptr<GameScreen> gameSelectionScreen = std::make_shared<SfGameSelectionScreen>(
+          window(), gameDisplay_, gameTypeNames);
 
       changeSubscreen(nullptr);
       gameDisplay_->pushScreen(gameSelectionScreen);
@@ -198,8 +198,8 @@ namespace bgg
       std::string message = errcode.message + " (" +
                             std::to_string(errcode.value) + ")";
 
-      std::shared_ptr<GameScreen> retryScreen(new SfMessageScreen(
-          window(), message, buttonLabels, buttonCallbacks));
+      std::shared_ptr<GameScreen> retryScreen = std::make_shared<SfMessageScreen>(
+          window(), message, buttonLabels, buttonCallbacks);
 
       changeSubscreen(retryScreen);
     }

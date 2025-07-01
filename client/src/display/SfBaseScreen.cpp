@@ -143,8 +143,8 @@ namespace bgg
           parentScreen->changeSubscreen(nullptr);
         }};
 
-    std::shared_ptr<GameScreen> confirmationScreen(new SfConfirmationScreen(
-        window, msg, buttonLabels, buttonCallbacks));
+    std::shared_ptr<GameScreen> confirmationScreen = std::make_shared<SfConfirmationScreen>(
+        window, msg, buttonLabels, buttonCallbacks);
 
     parentScreen->changeSubscreen(confirmationScreen);
   }

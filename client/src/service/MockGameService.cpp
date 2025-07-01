@@ -9,7 +9,7 @@
 namespace bgg
 {
   MockGameService::MockGameService(std::shared_ptr<ClientEventBus> eventBus)
-      : threadPool_(1),
+      : threadPool_(2),
         uuidGenerator_(std::make_shared<boost::uuids::random_generator>()),
         eventBus_(std::move(eventBus))
   {
@@ -107,6 +107,21 @@ namespace bgg
           }
 
           emit(FindGameAcceptedNotification{ErrorCode{errCodeValue, "Mock", msg}});
+
+          msg = "";
+          errCodeValue = 0;
+
+          try
+          {
+            simulateNetworkLatencyAndFailure(100, 1000, 2000);
+          }
+          catch (std::runtime_error const &e)
+          {
+            msg = e.what();
+            errCodeValue = -1;
+          }
+
+          emit(FindGameResponse{ErrorCode{errCodeValue, "Mock", msg}});
         });
   }
   // void MockGameService::sendRequest(FindGameRequest const & /*findGameRqt*/) noexcept

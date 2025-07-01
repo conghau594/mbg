@@ -130,8 +130,8 @@ namespace bgg
   {
     FindGameRequest request{"", gameType_, playerType_};
     gameDisplay_->send(request);
-    std::shared_ptr<GameScreen> waitScreen(new SfMessageScreen(
-        window(), "Sending request...", {}, {}));
+    std::shared_ptr<GameScreen> waitScreen = std::make_shared<SfMessageScreen>(
+        window(), "Sending request...");
 
     changeSubscreen(waitScreen);
   }
@@ -164,8 +164,8 @@ namespace bgg
       std::string message = errcode.message + " (" +
                             std::to_string(errcode.value) + ")";
 
-      std::shared_ptr<GameScreen> retryScreen(new SfMessageScreen(
-          window(), message, buttonLabels, buttonCallbacks));
+      std::shared_ptr<GameScreen> retryScreen = std::make_shared<SfMessageScreen>(
+          window(), message, buttonLabels, buttonCallbacks);
 
       changeSubscreen(retryScreen);
     }
