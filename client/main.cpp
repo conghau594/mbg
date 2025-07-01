@@ -1,11 +1,19 @@
 #include <memory>
 #include "app/ChessAppFactory.h"
+#include "app/QuickAppFactory.h"
+
+#define APP_TYPE 0
 
 int main()
 {
   try
   {
-    std::shared_ptr<bgg::GameAppFactory> appFactory(new bgg::ChessAppFactory);
+#if defined(APP_TYPE) && (APP_TYPE < 0)
+    std::shared_ptr<bgg::GameAppFactory> appFactory = std::make_shared<bgg::ChessAppFactory>();
+#else
+    std::shared_ptr<bgg::GameAppFactory> appFactory = std::make_shared<bgg::QuickAppFactory>(APP_TYPE);
+#endif
+
     bgg::GameApp app = appFactory->createGameApp();
     app.run();
   }

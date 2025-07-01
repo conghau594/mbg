@@ -8,7 +8,7 @@
 #include "service/ClientEvent.h"
 #include "service/ServerMessage.h"
 
-#include "SfChessScreen.h"
+#include "display/GameBoardScreenFactory.h"
 
 namespace bgg
 {
@@ -51,26 +51,8 @@ namespace bgg
 
   void SfGameFindingScreen::goToGamePlayScreen() noexcept
   {
-    // Just for test, push the SfChessScreen:
-    // define the level with an array of tile indices
-    constexpr unsigned const level[] = {
-        0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0,
-        0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0,
-        0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0,
-        0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0};
-
-    SfTileMap tileMap(
-        "resource/western-chess-tile-set.png",
-        {200, 200},
-        level,
-        {8, 8});
-
-    std::shared_ptr<GameScreen> chessScreen(new SfChessScreen(
-        window(), gameDisplay_, tileMap));
+    std::shared_ptr<GameScreen> chessScreen = GameBoardScreenFactory().create(
+        gameType_, window(), gameDisplay_);
 
     gameDisplay_->changeScreen(chessScreen);
   }
@@ -125,8 +107,8 @@ namespace bgg
         gameDisplay_->popScreen();
       };
 
-      std::shared_ptr<GameScreen> messageScreen(new SfMessageScreen(
-          window(), message, {"OK"}, {okButtonCallback}));
+      std::shared_ptr<GameScreen> messageScreen = std::make_shared<SfMessageScreen>(
+          window(), message, std::vector<std::string>{"OK"}, std::vector<std::function<void()>>{okButtonCallback});
 
       changeSubscreen(messageScreen);
       return;

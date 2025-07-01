@@ -113,7 +113,7 @@ namespace bgg
 
           try
           {
-            simulateNetworkLatencyAndFailure(100, 1000, 2000);
+            simulateNetworkLatencyAndFailure(10, 1000, 2000);
           }
           catch (std::runtime_error const &e)
           {
