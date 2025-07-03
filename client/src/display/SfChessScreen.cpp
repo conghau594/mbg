@@ -10,33 +10,31 @@
 #include "SfChessScreen.h"
 #include "SfConfirmationScreen.h"
 
+#include "board/SfGameBoard.h"
+
 namespace bgg
 {
   SfChessScreen::SfChessScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameDisplay> gameDisplay,
-      SfTileMap const &tileMap) noexcept
+      std::shared_ptr<SfGameBoard> gameBoard,
+      unsigned resignButtonRegionHeight) noexcept
       : SfBaseScreen(std::move(window)),
         gameDisplay_(std::move(gameDisplay)),
-        tileMap_(std::move(tileMap)),
+        gameBoard_(std::move(gameBoard)),
+        resignButtonRegionHeight_(resignButtonRegionHeight),
         pressedButtonIndex_(-1)
   {
   }
 
   void SfChessScreen::update(sf::Time const &elapsed)
   {
-    // if (elapsed == sf::Time::Zero || !isActive())
-    // {
-    //   // If no time has passed or the screen should deactivate, do nothing
-    //   return;
-    // }
-
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
     layOutScreen();
 
     window()->clear();
-    window()->draw(tileMap_);
+    window()->draw(*gameBoard_);
     ImGui::SFML::Render(*window());
     window()->display();
 
@@ -75,13 +73,9 @@ namespace bgg
 
   void SfChessScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &event)
   {
-    if (const auto *windowResized = event->getIf<sf::Event::Resized>())
+    if (event.has_value())
     {
-      mapRegionBotRight_ = windowResized->size;
-      tileMap_.fitRectangle(mapRegionTopLeft_, mapRegionBotRight_);
-    }
-    else
-    {
+      gameBoard_->onEvent(*event);
     }
   }
 
@@ -120,7 +114,7 @@ namespace bgg
                                  ImGuiWindowFlags_AlwaysAutoResize |
                                  ImGuiWindowFlags_NoMove;
 
-    ImVec2 const BUTTON_SIZE(120.0f, mapRegionTopLeft_.y - VERTICAL_SPACING * 2.0f);
+    ImVec2 const BUTTON_SIZE(120.0f, resignButtonRegionHeight_ - VERTICAL_SPACING * 2.0f);
     // ImVec2 constexpr DUMMY_SIZE(0.0f, 10.0f);
 
     ImGui::Begin("Select Game", nullptr, IM_GUI_FLAGS);

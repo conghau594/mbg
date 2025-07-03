@@ -43,8 +43,8 @@ namespace bgg
         sf::Vertex *triangles = &vertices_[(i + j * tilesPerMapRow) * 6];
 
         // define the 6 corners of the two triangles
-        float tileWidth = float(tileSizeInPixels.x);
-        float tileHeight = float(tileSizeInPixels.y);
+        float tileWidth = float(tileSizeInPixels.x) / 2;
+        float tileHeight = float(tileSizeInPixels.y) / 2;
 
         triangles[0].position = sf::Vector2f(tileWidth * i, tileHeight * j);
         triangles[1].position = triangles[0].position + sf::Vector2f(tileWidth, 0.0f);
@@ -58,7 +58,8 @@ namespace bgg
             tileNumber % tilesPerTextureWidth, tileNumber / tilesPerTextureWidth};
 
         // define the 6 matching texture coordinates
-        triangles[0].texCoords = sf::Vector2f(float(tileTexCoords.x * tileSizeInPixels.x), float(tileTexCoords.y * tileSizeInPixels.y));
+        triangles[0].texCoords = sf::Vector2f(
+            float(tileTexCoords.x * tileSizeInPixels.x), float(tileTexCoords.y * tileSizeInPixels.y));
         triangles[1].texCoords = triangles[0].texCoords + sf::Vector2f(float(tileSizeInPixels.x), 0.0f);
         triangles[2].texCoords = triangles[0].texCoords + sf::Vector2f(0.0f, float(tileSizeInPixels.y));
         triangles[3].texCoords = triangles[0].texCoords + sf::Vector2f(tileSizeInPixels);

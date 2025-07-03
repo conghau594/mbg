@@ -35,14 +35,13 @@ namespace bgg
 
     std::shared_ptr<GameScreen> lastSubscreen_;
     std::shared_ptr<GameScreen> currentSubscreen_;
-    // std::mutex subscreenMutex_;
+
     std::shared_ptr<sf::Clock> clock_;
     bool isActive_;
 
-  public:
+  protected:
     SfBaseScreen(std::shared_ptr<sf::RenderWindow> window) noexcept;
 
-  protected:
     virtual void update(sf::Time const &elapsed) = 0;
 
     virtual void onWindowEventExceptClosed(std::optional<sf::Event> const &event) = 0;

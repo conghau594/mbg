@@ -2,24 +2,25 @@
 #pragma once
 
 #include "SfBaseScreen.h"
-#include "SfTileMap.h"
+#include <SFML/System/Vector2.hpp>
 
 namespace bgg
 {
   class GameDisplay;
-  class SfChessScreen : public SfBaseScreen
+  class SfGameBoard;
+  class SfChessScreen final : public SfBaseScreen
   {
     std::shared_ptr<GameDisplay> gameDisplay_;
-    SfTileMap tileMap_;
-    sf::Vector2u mapRegionTopLeft_;
-    sf::Vector2u mapRegionBotRight_;
+    std::shared_ptr<SfGameBoard> gameBoard_;
+    unsigned resignButtonRegionHeight_;
     int pressedButtonIndex_;
 
   public:
     SfChessScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameDisplay> gameDisplay,
-        SfTileMap const &tileMap) noexcept;
+        std::shared_ptr<SfGameBoard> gameBoard,
+        unsigned resignButtonRegionHeight) noexcept;
 
   private:
     void update(sf::Time const &elapsed) override;

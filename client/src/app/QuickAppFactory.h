@@ -8,7 +8,8 @@
 
 #include "service/MockGameService.h"
 #include "display/SfGameDisplay.h"
-#include "display/GameBoardScreenFactory.h"
+#include "display/SfChessScreen.h"
+#include "display/board/GameBoardFactory.h"
 
 #include "peeb/EventBus.hpp"
 namespace bgg
@@ -43,10 +44,12 @@ namespace bgg
       std::shared_ptr<GameDisplay> gameDisplay = std::make_shared<SfGameDisplay>(
           window, eventBus);
 
-      std::shared_ptr<GameScreen> initialScreen = GameBoardScreenFactory().create(
-          gameType_, window, gameDisplay);
+      unsigned resignButtonRegionHeight = 60;
+      std::shared_ptr<SfGameBoard> chessBoard = GameBoardFactory().create(gameType_);
+      std::shared_ptr<GameScreen> chessScreen = std::make_shared<SfChessScreen>(
+          window, gameDisplay, chessBoard, resignButtonRegionHeight);
 
-      gameDisplay->pushScreen(initialScreen);
+      gameDisplay->pushScreen(chessScreen);
 
       // return GameApp object
       return GameApp(gameDisplay, gameService);

@@ -2,14 +2,18 @@
 
 #include "SfGameFindingScreen.h"
 
-#include "SfMessageScreen.h"
 #include "GameDisplay.h"
+#include "SfMessageScreen.h"
+#include "SfChessScreen.h"
 
 #include "service/ClientEvent.h"
 #include "service/ServerMessage.h"
 
-#include "display/GameBoardScreenFactory.h"
+#include "display/board/GameBoardFactory.h"
 
+#ifdef _DEBUG
+#include <iostream>
+#endif
 namespace bgg
 {
   SfGameFindingScreen::SfGameFindingScreen(
@@ -49,12 +53,25 @@ namespace bgg
     SfMessageScreen::update(elapsed);
   }
 
-  void SfGameFindingScreen::goToGamePlayScreen() noexcept
+  void SfGameFindingScreen::goToGamePlayScreen()
   {
-    std::shared_ptr<GameScreen> chessScreen = GameBoardScreenFactory().create(
-        gameType_, window(), gameDisplay_);
+    try
+    {
+      unsigned resignButtonRegionHeight = 60;
+      std::shared_ptr<SfGameBoard> chessBoard = GameBoardFactory().create(gameType_);
+      std::shared_ptr<GameScreen> chessScreen = std::make_shared<SfChessScreen>(
+          window(), gameDisplay_, chessBoard, resignButtonRegionHeight);
 
-    gameDisplay_->changeScreen(chessScreen);
+      gameDisplay_->changeScreen(chessScreen);
+    }
+    catch (std::exception const &e)
+    {
+      // TODO: need to handle this exception in detail
+#ifdef _DEBUG
+      std::clog << "\n"
+                << e.what();
+#endif
+    }
   }
 
   void SfGameFindingScreen::sendCancelMatchmakingRequest() noexcept
@@ -108,7 +125,10 @@ namespace bgg
       };
 
       std::shared_ptr<GameScreen> messageScreen = std::make_shared<SfMessageScreen>(
-          window(), message, std::vector<std::string>{"OK"}, std::vector<std::function<void()>>{okButtonCallback});
+          window(),
+          message,
+          std::vector<std::string>{"OK"},
+          std::vector<std::function<void()>>{okButtonCallback});
 
       changeSubscreen(messageScreen);
       return;

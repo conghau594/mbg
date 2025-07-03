@@ -497,8 +497,9 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
             } }(), ...);
       }(std::make_index_sequence<std::tuple_size_v<BusTuple>>{});
     }
-
-  private:
-    // helper functions
   };
+
+  // TODO: Add priority, thread pool for low priority,
+  //       connect() mimicking signal and slot mechanism of Qt
+
 } // namespace peeb

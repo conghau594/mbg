@@ -28,7 +28,7 @@ namespace bgg
 
   private:
     void update(sf::Time const &elapsed) noexcept override;
-    void goToGamePlayScreen() noexcept;
+    void goToGamePlayScreen();
 
     void sendCancelMatchmakingRequest() noexcept;
     void onCancelMatchmakingResponse(CancelMatchmakingResponse const &response) noexcept;
