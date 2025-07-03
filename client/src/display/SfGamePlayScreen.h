@@ -1,4 +1,4 @@
-// SfChessScreen.h
+// SfGamePlayScreen.h
 #pragma once
 
 #include "SfBaseScreen.h"
@@ -7,7 +7,7 @@ namespace bgg
 {
   class GameDisplay;
   class SfGameBoard;
-  class SfChessScreen final : public SfBaseScreen
+  class SfGamePlayScreen final : public SfBaseScreen
   {
     std::shared_ptr<GameDisplay> gameDisplay_;
     std::shared_ptr<SfGameBoard> gameBoard_;
@@ -15,7 +15,7 @@ namespace bgg
     int pressedButtonIndex_;
 
   public:
-    SfChessScreen(
+    SfGamePlayScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameDisplay> gameDisplay,
         std::shared_ptr<SfGameBoard> gameBoard,

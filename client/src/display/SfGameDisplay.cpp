@@ -62,6 +62,7 @@ namespace bgg
         break;
       }
 
+      BOOST_ASSERT_MSG(!screenStack_.empty(), "screenStack_ of SfGameDisplay cannot be empty.");
       if (currentScreen_ != screenStack_.back())
       {
         currentScreen_ = screenStack_.back();
@@ -96,7 +97,7 @@ namespace bgg
 #ifdef _DEBUG
       std::clog << "\n"
                 << removedCount << " message handler(s) with ID = "
-                << id << " has been remove from SfGameDisplay";
+                << id << " has been removed from SfGameDisplay";
 #endif
     }
     subscriptionIDs_.clear();

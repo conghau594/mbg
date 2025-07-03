@@ -4,7 +4,7 @@
 
 #include "GameDisplay.h"
 #include "SfMessageScreen.h"
-#include "SfChessScreen.h"
+#include "SfGamePlayScreen.h"
 
 #include "service/ClientEvent.h"
 #include "service/ServerMessage.h"
@@ -59,7 +59,7 @@ namespace bgg
     {
       unsigned resignButtonRegionHeight = 60;
       std::shared_ptr<SfGameBoard> chessBoard = SfGameBoardFactory().create(gameType_);
-      std::shared_ptr<GameScreen> chessScreen = std::make_shared<SfChessScreen>(
+      std::shared_ptr<GameScreen> chessScreen = std::make_shared<SfGamePlayScreen>(
           window(), gameDisplay_, chessBoard, resignButtonRegionHeight);
 
       gameDisplay_->changeScreen(chessScreen);

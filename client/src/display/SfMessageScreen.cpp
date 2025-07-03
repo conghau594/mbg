@@ -15,7 +15,7 @@ namespace bgg
 {
   SfMessageScreen::SfMessageScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::string const &message,
+      std::string message,
       std::vector<std::string> buttonLabels,
       std::vector<std::function<void()>> buttonCallbacks) noexcept
       : SfBaseScreen(std::move(window)),

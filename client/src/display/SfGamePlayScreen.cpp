@@ -1,4 +1,4 @@
-// SfChessScreen.cpp
+// SfGamePlayScreen.cpp
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <imgui.h>      // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
@@ -7,14 +7,14 @@
 #include <functional>
 
 #include "GameDisplay.h"
-#include "SfChessScreen.h"
+#include "SfGamePlayScreen.h"
 #include "SfConfirmationScreen.h"
 
 #include "board/SfGameBoard.h"
 
 namespace bgg
 {
-  SfChessScreen::SfChessScreen(
+  SfGamePlayScreen::SfGamePlayScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameDisplay> gameDisplay,
       std::shared_ptr<SfGameBoard> gameBoard,
@@ -27,7 +27,7 @@ namespace bgg
   {
   }
 
-  void SfChessScreen::update(sf::Time const &elapsed)
+  void SfGamePlayScreen::update(sf::Time const &elapsed)
   {
     // update the window display
     ImGui::SFML::Update(*window(), elapsed);
@@ -71,7 +71,7 @@ namespace bgg
     pressedButtonIndex_ = -1;
   }
 
-  void SfChessScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &event)
+  void SfGamePlayScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &event)
   {
     if (event.has_value())
     {
@@ -79,16 +79,16 @@ namespace bgg
     }
   }
 
-  void SfChessScreen::doEnter()
+  void SfGamePlayScreen::doEnter()
   {
   }
 
-  void SfChessScreen::doExit()
+  void SfGamePlayScreen::doExit()
   {
     // tileMap_.doExit();
   }
 
-  void SfChessScreen::layOutScreen() noexcept
+  void SfGamePlayScreen::layOutScreen() noexcept
   {
     int constexpr FONT_VENITE_ADOREMUS_24 = 2;
     ImFont *font24 = ImGui::GetIO().Fonts->Fonts[FONT_VENITE_ADOREMUS_24];

@@ -14,20 +14,21 @@ namespace bgg
 {
   class SfChessBoard : public SfGameBoard
   {
-    std::shared_ptr<SfBoardState> boardState_;
+    std::shared_ptr<SfBoardState> currentBoardState_;
+    std::shared_ptr<SfBoardState> lastBoardState_;
     SfTileMap tileMap_;
 
   public:
-    SfChessBoard(SfTileMap tileMap);
+    SfChessBoard(SfTileMap tileMap) noexcept;
 
   private:
-    void onEvent(sf::Event const &event) override;
+    void onEvent(sf::Event const &event) noexcept override;
 
-    void send(ClientEvent const &request) override;
+    void send(ClientEvent const &request) noexcept override;
 
-    void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+    void draw(sf::RenderTarget &target, sf::RenderStates states) const noexcept override;
 
-    void changeMouseState(std::shared_ptr<SfBoardState> newMouseState) override;
+    void changeState(std::shared_ptr<SfBoardState> newState) noexcept override;
   };
 
 } // namespace bgg

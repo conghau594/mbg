@@ -28,7 +28,7 @@ namespace bgg
       std::vector<std::string> buttonLabels,
       std::vector<std::function<void()>> buttonCallbacks) noexcept
       : SfMessageScreen(
-            window,
+            std::move(window),
             std::move(message),
             std::move(buttonLabels),
             std::move(buttonCallbacks))

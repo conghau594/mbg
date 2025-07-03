@@ -4,6 +4,7 @@
 #include "model/GameType.h"
 #include "SfTileMap.h"
 #include "SfChessBoard.h"
+#include "SfBoardPieceDisabledState.h"
 
 namespace bgg
 {
@@ -42,7 +43,12 @@ namespace bgg
           level,
           {8, 8});
 
-      std::shared_ptr<SfGameBoard> chessBoard = std::make_shared<SfChessBoard>(std::move(tileMap));
+      std::shared_ptr<SfGameBoard> chessBoard =
+          std::make_shared<SfChessBoard>(std::move(tileMap));
+      std::shared_ptr<SfBoardState> initialBoardState =
+          std::make_shared<SfBoardPieceDisabledState>(chessBoard);
+      chessBoard->changeState(initialBoardState);
+
       return chessBoard;
     }
   };

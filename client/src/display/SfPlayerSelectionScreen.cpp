@@ -23,8 +23,8 @@ namespace bgg
       int gameType) noexcept
       : SfBaseScreen(std::move(window)),
         gameDisplay_(std::move(gameDisplay)),
-        pressedButtonIndex_(-1),
         playerTypeNames_(std::move(playerTypeNames)),
+        pressedButtonIndex_(-1),
         gameType_(gameType)
   {
     serverMessageHandler().setHandler<FindGameAcceptedNotification>(

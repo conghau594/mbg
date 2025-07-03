@@ -23,7 +23,7 @@ namespace bgg
 {
   SfBaseScreen::SfBaseScreen(std::shared_ptr<sf::RenderWindow> window) noexcept
       : window_(std::move(window)),
-        clock_(new sf::Clock),
+        clock_(std::make_shared<sf::Clock>()),
         isActive_(true),
         lastSubscreen_(nullptr),
         currentSubscreen_(nullptr)
