@@ -1,4 +1,4 @@
-// GameBoardFactory.h
+// SfGameBoardFactory.h
 #pragma once
 
 #include "model/GameType.h"
@@ -7,7 +7,7 @@
 
 namespace bgg
 {
-  class GameBoardFactory final
+  class SfGameBoardFactory final
   {
   public:
     auto create(int type) const
@@ -42,7 +42,7 @@ namespace bgg
           level,
           {8, 8});
 
-      std::shared_ptr<SfGameBoard> chessBoard = std::make_shared<SfChessBoard>(/**/);
+      std::shared_ptr<SfGameBoard> chessBoard = std::make_shared<SfChessBoard>(std::move(tileMap));
       return chessBoard;
     }
   };

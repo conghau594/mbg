@@ -19,12 +19,12 @@ namespace bgg
   SfPlayerSelectionScreen::SfPlayerSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameDisplay> gameDisplay,
-      std::vector<std::string> const &playerTypeNames,
+      std::vector<std::string> playerTypeNames,
       int gameType) noexcept
       : SfBaseScreen(std::move(window)),
         gameDisplay_(std::move(gameDisplay)),
         pressedButtonIndex_(-1),
-        playerTypeNames_(playerTypeNames),
+        playerTypeNames_(std::move(playerTypeNames)),
         gameType_(gameType)
   {
     serverMessageHandler().setHandler<FindGameAcceptedNotification>(

@@ -94,8 +94,9 @@ namespace bgg
     {
       std::size_t removedCount = eventBus_->unsubscribe(id);
 #ifdef _DEBUG
-      std::clog << removedCount << " messages with ID = "
-                << id << "has been remove from SfGameDisplay";
+      std::clog << "\n"
+                << removedCount << " message handler(s) with ID = "
+                << id << " has been remove from SfGameDisplay";
 #endif
     }
     subscriptionIDs_.clear();

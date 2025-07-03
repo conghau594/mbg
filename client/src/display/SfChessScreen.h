@@ -2,7 +2,6 @@
 #pragma once
 
 #include "SfBaseScreen.h"
-#include <SFML/System/Vector2.hpp>
 
 namespace bgg
 {

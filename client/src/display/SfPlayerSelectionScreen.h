@@ -24,7 +24,7 @@ namespace bgg
     SfPlayerSelectionScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameDisplay> gameDisplay_,
-        std::vector<std::string> const &playerTypeNames,
+        std::vector<std::string> playerTypeNames,
         int gameType) noexcept;
 
   private:

@@ -22,10 +22,10 @@ namespace bgg
   SfGameSelectionScreen::SfGameSelectionScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameDisplay> gameDisplay,
-      std::vector<std::string> const &gameNames) noexcept
+      std::vector<std::string> gameNames) noexcept
       : SfBaseScreen(std::move(window)),
         gameDisplay_(std::move(gameDisplay)),
-        gameNames_(gameNames),
+        gameNames_(std::move(gameNames)),
         pressedButtonIndex_(-1)
   {
   }
