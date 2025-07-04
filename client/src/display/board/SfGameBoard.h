@@ -26,10 +26,8 @@ namespace bgg
     virtual void send(ClientEvent const &request) = 0;
     virtual void changeState(std::shared_ptr<SfBoardState> newState) = 0;
     virtual auto addItem(
-        sf::Vector2i tileCoords,
-        size_t zOrder,
-        int textureCellIndex,
-        bool visible = true) -> SfItem * = 0;
+        sf::Vector2i tileCoords, size_t zOrder, int textureCellIndex, bool visible = true) 
+        -> SfItem * = 0;
 
     virtual auto removeItem(SfItem *item) -> bool = 0;
     virtual auto putItemOnTile(SfItem *item, sf::Vector2i tileCoords) -> bool = 0;

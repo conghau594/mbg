@@ -23,8 +23,8 @@ namespace bgg
       std::shared_ptr<GameDisplay> gameDisplay)
       : SfBaseScreen(std::move(window)),
         gameDisplay_(std::move(gameDisplay)),
-        passwordBuffer_(0),
-        usernameBuffer_(0),
+        passwordBuffer_{0},
+        usernameBuffer_{0},
         pressedButtonIndex_(-1)
   {
     serverMessageHandler().setHandler<LoginResponse>(

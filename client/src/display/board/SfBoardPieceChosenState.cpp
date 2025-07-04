@@ -6,7 +6,7 @@ namespace bgg
 {
   SfBoardPieceChosenState::SfBoardPieceChosenState(
       std::shared_ptr<SfGameBoard> gameBoard) noexcept
-      : gameBoard_(gameBoard)
+      : gameBoard_(std::move(gameBoard))
   {
   }
 

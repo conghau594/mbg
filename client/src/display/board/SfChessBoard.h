@@ -29,6 +29,13 @@ namespace bgg
     void draw(sf::RenderTarget &target, sf::RenderStates states) const noexcept override;
 
     void changeState(std::shared_ptr<SfBoardState> newState) noexcept override;
+
+    auto addItem(
+        sf::Vector2i tileCoords, size_t zOrder, int textureCellIndex, bool visible = true) noexcept
+        -> SfItem * override;
+
+    auto removeItem(SfItem *item) noexcept -> bool  override;
+    auto putItemOnTile(SfItem *item, sf::Vector2i tileCoords) noexcept -> bool override;
   };
 
 } // namespace bgg

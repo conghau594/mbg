@@ -3,6 +3,7 @@
 
 #include <tuple>
 #include <map>
+#include <atomic>
 #include <shared_mutex>
 #include <functional>
 #include <optional>
@@ -227,12 +228,16 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
   };
 
   ///////////////////////////////////////////////////////////////////////////////
+  template <typename T>
+  using SingleEventBus = Bus<T>;
+
+  ///////////////////////////////////////////////////////////////////////////////
   template <EventConcept E, EventConcept... Es>
   class Bus<E, Es...> final
   {
     using Pack = ppt::Pack<E, Es...>;
 
-    using BusTuple = Pack::template WrapEachIn<Bus>::template EncloseBy<std::tuple>;
+    using BusTuple = typename Pack::template WrapEachIn<SingleEventBus>::template EncloseBy<std::tuple>;
 
     BusTuple childBuses_;
 
@@ -255,7 +260,7 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
     void emit(DATA const &d) const noexcept
     {
       decltype(auto) childBus = std::get<Bus<EVENT>>(childBuses_);
-      childBus.emit<DATA>(d);
+      childBus.template emit<DATA>(d);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -302,7 +307,7 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
     [[nodiscard]] auto subscribe(Listener<DATA> const &listener) noexcept -> decltype(auto)
     {
       decltype(auto) childBus = std::get<Bus<EVENT>>(childBuses_);
-      return childBus.subscribe<DATA>(listener);
+      return childBus.template subscribe<DATA>(listener);
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -368,7 +373,7 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
     auto unsubscribe(std::size_t const &subscriptionId) noexcept -> decltype(auto)
     {
       decltype(auto) childBus = std::get<Bus<EVENT>>(childBuses_);
-      return childBus.unsubscribe<DATA>(subscriptionId);
+      return childBus.template unsubscribe<DATA>(subscriptionId);
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -428,7 +433,7 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
     void clear() noexcept
     {
       decltype(auto) childBus = std::get<Bus<EVENT>>(childBuses_);
-      childBus.clear<DATA>();
+      childBus.template clear<DATA>();
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -475,7 +480,7 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
     auto hasListenters() const noexcept -> bool
     {
       decltype(auto) childBus = std::get<Bus<EVENT>>(childBuses_);
-      return childBus.hasListenters<DATA>();
+      return childBus.template hasListenters<DATA>();
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -496,6 +501,7 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
               }
             } }(), ...);
       }(std::make_index_sequence<std::tuple_size_v<BusTuple>>{});
+      return result;
     }
   };
 

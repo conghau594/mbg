@@ -8,7 +8,7 @@ namespace bgg
   class SfBoardState
   {
   public:
-    ~SfBoardState() = default;
+    virtual ~SfBoardState() = default;
     virtual void onEnter() = 0;
     virtual void onExit() = 0;
     virtual void onMouseMoved(sf::Vector2i const &mousePos) = 0;

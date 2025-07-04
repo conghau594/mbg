@@ -11,6 +11,10 @@ namespace bgg
   using ClientEventBus = peeb::Bus<
       ClientEvent,
       ServerMessage>;
-
-  extern template class peeb::Bus<ClientEvent, ServerMessage>;
 } // namespace bgg
+
+namespace peeb
+{
+  extern template class Bus<bgg::ClientEvent, bgg::ServerMessage>;
+
+} // namespace peeb

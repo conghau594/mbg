@@ -10,9 +10,9 @@
 namespace bgg
 {
   SfChessBoard::SfChessBoard(SfTileMap tileMap) noexcept
-      : tileMap_(std::move(tileMap)),
-        currentBoardState_(nullptr),
-        lastBoardState_(nullptr)
+      : currentBoardState_(nullptr),
+        lastBoardState_(nullptr),
+        tileMap_(std::move(tileMap))
   {
   }
 
@@ -66,5 +66,19 @@ namespace bgg
     {
       newState->onEnter();
     }
+  }
+  auto SfChessBoard::addItem(
+      sf::Vector2i tileCoords, size_t zOrder, int textureCellIndex, bool visible) noexcept
+      -> SfItem *
+  {
+    return nullptr;
+  }
+  auto SfChessBoard::removeItem(SfItem *item) noexcept -> bool
+  {
+    return false;
+  }
+  auto SfChessBoard::putItemOnTile(SfItem *item, sf::Vector2i tileCoords) noexcept -> bool
+  {
+    return false;
   }
 } // namespace bgg

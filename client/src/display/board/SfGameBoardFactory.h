@@ -44,7 +44,7 @@ namespace bgg
           {8, 8});
 
       std::shared_ptr<SfGameBoard> chessBoard =
-          std::make_shared<SfChessBoard>(std::move(tileMap));
+          std::make_shared<SfChessBoard>(tileMap);
       std::shared_ptr<SfBoardState> initialBoardState =
           std::make_shared<SfBoardPieceDisabledState>(chessBoard);
       chessBoard->changeState(initialBoardState);

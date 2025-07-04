@@ -15,10 +15,10 @@
 #include "SfBaseScreen.h"
 #include "SfConfirmationScreen.h"
 
-// #ifdef _DEBUG
+#ifdef _DEBUG
 #include <iostream>
 
-// #endif
+#endif
 namespace bgg
 {
   SfBaseScreen::SfBaseScreen(std::shared_ptr<sf::RenderWindow> window) noexcept
