@@ -10,7 +10,7 @@
 
 namespace bgg
 {
-  class SfTileMap : public sf::Drawable, public sf::Transformable
+  class SfTileMap final : public sf::Drawable //, public sf::Transformable
   {
     sf::VertexArray vertices_;
     sf::Texture tileSet_;
@@ -23,7 +23,7 @@ namespace bgg
               unsigned const *const tileLevels,
               sf::Vector2u const &mapSizeInTiles);
 
-    [[nodiscard]] auto getTileCoords(int x, int y) const noexcept -> sf::Vector2i;
+    // [[nodiscard]] auto getTileCoords(int x, int y) const noexcept -> sf::Vector2i;
     void fitRectangle(
         sf::Vector2u const &mapRegionTopLeft, sf::Vector2u const &mapRegionBotRight);
 

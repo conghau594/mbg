@@ -76,7 +76,7 @@ namespace bgg
   void SfTileMap::draw(sf::RenderTarget &target, sf::RenderStates states) const noexcept
   {
     // apply the transform
-    states.transform *= getTransform();
+    // states.transform *= getTransform();
 
     // apply the tileset texture
     states.texture = &tileSet_;
@@ -85,34 +85,34 @@ namespace bgg
     target.draw(vertices_, states);
   }
 
-  auto SfTileMap::getTileCoords(int x, int y) const noexcept -> sf::Vector2i
-  {
-    int tileX = int((x - getPosition().x) / tileSizeInPixels_.x);
-    int tileY = int((y - getPosition().y) / tileSizeInPixels_.y);
+  // auto SfTileMap::getTileCoords(int x, int y) const noexcept -> sf::Vector2i
+  // {
+  //   // int tileX = int((x - getPosition().x) / tileSizeInPixels_.x);
+  //   // int tileY = int((y - getPosition().y) / tileSizeInPixels_.y);
 
-    return sf::Vector2i(tileX, tileY);
-  }
+  //   // return sf::Vector2i(tileX, tileY);
+  // }
 
   void SfTileMap::fitRectangle(
       sf::Vector2u const &mapRegionTopLeft, sf::Vector2u const &mapRegionBotRight)
   {
-    sf::Vector2u possibleMapRegionSize = mapRegionBotRight - mapRegionTopLeft;
+    // sf::Vector2u possibleMapRegionSize = mapRegionBotRight - mapRegionTopLeft;
 
-    float widthRatio = float(possibleMapRegionSize.x) / mapSizeInPixels_.x;
-    float heightRatio = float(possibleMapRegionSize.y) / mapSizeInPixels_.y;
+    // float widthRatio = float(possibleMapRegionSize.x) / mapSizeInPixels_.x;
+    // float heightRatio = float(possibleMapRegionSize.y) / mapSizeInPixels_.y;
 
-    float minRatio = std::min(widthRatio, heightRatio);
+    // float minRatio = std::min(widthRatio, heightRatio);
 
-    float newXPos = mapRegionTopLeft.x + (possibleMapRegionSize.x - minRatio * mapSizeInPixels_.x) * 0.5f;
-    float newYPos = mapRegionTopLeft.y + (possibleMapRegionSize.y - minRatio * mapSizeInPixels_.y) * 0.5f;
-    setPosition({newXPos, newYPos});
+    // float newXPos = mapRegionTopLeft.x + (possibleMapRegionSize.x - minRatio * mapSizeInPixels_.x) * 0.5f;
+    // float newYPos = mapRegionTopLeft.y + (possibleMapRegionSize.y - minRatio * mapSizeInPixels_.y) * 0.5f;
+    // setPosition({newXPos, newYPos});
 
-    setScale({minRatio, minRatio});
+    // setScale({minRatio, minRatio});
 
-    mapSizeInPixels_.x = int(mapSizeInPixels_.x * minRatio);
-    mapSizeInPixels_.y = int(mapSizeInPixels_.y * minRatio);
+    // mapSizeInPixels_.x = int(mapSizeInPixels_.x * minRatio);
+    // mapSizeInPixels_.y = int(mapSizeInPixels_.y * minRatio);
 
-    tileSizeInPixels_.x = int(tileSizeInPixels_.x * minRatio);
-    tileSizeInPixels_.y = int(tileSizeInPixels_.y * minRatio);
+    // tileSizeInPixels_.x = int(tileSizeInPixels_.x * minRatio);
+    // tileSizeInPixels_.y = int(tileSizeInPixels_.y * minRatio);
   }
 }

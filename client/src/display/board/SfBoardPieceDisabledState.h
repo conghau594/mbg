@@ -8,7 +8,7 @@
 namespace bgg
 {
   class SfGameBoard;
-  class SfBoardPieceDisabledState : public SfBoardState
+  class SfBoardPieceDisabledState final : public SfBoardState
   {
     std::shared_ptr<SfGameBoard> gameBoard_;
 

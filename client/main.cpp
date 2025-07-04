@@ -3,6 +3,9 @@
 #include "app/QuickAppFactory.h"
 
 #define APP_TYPE 0
+#ifdef _DEBUG
+#include <iostream>
+#endif
 
 int main()
 {
@@ -17,9 +20,10 @@ int main()
     bgg::GameApp app = appFactory->createGameApp();
     app.run();
   }
-  catch (std::exception const & /*e*/)
+  catch (std::exception const &e)
   {
     // TODO: Log failure with `e`
+    std::clog << "\nException from main: " << e.what();
   }
   return 0;
 }

@@ -12,7 +12,7 @@
 
 namespace bgg
 {
-  class SfChessBoard : public SfGameBoard
+  class SfChessBoard final : public SfGameBoard
   {
     std::shared_ptr<SfBoardState> currentBoardState_;
     std::shared_ptr<SfBoardState> lastBoardState_;
