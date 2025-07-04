@@ -48,9 +48,9 @@ namespace bgg
 
     // handle button presses
     if (pressedButtonIndex_ >= 0 &&
-        pressedButtonIndex_ < (int)buttonCallbacks_.size())
+        pressedButtonIndex_ < int(buttonCallbacks_.size()))
     {
-      buttonCallbacks_[pressedButtonIndex_]();
+      buttonCallbacks_[size_t(pressedButtonIndex_)]();
       pressedButtonIndex_ = -1; // Reset after executing the callback
     }
   }
@@ -78,9 +78,9 @@ namespace bgg
 
     float const MENU_WIDTH = TEXT_SIZE.x + MENU_PADDING.x * 2.0f + 50.0f;
 
-    float const BUTTON_WIDTH = BUTTON_COUNT == 0
-                                   ? 0.0f
-                                   : (MENU_WIDTH - 2 * MENU_PADDING.x - (BUTTON_COUNT - 1) * ITEM_SPACING.x) / BUTTON_COUNT;
+    float BUTTON_WIDTH = 0.0f;
+    if(BUTTON_COUNT == 0)
+       BUTTON_WIDTH = float(MENU_WIDTH - 2 * MENU_PADDING.x - float(BUTTON_COUNT - 1) * ITEM_SPACING.x) / float(BUTTON_COUNT);
     float const BUTTON_HEIGHT = BUTTON_COUNT == 0 ? 0.0f : 40.0f;
     ImVec2 BUTTON_SIZE(BUTTON_WIDTH, BUTTON_HEIGHT);
 
@@ -92,7 +92,8 @@ namespace bgg
     ImGui::SetNextWindowSize(ImVec2(MENU_WIDTH, MENU_HEIGHT), ImGuiCond_Always);
 
     // change window position
-    ImVec2 center(window()->getSize().x * 0.5f, window()->getSize().y * 0.5f);
+    ImVec2 center(0.5f * float(window()->getSize().x),
+                  0.5f * float(window()->getSize().y));
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     // begin ImGui window
@@ -108,7 +109,7 @@ namespace bgg
 
     ImGui::Begin("Blocking Screen", nullptr, IM_GUI_FLAGS);
 
-    ImGui::Text(message_.c_str());
+    ImGui::Text("%s", message_.c_str());
 
     if (BUTTON_COUNT > 0)
     {
@@ -116,7 +117,7 @@ namespace bgg
 
       for (int i = 0; i < BUTTON_COUNT; ++i)
       {
-        if (ImGui::Button(buttonLabels_[i].c_str(), BUTTON_SIZE) &&
+        if (ImGui::Button(buttonLabels_[size_t(i)].c_str(), BUTTON_SIZE) &&
             pressedButtonIndex_ < 0)
         {
           pressedButtonIndex_ = i; // Only allow one button to be pressed at a time

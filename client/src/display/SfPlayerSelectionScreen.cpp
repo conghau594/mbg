@@ -79,7 +79,8 @@ namespace bgg
     ImFont *font36 = ImGui::GetIO().Fonts->Fonts[FONT_VENITE_ADOREMUS_36];
     ImGui::PushFont(font36);
 
-    ImVec2 center(window()->getSize().x * 0.5f, window()->getSize().y * 0.5f);
+    ImVec2 center(0.5f * float(window()->getSize().x),
+                  0.5f * float(window()->getSize().y));
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     // ImGuiIO &io = ImGui::GetIO();
     // io.FontGlobalScale = 2.0f;
@@ -103,13 +104,13 @@ namespace bgg
     ImGui::Text("Play with . . .");
     ImGui::PopFont();
 
-    for (int i = 0; i < (const int)playerTypeNames_.size(); ++i)
+    for (size_t i = 0; i < playerTypeNames_.size(); ++i)
     {
       ImGui::Dummy(DUMMY_SIZE);
       if (ImGui::Button(playerTypeNames_[i].c_str(), BUTTON_SIZE) &&
           pressedButtonIndex_ < 0)
       {
-        pressedButtonIndex_ = i; // Only allow one button to be pressed at a time
+        pressedButtonIndex_ = int(i); // Only allow one button to be pressed at a time
       }
     }
 

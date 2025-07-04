@@ -103,7 +103,7 @@ namespace bgg
 
     float constexpr VERTICAL_SPACING = 10.0f;
     float const buttonVerticalOffset = VERTICAL_SPACING + TEXT_SIZE.y * 0.5f + MENU_PADDING.y; // Offset from the top of the window
-    ImVec2 center(window()->getSize().x * 0.5f, buttonVerticalOffset);
+    ImVec2 center(0.5f * float(window()->getSize().x), float(buttonVerticalOffset));
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     int constexpr IM_GUI_FLAGS = ImGuiWindowFlags_NoBackground |
@@ -114,7 +114,8 @@ namespace bgg
                                  ImGuiWindowFlags_AlwaysAutoResize |
                                  ImGuiWindowFlags_NoMove;
 
-    ImVec2 const BUTTON_SIZE(120.0f, resignButtonRegionHeight_ - VERTICAL_SPACING * 2.0f);
+    ImVec2 const BUTTON_SIZE(
+      120.0f, float(resignButtonRegionHeight_) - 2.0f * VERTICAL_SPACING);
     // ImVec2 constexpr DUMMY_SIZE(0.0f, 10.0f);
 
     ImGui::Begin("Select Game", nullptr, IM_GUI_FLAGS);

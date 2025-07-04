@@ -5,7 +5,6 @@
 #include <boost/assert.hpp>
 
 #include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/System/Clock.hpp>
 #include <imgui.h>      // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 #include <imgui_internal.h>
@@ -23,10 +22,9 @@ namespace bgg
 {
   SfBaseScreen::SfBaseScreen(std::shared_ptr<sf::RenderWindow> window) noexcept
       : window_(std::move(window)),
-        clock_(std::make_shared<sf::Clock>()),
-        isActive_(true),
         lastSubscreen_(nullptr),
-        currentSubscreen_(nullptr)
+        currentSubscreen_(nullptr),
+        isActive_(true)
   {
     BOOST_ASSERT_MSG(window_, "window_ of SfBaseScreen cannot be null.");
   }
@@ -50,7 +48,7 @@ namespace bgg
       return;
     }
 
-    sf::Time elapsed = clock_->restart();
+    sf::Time elapsed = clock_.restart();
     if (elapsed == sf::Time::Zero)
     {
       return;
@@ -76,14 +74,14 @@ namespace bgg
   {
     isActive_ = true;
     doEnter();
-    clock_->start();
+    clock_.start();
   }
 
   void SfBaseScreen::onExit()
   {
     // currentSubscreen_ = nullptr;
     // lastSubscreen_ = nullptr;
-    clock_->stop();
+    clock_.stop();
     doExit();
     isActive_ = false;
   }

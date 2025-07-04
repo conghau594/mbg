@@ -46,7 +46,7 @@ namespace bgg
         float tileWidth = float(tileSizeInPixels.x) / 2;
         float tileHeight = float(tileSizeInPixels.y) / 2;
 
-        triangles[0].position = sf::Vector2f(tileWidth * i, tileHeight * j);
+        triangles[0].position = sf::Vector2f(float(i) * tileWidth, float(j) * tileHeight);
         triangles[1].position = triangles[0].position + sf::Vector2f(tileWidth, 0.0f);
         triangles[2].position = triangles[0].position + sf::Vector2f(0.0f, tileHeight);
         triangles[3].position = triangles[0].position + sf::Vector2f(tileWidth, tileHeight);

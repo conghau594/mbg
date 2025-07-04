@@ -12,8 +12,7 @@
  *   0: ChessGame
  * 
  */
-#define GAME_TYPE -1
-
+#define GAME_TYPE 0
 
 int main()
 {

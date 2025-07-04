@@ -21,16 +21,16 @@ namespace bgg
       std::shared_ptr<GameDisplay> gameDisplay,
       int gameType,
       int playerType)
-      : gameDisplay_(std::move(gameDisplay)),
-        gameType_(gameType),
-        playerType_(playerType),
-        isCancelButtonPressed_(false),
-        SfMessageScreen(
+      : SfMessageScreen(
             std::move(window),
             "Waiting for oppenent...",
             {"Cancel"},
             {[this]
-             { sendCancelMatchmakingRequest(); }})
+             { sendCancelMatchmakingRequest(); }}),
+        gameDisplay_(std::move(gameDisplay)),
+        gameType_(gameType),
+        playerType_(playerType),
+        isCancelButtonPressed_(false)
   {
     serverMessageHandler().setHandler<FindGameResponse>(
         [this](FindGameResponse const &response) -> bool

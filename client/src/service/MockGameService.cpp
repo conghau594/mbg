@@ -120,8 +120,10 @@ namespace bgg
             msg = e.what();
             errCodeValue = -1;
           }
-
-          emit(FindGameResponse{ErrorCode{errCodeValue, "Mock", msg}});
+          
+          std::string gameId = "@Test123";
+          int side = 0; //0: WHITE, 1: BLACK
+          emit(FindGameResponse{ErrorCode{errCodeValue, "Mock", msg}, std::move(gameId), side});
         });
   }
   // void MockGameService::sendRequest(FindGameRequest const & /*findGameRqt*/) noexcept

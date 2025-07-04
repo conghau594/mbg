@@ -79,7 +79,8 @@ namespace bgg
     ImFont *font36 = ImGui::GetIO().Fonts->Fonts[FONT_VENITE_ADOREMUS_36];
     ImGui::PushFont(font36);
 
-    ImVec2 center(window()->getSize().x * 0.5f, window()->getSize().y * 0.5f);
+    ImVec2 center(0.5f * float(window()->getSize().x),
+                  0.5f * float(window()->getSize().y));
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     int constexpr IM_GUI_FLAGS = ImGuiWindowFlags_NoBackground |
@@ -95,12 +96,12 @@ namespace bgg
 
     ImGui::Begin("Select Game", nullptr, IM_GUI_FLAGS);
 
-    for (int i = 0; i < (const int)gameNames_.size(); ++i)
+    for (size_t i = 0; i < gameNames_.size(); ++i)
     {
       if (ImGui::Button(gameNames_[i].c_str(), BUTTON_SIZE) &&
           pressedButtonIndex_ < 0)
       {
-        pressedButtonIndex_ = i; // Only allow one button to be pressed at a time
+        pressedButtonIndex_ = int(i); // Only allow one button to be pressed at a time
       }
       ImGui::Dummy(DUMMY_SIZE);
     }

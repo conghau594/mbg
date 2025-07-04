@@ -2,6 +2,7 @@
 #pragma once
 
 #include <memory>
+#include <SFML/System/Clock.hpp>
 
 #include "GameScreen.h"
 #include "peeb/Handler.hpp"
@@ -29,14 +30,12 @@ namespace bgg
       : public std::enable_shared_from_this<SfBaseScreen>,
         public GameScreen
   {
-    peeb::Handler<ServerMessage> serverMessageHandler_;
-
     std::shared_ptr<sf::RenderWindow> window_;
-
     std::shared_ptr<GameScreen> lastSubscreen_;
     std::shared_ptr<GameScreen> currentSubscreen_;
-
-    std::shared_ptr<sf::Clock> clock_;
+    
+    peeb::Handler<ServerMessage> serverMessageHandler_;
+    sf::Clock clock_;
     bool isActive_;
 
   protected:

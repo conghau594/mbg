@@ -23,8 +23,8 @@ namespace bgg
       std::shared_ptr<GameDisplay> gameDisplay)
       : SfBaseScreen(std::move(window)),
         gameDisplay_(std::move(gameDisplay)),
-        passwordBuffer_{0},
         usernameBuffer_{0},
+        passwordBuffer_{0},
         pressedButtonIndex_(-1)
   {
     serverMessageHandler().setHandler<LoginResponse>(
@@ -103,12 +103,13 @@ namespace bgg
     style.ItemSpacing.x = 2.0f * DUMMY_SIZE.y;
 
     ImVec2 const ITEM_SPACING = style.ItemSpacing;
-    ImVec2 const MENU_PADDING = style.WindowPadding;
+    // unused: ImVec2 const MENU_PADDING = style.WindowPadding;
 
     ImVec2 BUTTON_SIZE((INPUT_BOX_SIZE.x - ITEM_SPACING.x) * 0.5f, INPUT_BOX_SIZE.y);
 
     // change window position
-    ImVec2 center(window()->getSize().x * 0.5f, window()->getSize().y * 0.5f);
+    ImVec2 center(0.5f * float(window()->getSize().x),
+                  0.5f * float(window()->getSize().y));
 
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::Begin("Login Screen", nullptr, IM_GUI_FLAGS);
