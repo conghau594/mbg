@@ -2,6 +2,7 @@
   "tasks": [
     ///////////////////////////////////////////////////////////////////////////
     // MSVC
+    ///////////////////////////////////////////////////////////////////////////
     {
       "label": "build:vs2022-debug",
       "type": "shell",
@@ -32,6 +33,7 @@
     },
     ///////////////////////////////////////////////////////////////////////////
     // GCC
+    ///////////////////////////////////////////////////////////////////////////
     {
       "label": "build:gcc-debug",
       "type": "shell",
@@ -43,6 +45,20 @@
       "label": "build:gcc-release",
       "type": "shell",
       "command": "cmake --build --preset build-gcc-release",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "rebuild:gcc-debug",
+      "type": "shell",
+      "command": "cmake --build --preset build-gcc-debug --clean-first",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "rebuild:gcc-release",
+      "type": "shell",
+      "command": "cmake --build --preset build-gcc-release --clean-first",
       "group": "build",
       "problemMatcher": []
     },

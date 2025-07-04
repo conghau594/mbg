@@ -49,7 +49,7 @@
       "configuration": "Debug",
       "description": "Build with MSVC in Debug mode",
       "inherits": [],
-      "jobs": 4,
+      "jobs": 8,
       "verbose": true
     },
     {
@@ -58,7 +58,7 @@
       "configuration": "Release",
       "description": "Build with MSVC in Release mode",
       "inherits": [],
-      "jobs": 4,
+      "jobs": 8,
       "verbose": true
     },
     {
@@ -66,7 +66,7 @@
       "configurePreset": "gcc-debug",
       "description": "Build with GCC in Debug mode",
       "inherits": [],
-      "jobs": 4,
+      "jobs": 8,
       "verbose": true
     },
     {
@@ -74,7 +74,7 @@
       "configurePreset": "gcc-release",
       "description": "Build with GCC in Release mode",
       "inherits": [],
-      "jobs": 4,
+      "jobs": 8,
       "verbose": true
     }
   ]

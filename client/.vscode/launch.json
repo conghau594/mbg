@@ -1,9 +1,11 @@
 {
   "version": "0.2.0",
   "configurations": [
-    //build without clean
+    ///////////////////////////////////////////////////////////////////////////
+    // MSVC
+    ///////////////////////////////////////////////////////////////////////////
     {
-      "name": "launch-debug",
+      "name": "launch:bggclient build:vs2022-debug",
       "type": "cppvsdbg", // for Visual Studio debugger
       "request": "launch",
       "program": "${env:BUILD_ROOT}/bgg/client/msvc2022/bin/DEBUG/bggclient.exe", // <-- full path to binary
@@ -16,7 +18,7 @@
       //"justMyCode": true
     },
     {
-      "name": "launch-release",
+      "name": "launch:bggclient build:vs2022-release",
       "type": "cppvsdbg", // for Visual Studio debugger
       "request": "launch",
       "program": "${env:BUILD_ROOT}/bgg/client/msvc2022/bin/RELEASE/bggclient.exe", // <-- full path to binary
@@ -28,9 +30,8 @@
       "preLaunchTask": "build:vs2022-release", // <-- task to build the project
       "console": "integratedTerminal"
     },
-    //build with clean
     {
-      "name": "launch-debug-with-clean",
+      "name": "launch:bggclient rebuild:vs2022-debug",
       "type": "cppvsdbg", // for Visual Studio debugger
       "request": "launch",
       "program": "${env:BUILD_ROOT}/bgg/client/msvc2022/bin/DEBUG/bggclient.exe", // <-- full path to binary
@@ -43,7 +44,7 @@
       "console": "integratedTerminal"
     },
     {
-      "name": "launch-release-with-clean",
+      "name": "launch:bggclient rebuild:vs2022-release",
       "type": "cppvsdbg", // for Visual Studio debugger
       "request": "launch",
       "program": "${env:BUILD_ROOT}/bgg/client/msvc2022/bin/RELEASE/bggclient.exe", // <-- full path to binary
@@ -57,8 +58,9 @@
     },
     ///////////////////////////////////////////////////////////////////////////
     // GCC
+    ///////////////////////////////////////////////////////////////////////////
     {
-      "name": "launch:client.exe gcc-debug",
+      "name": "launch:bggclient build:gcc-debug",
       "type": "cppdbg", // for GCC debugger
       "request": "launch",
       "program": "${env:BUILD_ROOT}/bgg/client/gcc-debug/bin/bggclient.exe", // <-- full path to binary
@@ -69,6 +71,54 @@
       "externalConsole": false,
       //"console": "integratedTerminal",
       "preLaunchTask": "build:gcc-debug", // <-- task to build the project
+      //"justMyCode": true,
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "launch:bggclient build:gcc-release",
+      "type": "cppdbg", // for GCC debugger
+      "request": "launch",
+      "program": "${env:BUILD_ROOT}/bgg/client/gcc-release/bin/bggclient.exe", // <-- full path to binary
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      //"console": "integratedTerminal",
+      "preLaunchTask": "build:gcc-release", // <-- task to build the project
+      //"justMyCode": true,
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "launch:bggclient rebuild:gcc-debug",
+      "type": "cppdbg", // for GCC debugger
+      "request": "launch",
+      "program": "${env:BUILD_ROOT}/bgg/client/gcc-debug/bin/bggclient.exe", // <-- full path to binary
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      //"console": "integratedTerminal",
+      "preLaunchTask": "rebuild:gcc-debug", // <-- task to build the project
+      //"justMyCode": true,
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "launch:bggclient rebuild:gcc-release",
+      "type": "cppdbg", // for GCC debugger
+      "request": "launch",
+      "program": "${env:BUILD_ROOT}/bgg/client/gcc-release/bin/bggclient.exe", // <-- full path to binary
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      //"console": "integratedTerminal",
+      "preLaunchTask": "rebuild:gcc-release", // <-- task to build the project
       //"justMyCode": true,
       "MIMode": "gdb",
       "miDebuggerPath": "gdb"
