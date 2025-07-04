@@ -1,33 +1,51 @@
 {
   "tasks": [
+    ///////////////////////////////////////////////////////////////////////////
+    // MSVC
     {
-      "label": "build-debug-with-preset",
+      "label": "build:vs2022-debug",
       "type": "shell",
       "command": "cmake --build --preset build-vs2022-debug",
       "group": "build",
       "problemMatcher": []
     },
     {
-      "label": "build-release-with-preset",
+      "label": "build:vs2022-release",
       "type": "shell",
       "command": "cmake --build --preset build-vs2022-release",
       "group": "build",
       "problemMatcher": []
     },
     {
-      "label": "clean-and-build-debug-with-preset",
+      "label": "rebuild:vs2022-debug",
       "type": "shell",
       "command": "cmake --build --preset build-vs2022-debug --clean-first",
       "group": "build",
       "problemMatcher": []
     },
     {
-      "label": "clean-and-build-release-with-preset",
+      "label": "rebuild:vs2022-release",
       "type": "shell",
       "command": "cmake --build --preset build-vs2022-release --clean-first",
       "group": "build",
       "problemMatcher": []
-    }
+    },
+    ///////////////////////////////////////////////////////////////////////////
+    // GCC
+    {
+      "label": "build:gcc-debug",
+      "type": "shell",
+      "command": "cmake --build --preset build-gcc-debug",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "build:gcc-release",
+      "type": "shell",
+      "command": "cmake --build --preset build-gcc-release",
+      "group": "build",
+      "problemMatcher": []
+    },
   ],
   "version": "2.0.0"
 }

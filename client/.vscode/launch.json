@@ -12,7 +12,7 @@
       "cwd": "${workspaceFolder}",
       "environment": [],
       "console": "integratedTerminal",
-      "preLaunchTask": "build-debug-with-preset" // <-- task to build the project
+      "preLaunchTask": "build:vs2022-debug" // <-- task to build the project
       //"justMyCode": true
     },
     {
@@ -25,10 +25,9 @@
       "cwd": "${workspaceFolder}",
       "environment": [],
       //"externalConsole": true,
-      "preLaunchTask": "build-release-with-preset", // <-- task to build the project
+      "preLaunchTask": "build:vs2022-release", // <-- task to build the project
       "console": "integratedTerminal"
     },
-
     //build with clean
     {
       "name": "launch-debug-with-clean",
@@ -40,7 +39,7 @@
       "cwd": "${workspaceFolder}",
       "environment": [],
       //"externalConsole": true,
-      "preLaunchTask": "clean-and-build-debug-with-preset", // <-- task to build the project
+      "preLaunchTask": "rebuild:vs2022-debug", // <-- task to build the project
       "console": "integratedTerminal"
     },
     {
@@ -53,8 +52,26 @@
       "cwd": "${workspaceFolder}",
       "environment": [],
       //"externalConsole": true,
-      "preLaunchTask": "clean-and-build-release-with-preset", // <-- task to build the project
+      "preLaunchTask": "rebuild:vs2022-release", // <-- task to build the project
       "console": "integratedTerminal"
-    }
+    },
+    ///////////////////////////////////////////////////////////////////////////
+    // GCC
+    {
+      "name": "launch:client.exe gcc-debug",
+      "type": "cppdbg", // for GCC debugger
+      "request": "launch",
+      "program": "${env:BUILD_ROOT}/bgg/client/gcc-debug/bin/bggclient.exe", // <-- full path to binary
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      //"console": "integratedTerminal",
+      "preLaunchTask": "build:gcc-debug", // <-- task to build the project
+      //"justMyCode": true,
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb"
+    },
   ]
 }

@@ -4,6 +4,8 @@ project(bggclient LANGUAGES CXX)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE CACHE BOOL "")
+
 include(FetchContent)
 
 ###############################################################################
@@ -18,6 +20,7 @@ FetchContent_Declare(SFML
 )
 FetchContent_MakeAvailable(SFML)
 
+message(STATUS "SFML updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_SFML}")
 message(STATUS "SFML source directory: ${SFML_SOURCE_DIR}")
 message(STATUS "SFML binary directory: ${SFML_BINARY_DIR}")
 message(STATUS "SFML populated: ${SFML_POPULATED}")
@@ -37,6 +40,7 @@ FetchContent_MakeAvailable(ImGui)
 FetchContent_GetProperties(ImGui SOURCE_DIR IMGUI_DIR)
 set(IMGUI_SFML_FIND_SFML OFF)
 
+message(STATUS "ImGui updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_IMGUI}")
 message(STATUS "ImGui source directory: ${ImGui_SOURCE_DIR}")
 message(STATUS "ImGui binary directory: ${ImGui_BINARY_DIR}")
 message(STATUS "ImGui populated: ${ImGui_POPULATED}")
@@ -54,6 +58,7 @@ FetchContent_Declare(ImGui_SFML
 )
 FetchContent_MakeAvailable(ImGui_SFML)
 
+message(STATUS "ImGui_SFML updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_IMGUI_SFML}")
 message(STATUS "ImGui_SFML source directory: ${ImGui_SFML_SOURCE_DIR}")
 message(STATUS "ImGui_SFML binary directory: ${ImGui_SFML_BINARY_DIR}")
 message(STATUS "ImGui_SFML populated: ${ImGui_SFML_POPULATED}")
@@ -73,6 +78,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(BoostConfig)
 
+message(STATUS "BoostConfig updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTCONFIG}")
 message(STATUS "BoostConfig source directory: ${BoostConfig_SOURCE_DIR}")
 message(STATUS "BoostConfig binary directory: ${BoostConfig_BINARY_DIR}")
 message(STATUS "BoostConfig populated: ${BoostConfig_POPULATED}")
@@ -90,6 +96,7 @@ FetchContent_Declare(BoostAssert
 )
 FetchContent_MakeAvailable(BoostAssert)
 
+message(STATUS "BoostAssert updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTASSERT}")
 message(STATUS "BoostAssert source directory: ${BoostAssert_SOURCE_DIR}")
 message(STATUS "BoostAssert binary directory: ${BoostAssert_BINARY_DIR}")
 message(STATUS "BoostAssert populated: ${BoostAssert_POPULATED}")
@@ -107,6 +114,7 @@ message(STATUS "BoostAssert Added: ${BoostAssert_ADDED}")
 # )
 # FetchContent_MakeAvailable(BoostSystem)
 
+# message(STATUS "BoostUuid updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTSYSTEM}")
 # message(STATUS "BoostSystem source directory: ${BoostSystem_SOURCE_DIR}")
 # message(STATUS "BoostSystem binary directory: ${BoostSystem_BINARY_DIR}")
 # message(STATUS "BoostSystem populated: ${BoostSystem_POPULATED}")
@@ -124,6 +132,7 @@ FetchContent_Declare(BoostThrowException
 )
 FetchContent_MakeAvailable(BoostThrowException)
 
+message(STATUS "BoostThrowException updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTTHROWEXCEPTION}")
 message(STATUS "BoostThrowException source directory: ${BoostThrowException_SOURCE_DIR}")
 message(STATUS "BoostThrowException binary directory: ${BoostThrowException_BINARY_DIR}")
 message(STATUS "BoostThrowException populated: ${BoostThrowException_POPULATED}")
@@ -141,6 +150,7 @@ FetchContent_Declare(BoostTypeTraits
 )
 FetchContent_MakeAvailable(BoostTypeTraits)
 
+message(STATUS "BoostTypeTraits updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTTYPETRAITS}")
 message(STATUS "BoostTypeTraits source directory: ${BoostTypeTraits_SOURCE_DIR}")
 message(STATUS "BoostTypeTraits binary directory: ${BoostTypeTraits_BINARY_DIR}")
 message(STATUS "BoostTypeTraits populated: ${BoostTypeTraits_POPULATED}")
@@ -158,6 +168,7 @@ FetchContent_Declare(BoostStaticAssert
 )
 FetchContent_MakeAvailable(BoostStaticAssert)
 
+message(STATUS "BoostStaticAssert updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTSTATICASSERT}")
 message(STATUS "BoostStaticAssert source directory: ${BoostStaticAssert_SOURCE_DIR}")
 message(STATUS "BoostStaticAssert binary directory: ${BoostStaticAssert_BINARY_DIR}")
 message(STATUS "BoostStaticAssert populated: ${BoostStaticAssert_POPULATED}")
@@ -166,15 +177,18 @@ message(STATUS "BoostStaticAssert Added: ${BoostStaticAssert_ADDED}")
 ###############################################################################
 # Then: Fetch Boost.Uuid                                                      #
 ###############################################################################
+
 FetchContent_Declare(BoostUuid
   GIT_REPOSITORY https://github.com/boostorg/uuid.git
   GIT_TAG        boost-1.88.0
   GIT_SHALLOW ON
   EXCLUDE_FROM_ALL
   SYSTEM
-)
-FetchContent_MakeAvailable(BoostUuid)
+  )
 
+FetchContent_MakeAvailable(BoostUuid)
+  
+message(STATUS "BoostUuid updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTUUID}")
 message(STATUS "BoostUuid source directory: ${BoostUuid_SOURCE_DIR}")
 message(STATUS "BoostUuid binary directory: ${BoostUuid_BINARY_DIR}")
 message(STATUS "BoostUuid populated: ${BoostUuid_POPULATED}")
@@ -183,16 +197,56 @@ message(STATUS "BoostUuid Added: ${BoostUuid_ADDED}")
 ###############################################################################
 # Configure Build Process                                           #
 ###############################################################################
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+
 if (MSVC)
   add_compile_options(
-    /std:c++20
-    /FS /MP /Zi 
-    /W4  /EHsc /permissive- #/WX -> treat warnings as errors
-    /external:W0)
+    /std:c++20                # C++20
+    /FS                       # Allow parallel PDB access
+    /MP                       # Multi-process build
+    /Zi                       # Debug info, == -g
+    /W4                       # Warning level 4, == -Wall -Wextra. 
+                              # Note that: max warning level is /Wall. It includes unnecessary warnings from system headers, STL, Windows SDK...
+    /GS                       # Stack protector, == -fstack-protector-strong
+    /EHsc                     # Exception model (C++)
+    /permissive-              # Strict standard conformance, == -Wpedantic
+    /external:W0              # Suppress warnings from external headers
+    /external:anglebrackets   # Treat headers included with <> as external
+    /Zc:__cplusplus           # Standardize the __cplusplus macro value
+    /Zc:inline                # Optimize inline function handling
+    /Zc:preprocessor          # Use modern conforming preprocessor (MSVC 2019+)
+    /d2FH4-                   # Workaround: Fix IntelliSense issues with /std:c++20 and STL (MSVC-specific)
+    /sdl            # Format string + buffer checks. ~~-Wformat=2
+    # /WX                     # Warnings as errors
+  )
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  add_compile_options(
+    -std=c++20                  # Enable C++20 standard
+    -Wall                       # Enable most common warnings
+    -Wextra                     # Enable extra (more aggressive) warnings
+    -Wpedantic                  # Enforce strict ISO C++ compliance
+    -Wconversion                # Warn on implicit type conversions (e.g., int to float)
+    -Wsign-conversion           # Warn on implicit sign conversions (e.g., unsigned to signed)
+    -Wshadow                    # Warn when a variable declaration shadows one from outer scope
+    -Wnon-virtual-dtor          # Warn if a class with virtual functions has a non-virtual destructor
+    -Wold-style-cast            # Warn on C-style casts (use static_cast, etc. instead)
+    -Wnull-dereference          # Warn on potential null pointer dereference
+    -Wdouble-promotion          # Warn when float is implicitly promoted to double
+    -Wformat=2                  # Enable strict format string checking (e.g., printf/scanf)
+    -Wimplicit-fallthrough      # Warn when a switch case falls through without annotation
+    -fdiagnostics-color=always  # Force colored diagnostics output (useful in IDE/terminals)
+    -fstack-protector-strong    # Add stack overflow protection (stronger than -fstack-protector)
+    -fno-common                 # Prevents multiple global variable definitions with same name
+    -g                          # Generate debug information
+  )
+
 endif()
 
-# Detect and print source files
-# TODO: Use a more robust method to detect source files
+
+###############################################################################
+# Detect and print source files                                               #
+# TODO: Use a more robust method to detect source files                       #
+###############################################################################
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
   src/*.cpp
   src/*.h
@@ -235,6 +289,19 @@ endforeach()
 
 get_target_property(INCLUDE_DIRS bggclient INCLUDE_DIRECTORIES)
 message(STATUS "Include directories for bggclient: ${INCLUDE_DIRS}")
+
+###############################################################################
+# Add necessary macros                                                        #
+###############################################################################
+target_compile_definitions(bggclient PRIVATE
+  $<$<CONFIG:Debug>:_DEBUG> #Macro _DEBUG
+)
+
+target_compile_definitions(bggclient PRIVATE
+  $<$<CONFIG:Release>:NDEBUG> #Macro NDEBUG for disbleing assert() 
+)
+
+
 ###############################################################################
 # Install App                                                                 #
 ###############################################################################
