@@ -12,13 +12,14 @@ namespace bgg
   SfChessBoard::SfChessBoard(SfTileMap tileMap) noexcept
       : currentBoardState_(nullptr),
         lastBoardState_(nullptr),
-        tileMap_(std::move(tileMap))
+        tileMap_(std::move(tileMap)),
+        nextBaseId_{0}
   {
   }
 
   void SfChessBoard::onEvent(sf::Event const &event) noexcept
   {
-    BOOST_ASSERT_MSG(currentBoardState_, "boardState_ of SfChessBoard cannot be null");
+    BOOST_ASSERT_MSG(currentBoardState_, "currentBoardState_ of SfChessBoard cannot be null");
     if (lastBoardState_ != currentBoardState_)
     {
       lastBoardState_ = currentBoardState_;
@@ -52,6 +53,10 @@ namespace bgg
   {
     // draw the tileMap
     target.draw(tileMap_, states);
+    for (auto &[id, item] : boardItems_)
+    {
+      target.draw(item, states);
+    }
   }
 
   void SfChessBoard::changeState(std::shared_ptr<SfBoardState> newState) noexcept
@@ -67,18 +72,53 @@ namespace bgg
       newState->onEnter();
     }
   }
+
+  auto SfChessBoard::addItem(SfBoardItem item, int zOrder, bool visible) noexcept
+      -> std::pair<std::size_t, SfBoardItem *>
+  {
+    size_t id = generateNextId(zOrder);
+    auto [iter, inserted] = boardItems_.try_emplace(id, std::move(item));
+    iter->second.setVisible(visible);
+    SfBoardItem *returnedPtr = inserted ? &(iter->second) : nullptr;
+    return {id, returnedPtr};
+  }
+
   auto SfChessBoard::addItem(
-      sf::Vector2i tileCoords, size_t zOrder, int textureCellIndex, bool visible) noexcept
-      -> SfItem *
+      sf::Vector2i tileCoords, int textureCellIndex, int zOrder, bool visible) noexcept
+      -> std::pair<std::size_t, SfBoardItem *>
   {
-    return nullptr;
+    size_t id = generateNextId(zOrder);
+    // auto [iter, inserted] = boardItems_.try_emplace(id, std::move(item));
+    // iter->second.setVisible(visible);
+    // SfBoardItem item = inserted ? &(iter->second) : nullptr;
+    return {id, nullptr};
   }
-  auto SfChessBoard::removeItem(SfItem *item) noexcept -> bool
+
+  auto SfChessBoard::removeItem(std::size_t itemId) noexcept -> bool
+  {
+    return bool(boardItems_.erase(itemId));
+  }
+
+  auto SfChessBoard::putItemOnTile(SfBoardItem *item, sf::Vector2i tileCoords) noexcept -> bool
   {
     return false;
   }
-  auto SfChessBoard::putItemOnTile(SfItem *item, sf::Vector2i tileCoords) noexcept -> bool
+
+  auto SfChessBoard::generateNextId(int zOrder) noexcept -> size_t
   {
-    return false;
+    if (zOrder < 1)
+    {
+      zOrder = 1;
+    }
+    else if (zOrder > MAX_Z_ORDER)
+    {
+      zOrder = MAX_Z_ORDER;
+    }
+
+    constexpr int NUM_SHIFTED_BITS = 8 * sizeof(std::size_t) - Z_ORDER_BIT_COUNT;
+    size_t returnedId = nextBaseId_++;
+    BOOST_ASSERT_MSG(returnedId < (1ull << NUM_SHIFTED_BITS), "This failure may never happens");
+
+    return (size_t(zOrder) << NUM_SHIFTED_BITS) | returnedId;
   }
 } // namespace bgg

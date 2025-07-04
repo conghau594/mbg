@@ -168,7 +168,7 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
 
     /////////////////////////////////////////////////////////////////////////////
     /**
-     * \param dummy The concrete data of EVENT, not the EVENT object ifself.
+     * \param dummy An dummy object of a **concrete data type** of EVENT, not the EVENT object ifself.
      * \return number of removed listeners
      */
     auto unsubscribe(EVENT const &dummy, std::size_t const &subscriptionId) noexcept
@@ -249,7 +249,7 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
     // TODO: What if T is an EventConcept but should be treated as a DATA type?
     // There are 4 cases:
     //    1. T == EVENT && DATA => not handled yet !!!!!!
-    //    2. T ==  EVENT && !DATA
+    //    2. T == EVENT && !DATA
     //    3. T == !EVENT &&  DATA
     //    4. T == !EVENT && !DATA => should static_assert
     ///////////////////////////////////////////////////////////////////////////////

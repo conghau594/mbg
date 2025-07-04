@@ -13,9 +13,7 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
   template <typename EVENT>
   concept EventConcept = requires(EVENT const &e) {
     typename EVENT::Pack;
-    {
-      e.visit([](auto &&) {})
-    };
+    //{ e.visit([](auto &&) {}) };
   };
 
   ///////////////////////////////////////////////////////////////////////////////
