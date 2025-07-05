@@ -16,17 +16,17 @@
 namespace bgg
 {
 
-  SfChessBoard::SfChessBoard(std::shared_ptr<sf::RenderWindow> window,
-                             sf::Vector2i boundaryTopLeft,
-                             SfTextureAtlas atlas,
-                             sf::Vector2i mapSizeInTiles,
-                             std::vector<sf::Vector2i> const &tileLayout) noexcept
-      : window_(std::move(window)),
-        boundaryTopLeft_(std::move(boundaryTopLeft)),
-        atlas_(std::move(atlas)),
-        tileMap_(&atlas_, std::move(mapSizeInTiles), tileLayout)
+  SfChessBoard::SfChessBoard(sf::Vector2i const &currentWndSize,
+                             sf::Vector2i paddingTopLeft,
+                             sf::Vector2i paddingBottomRight,
+                             std::shared_ptr<const SfTextureAtlas> itemTextureAtlas,
+                             SfTileMap tileMap) noexcept
+      : paddingTopLeft_(std::move(paddingTopLeft)),
+        paddingBottomRight_(std::move(paddingBottomRight)),
+        itemTextureAtlas_(std::move(itemTextureAtlas)),
+        tileMap_(std::move(tileMap))
   {
-    fitWindow();
+    fitWindow(currentWndSize);
   }
 
   void SfChessBoard::onEvent(sf::Event const &event) noexcept
@@ -87,55 +87,54 @@ namespace bgg
   }
 
   auto SfChessBoard::addItem(SfBoardItem item, int zOrder, bool visible) noexcept
-      -> std::pair<std::size_t, SfBoardItem *>
+      -> std::pair<const std::size_t, SfBoardItem> *
   {
-    // TODO:
     size_t id = generateNextId(zOrder);
     auto [iter, inserted] = boardItems_.try_emplace(id, std::move(item));
     iter->second.setVisible(visible);
-    SfBoardItem *itemPtr = inserted ? &(iter->second) : nullptr;
-    return {id, itemPtr};
+    return inserted ? &(*iter) : nullptr;
   }
 
   auto SfChessBoard::addItem(
       sf::Vector2i const &tileCoords,
-      sf::Vector2i const &textureCellIndex,
+      int textureCellIndex,
       int zOrder,
       std::string name,
-      bool visible) noexcept -> std::pair<std::size_t, SfBoardItem *>
+      bool visible) noexcept
+      -> std::pair<const std::size_t, SfBoardItem> *
   {
-    // TODO:
-    sf::Vector2i textureCellTopLeft = atlas_.cellSize.componentWiseMul(textureCellIndex);
-    sf::IntRect textureCellRect(textureCellTopLeft, atlas_.cellSize);
+    sf::IntRect textureCellRect = itemTextureAtlas_->getRegion(textureCellIndex);
     size_t id = generateNextId(zOrder);
 
     auto [iter, inserted] = boardItems_.try_emplace(
-        id, atlas_.texture, textureCellRect, std::move(name), visible);
-    SfBoardItem *itemPtr = inserted ? &(iter->second) : nullptr;
-    if (itemPtr != nullptr)
-    {
-      sf::IntRect itemRect = tileToScreenRect(tileCoords);
-      sf::Vector2f tileSize = sf::Vector2f(itemRect.size);
-      sf::Vector2f scaleFactors = tileSize.componentWiseDiv(sf::Vector2f(atlas_.cellSize));
+        id, itemTextureAtlas_, textureCellRect, std::move(name), visible);
+    std::pair<const std::size_t, SfBoardItem> *itemEntry = inserted ? &(*iter) : nullptr;
 
-      itemPtr->setScale(scaleFactors);
-      itemPtr->setPosition(sf::Vector2f(itemRect.position));
+    if (itemEntry != nullptr)
+    {
+      SfBoardItem &item = itemEntry->second;
+      sf::IntRect itemRect = tileMap_.tileToScreenRect(tileCoords);
+      sf::Vector2f tileSize = sf::Vector2f(itemRect.size);
+      sf::Vector2f scaleFactors = tileSize.componentWiseDiv(sf::Vector2f(textureCellRect.size));
+
+      item.setScale(scaleFactors);
+      item.setPosition(itemRect.position);
 
 #ifdef _DEBUG
       std::string debugInfo = std::format(
-          "\nAdd texture of '{}' ({}, {}) at pos ({}, {})"
+          "\nAdd texture of '{}' (cell {}) at pos ({}, {})"
           " with size ({}, {}) and origin ({}, {})",
-          itemPtr->getName(),
-          textureCellIndex.x, textureCellIndex.y,
-          itemPtr->getPosition().x, itemPtr->getPosition().y,
-          itemPtr->getSize().x, itemPtr->getSize().y,
-          itemPtr->getOrigin().x, itemPtr->getOrigin().y);
+          item.getName(),
+          textureCellIndex,
+          item.getPosition().x, item.getPosition().y,
+          item.getSize().x, item.getSize().y,
+          item.getOrigin().x, item.getOrigin().y);
 
       std::clog << debugInfo;
 #endif
     }
 
-    return {id, itemPtr};
+    return itemEntry;
   }
 
   auto SfChessBoard::removeItem(std::size_t itemId) noexcept -> bool
@@ -152,12 +151,8 @@ namespace bgg
       return false;
     }
 
-    sf::IntRect itemRect = tileToScreenRect(tileCoords);
-    item->setPosition(sf::Vector2f(itemRect.position));
-
-    // sf::Vector2f tileSize = sf::Vector2f(itemRect.size);
-    //  sf::Vector2f scaleFactors = tileSize.componentWiseDiv(sf::Vector2f(atlas_.cellSize));
-    //  item->setScale(scaleFactors);
+    sf::IntRect itemRect = tileMap_.tileToScreenRect(tileCoords);
+    item->setPosition(itemRect.position);
 
     return true;
   }
@@ -176,46 +171,48 @@ namespace bgg
     constexpr int NUM_SHIFTED_BITS = 8 * sizeof(std::size_t) - Z_ORDER_BIT_COUNT;
     size_t returnedId = nextBaseItemId_++;
     BOOST_ASSERT_MSG(returnedId < (1ull << NUM_SHIFTED_BITS),
-                     "This failure may never happens");
+                     "This failure may never occur");
 
     return (size_t(zOrder) << NUM_SHIFTED_BITS) | returnedId;
   }
 
-  auto SfChessBoard::screenToTile(sf::Vector2i const &screenCoords) noexcept -> sf::Vector2i
+  void SfChessBoard::fitWindow(sf::Vector2i const &wndSize) noexcept
   {
-    return (screenCoords - boardTopLeft_).componentWiseDiv(tileSizeOnScreen_);
-  }
+    sf::Vector2i maxBoardSize = wndSize - paddingTopLeft_ - paddingBottomRight_;
+    sf::Vector2i mapSize = tileMap_.getSize();
+    sf::Vector2i mapPosition = tileMap_.getPosition();
 
-  auto SfChessBoard::tileToScreenRect(sf::Vector2i const &tileCoords) noexcept -> sf::IntRect
-  {
-    // TODO:
-    sf::Vector2i rectTopLeft = boardTopLeft_ + tileSizeOnScreen_.componentWiseMul(tileCoords);
-    return sf::IntRect(rectTopLeft, tileSizeOnScreen_);
-  }
+    float scaleFactor;
+    sf::Vector2i offset;
 
-  void SfChessBoard::fitWindow() noexcept
-  {
-    sf::Vector2i maxBoardSize = sf::Vector2i(window_->getSize()) - boundaryTopLeft_;
-    int boardSideLength;
-
-    if (maxBoardSize.x > maxBoardSize.y)
+    if (maxBoardSize.x * mapSize.y > maxBoardSize.y * mapSize.x)
     {
-      boardSideLength = maxBoardSize.y;
-      boardTopLeft_.x = (maxBoardSize.x - boardSideLength) / 2 + boundaryTopLeft_.x;
-      boardTopLeft_.y = boundaryTopLeft_.y;
+      scaleFactor = float(maxBoardSize.y) / float(mapSize.y);
+      int newBoardSideWidth = int(scaleFactor * mapSize.x);
+
+      sf::Vector2i newPosition{
+          paddingTopLeft_.x + (maxBoardSize.x - newBoardSideWidth) / 2,
+          paddingTopLeft_.y};
+      offset = newPosition - mapPosition;
     }
     else
     {
-      boardSideLength = maxBoardSize.x;
-      boardTopLeft_.x = boundaryTopLeft_.x;
-      boardTopLeft_.y = (maxBoardSize.y - boardSideLength) / 2 + boundaryTopLeft_.y;
+      scaleFactor = float(maxBoardSize.x) / float(mapSize.x);
+      int newBoardSideHeight = int(scaleFactor * mapSize.y);
+
+      sf::Vector2i newPosition{
+          paddingTopLeft_.x,
+          paddingTopLeft_.y + (maxBoardSize.y - newBoardSideHeight) / 2};
+      offset = newPosition - mapPosition;
     }
 
-    tileSizeOnScreen_ = sf::Vector2i(boardSideLength / 8, boardSideLength / 8);
-    sf::Vector2f scaleFactors = sf::Vector2f(tileSizeOnScreen_)
-                                    .componentWiseDiv(sf::Vector2f(atlas_.cellSize));
+    tileMap_.move(offset);
+    tileMap_.scale(sf::Vector2f{scaleFactor, scaleFactor});
 
-    tileMap_.setScale(scaleFactors);
-    tileMap_.setPosition(sf::Vector2f(boardTopLeft_));
+    for (auto &[id, item] : boardItems_)
+    {
+      item.move(offset);
+      item.scale(sf::Vector2f{scaleFactor, scaleFactor});
+    }
   }
 } // namespace bgg

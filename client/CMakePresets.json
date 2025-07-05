@@ -50,7 +50,7 @@
       "description": "Build with MSVC in Debug mode",
       "inherits": [],
       "jobs": 8,
-      "verbose": true
+      "verbose": false
     },
     {
       "name": "build-vs2022-release",
@@ -59,7 +59,7 @@
       "description": "Build with MSVC in Release mode",
       "inherits": [],
       "jobs": 8,
-      "verbose": true
+      "verbose": false
     },
     {
       "name": "build-gcc-debug",
@@ -67,7 +67,7 @@
       "description": "Build with GCC in Debug mode",
       "inherits": [],
       "jobs": 8,
-      "verbose": true
+      "verbose": false
     },
     {
       "name": "build-gcc-release",
@@ -75,7 +75,7 @@
       "description": "Build with GCC in Release mode",
       "inherits": [],
       "jobs": 8,
-      "verbose": true
+      "verbose": false
     }
   ]
 }

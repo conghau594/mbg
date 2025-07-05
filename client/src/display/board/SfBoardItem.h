@@ -4,37 +4,79 @@
 #include <string>
 
 #include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/Texture.hpp>
+#include "SfTextureAtlas.h"
 
 namespace bgg
 {
   class SfBoardItem final : public sf::Drawable
   {
+    std::shared_ptr<const SfTextureAtlas> const atlas_;
     sf::Sprite sprite_;
     std::string name_;
     bool isVisible_;
 
   public:
     SfBoardItem(
-        sf::Texture const &texture,
-        sf::IntRect const &rectangle,
+        std::shared_ptr<const SfTextureAtlas> const atlas,
+        sf::IntRect rectangle,
         std::string name,
         bool isVisible = true) noexcept
-        : sprite_(texture, rectangle),
+        : atlas_(std::move(atlas)),
+          sprite_(*(atlas_->getTexture()), std::move(rectangle)),
           name_(std::move(name)),
           isVisible_(isVisible)
     {
     }
 
-    void setVisible(bool visible) noexcept { isVisible_ = visible; }
-    void setScale(sf::Vector2f const &factors) noexcept { sprite_.setScale(factors); }
-    void setPosition(sf::Vector2f const &position) noexcept { sprite_.setPosition(position); }
+    void setVisible(bool visible) noexcept
+    {
+      isVisible_ = visible;
+    }
 
-    auto isVisible() const noexcept -> bool { return isVisible_; }
-    auto getName() const noexcept -> std::string { return name_; }
-    auto getPosition() const noexcept -> sf::Vector2f { return sprite_.getPosition(); }
-    auto getSize() const noexcept -> sf::Vector2f { return sprite_.getGlobalBounds().size; }
-    auto getOrigin() const noexcept -> sf::Vector2f { return sprite_.getOrigin(); }
+    void setScale(sf::Vector2f const &factors) noexcept
+    {
+      sprite_.setScale(factors);
+    }
+
+    void setPosition(sf::Vector2i const &position) noexcept
+    {
+      sprite_.setPosition(sf::Vector2f(position));
+    }
+
+    void scale(sf::Vector2f const &factors) noexcept
+    {
+      sprite_.scale(factors);
+    }
+
+    void move(sf::Vector2i const &offset) noexcept
+    {
+      sprite_.move(sf::Vector2f(offset));
+    }
+
+    [[nodiscard]] auto isVisible() const noexcept -> bool
+    {
+      return isVisible_;
+    }
+
+    [[nodiscard]] auto getName() const noexcept -> std::string
+    {
+      return name_;
+    }
+
+    [[nodiscard]] auto getPosition() const noexcept -> sf::Vector2i
+    {
+      return sf::Vector2i(sprite_.getPosition());
+    }
+
+    [[nodiscard]] auto getSize() const noexcept -> sf::Vector2i
+    {
+      return sf::Vector2i(sprite_.getGlobalBounds().size);
+    }
+
+    [[nodiscard]] auto getOrigin() const noexcept -> sf::Vector2i
+    {
+      return sf::Vector2i(sprite_.getOrigin());
+    }
 
   private:
     void draw(sf::RenderTarget &target, sf::RenderStates states) const noexcept override

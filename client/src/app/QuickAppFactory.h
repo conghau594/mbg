@@ -54,7 +54,7 @@ namespace bgg
       int side = 1; // test value
       //==============
       std::shared_ptr<SfGameBoard> chessBoard = SfGameBoardFactory().create(
-          gameType_, side, window, {0, RESIGN_REGION_HEIGHT});
+          gameType_, side, sf::Vector2i{WINDOW_SIZE}, {0, RESIGN_REGION_HEIGHT}, {0, 0});
 
       std::shared_ptr<GameScreen> chessScreen = std::make_shared<SfGamePlayScreen>(
           window, gameDisplay, chessBoard, RESIGN_REGION_HEIGHT);

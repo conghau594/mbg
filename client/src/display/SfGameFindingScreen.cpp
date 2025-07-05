@@ -1,5 +1,7 @@
 // SfGameFindingScreen.cpp
 
+#include <SFML/Graphics/RenderWindow.hpp>
+
 #include "SfGameFindingScreen.h"
 
 #include "GameDisplay.h"
@@ -62,7 +64,11 @@ namespace bgg
       //==============
       int resignRegionHeight = 60;
       std::shared_ptr<SfGameBoard> chessBoard = SfGameBoardFactory().create(
-          side, gameType_, window(), {0, resignRegionHeight});
+          side,
+          gameType_,
+          sf::Vector2i(window()->getSize()),
+          {0, resignRegionHeight},
+          {0, 0});
       std::shared_ptr<GameScreen> chessScreen = std::make_shared<SfGamePlayScreen>(
           window(), gameDisplay_, chessBoard, resignRegionHeight);
 
