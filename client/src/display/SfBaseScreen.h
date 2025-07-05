@@ -33,7 +33,7 @@ namespace bgg
     std::shared_ptr<sf::RenderWindow> window_;
     std::shared_ptr<GameScreen> lastSubscreen_;
     std::shared_ptr<GameScreen> currentSubscreen_;
-    
+
     peeb::Handler<ServerMessage> serverMessageHandler_;
     sf::Clock clock_;
     bool isActive_;

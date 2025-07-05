@@ -18,11 +18,11 @@ namespace bgg
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<GameDisplay> gameDisplay,
       std::shared_ptr<SfGameBoard> gameBoard,
-      unsigned resignButtonRegionHeight) noexcept
+      int resignRegionHeight) noexcept
       : SfBaseScreen(std::move(window)),
         gameDisplay_(std::move(gameDisplay)),
         gameBoard_(std::move(gameBoard)),
-        resignButtonRegionHeight_(resignButtonRegionHeight),
+        resignRegionHeight_(resignRegionHeight),
         pressedButtonIndex_(-1)
   {
   }
@@ -41,7 +41,7 @@ namespace bgg
     // handle button presses
     if (pressedButtonIndex_ == 0)
     {
-      char constexpr msg[] = "Are you sure you want to resign?";
+      char constexpr msg[] = "Do you want to give up?";
       std::vector<std::string> &&buttonLabels{"Yes", "No"};
       std::vector<std::function<void()>> &&buttonCallbacks{
           [this]()
@@ -96,13 +96,16 @@ namespace bgg
 
     char constexpr buttonLabel[] = "Resign";
 
-    ImVec2 const TEXT_SIZE = ImGui::CalcTextSize(buttonLabel);
+    // ImVec2 const TEXT_SIZE = ImGui::CalcTextSize(buttonLabel);
     ImGuiStyle const &style = ImGui::GetStyle();
     // ImVec2 const ITEM_SPACING = style.ItemSpacing;
     ImVec2 const MENU_PADDING = style.WindowPadding;
 
-    float constexpr VERTICAL_SPACING = 10.0f;
-    float const buttonVerticalOffset = VERTICAL_SPACING + TEXT_SIZE.y * 0.5f + MENU_PADDING.y; // Offset from the top of the window
+    float constexpr VERTICAL_SPACING = 15.0f;
+    ImVec2 const BUTTON_SIZE(
+        120.0f, float(resignRegionHeight_) - 2.0f * VERTICAL_SPACING);
+
+    float const buttonVerticalOffset = 0.5f * float(resignRegionHeight_); // Offset from the top of the window
     ImVec2 center(0.5f * float(window()->getSize().x), float(buttonVerticalOffset));
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
@@ -114,8 +117,6 @@ namespace bgg
                                  ImGuiWindowFlags_AlwaysAutoResize |
                                  ImGuiWindowFlags_NoMove;
 
-    ImVec2 const BUTTON_SIZE(
-      120.0f, float(resignButtonRegionHeight_) - 2.0f * VERTICAL_SPACING);
     // ImVec2 constexpr DUMMY_SIZE(0.0f, 10.0f);
 
     ImGui::Begin("Select Game", nullptr, IM_GUI_FLAGS);

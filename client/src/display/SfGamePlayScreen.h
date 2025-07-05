@@ -11,7 +11,7 @@ namespace bgg
   {
     std::shared_ptr<GameDisplay> gameDisplay_;
     std::shared_ptr<SfGameBoard> gameBoard_;
-    unsigned resignButtonRegionHeight_;
+    int resignRegionHeight_;
     int pressedButtonIndex_;
 
   public:
@@ -19,7 +19,7 @@ namespace bgg
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<GameDisplay> gameDisplay,
         std::shared_ptr<SfGameBoard> gameBoard,
-        unsigned resignButtonRegionHeight) noexcept;
+        int resignRegionHeight) noexcept;
 
   private:
     void update(sf::Time const &elapsed) override;

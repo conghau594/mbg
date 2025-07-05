@@ -6,26 +6,30 @@
 
 namespace bgg
 {
-  struct LoginRequest
+  class LoginRequest final
   {
+  public:
     std::string username;
     std::string password;
   };
 
-  struct FindGameRequest
+  class FindGameRequest final
   {
+  public:
     std::string userId;
     int gameType;
     int playerType;
   };
 
-  struct CancelMatchmakingRequest
+  class CancelMatchmakingRequest final
   {
+  public:
     std::string userId;
   };
 
-  struct CommitMoveRequest
+  class CommitMoveRequest final
   {
+  public:
     std::string userId;
     std::string gameId;
 
@@ -38,8 +42,9 @@ namespace bgg
     } pos;
   };
 
-  struct ResignGameRequest
+  class ResignGameRequest final
   {
+  public:
     std::string userId;
     std::string gameId;
   };

@@ -9,51 +9,60 @@
 namespace bgg
 {
 
-  struct LoginResponse
+  class LoginResponse final
   {
+  public:
     ErrorCode errcode;
     std::string userId;
   };
 
-  struct FindGameResponse
+  class FindGameResponse final
   {
+  public:
     ErrorCode errcode;
     std::string gameId;
     int side;
   };
 
-  struct FindGameAcceptedNotification
+  class FindGameAcceptedNotification final
   {
+  public:
     ErrorCode errcode;
   };
 
-  struct CancelMatchmakingResponse
+  class CancelMatchmakingResponse final
   {
+  public:
     ErrorCode errcode;
   };
 
-  struct CommitMoveResponse
+  class CommitMoveResponse final
   {
+  public:
     ErrorCode errcode;
   };
 
-  struct ResignGameResponse
+  class ResignGameResponse final
   {
+  public:
     ErrorCode errcode;
   };
 
-  struct GameStartedNotification
+  class GameStartedNotification final
   {
+  public:
     ErrorCode errcode;
   };
 
-  struct GameUpdatedNotification
+  class GameUpdatedNotification final
   {
+  public:
     ErrorCode errcode;
   };
 
-  struct GameFinishedNotification
+  class GameFinishedNotification final
   {
+  public:
     ErrorCode errcode;
   };
 

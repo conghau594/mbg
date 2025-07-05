@@ -79,8 +79,9 @@ namespace bgg
     float const MENU_WIDTH = TEXT_SIZE.x + MENU_PADDING.x * 2.0f + 50.0f;
 
     float BUTTON_WIDTH = 0.0f;
-    if(BUTTON_COUNT == 0)
-       BUTTON_WIDTH = float(MENU_WIDTH - 2 * MENU_PADDING.x - float(BUTTON_COUNT - 1) * ITEM_SPACING.x) / float(BUTTON_COUNT);
+    if (BUTTON_COUNT != 0)
+      BUTTON_WIDTH = float(MENU_WIDTH - 2 * MENU_PADDING.x - float(BUTTON_COUNT - 1) * ITEM_SPACING.x) /
+                     float(BUTTON_COUNT);
     float const BUTTON_HEIGHT = BUTTON_COUNT == 0 ? 0.0f : 40.0f;
     ImVec2 BUTTON_SIZE(BUTTON_WIDTH, BUTTON_HEIGHT);
 

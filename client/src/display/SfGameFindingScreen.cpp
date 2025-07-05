@@ -57,10 +57,14 @@ namespace bgg
   {
     try
     {
-      unsigned resignButtonRegionHeight = 60;
-      std::shared_ptr<SfGameBoard> chessBoard = SfGameBoardFactory().create(gameType_);
+      // TODO: Get value of `side` from GameStartedNotif from server
+      int side = 0;
+      //==============
+      int resignRegionHeight = 60;
+      std::shared_ptr<SfGameBoard> chessBoard = SfGameBoardFactory().create(
+          side, gameType_, window(), {0, resignRegionHeight});
       std::shared_ptr<GameScreen> chessScreen = std::make_shared<SfGamePlayScreen>(
-          window(), gameDisplay_, chessBoard, resignButtonRegionHeight);
+          window(), gameDisplay_, chessBoard, resignRegionHeight);
 
       gameDisplay_->changeScreen(chessScreen);
     }
