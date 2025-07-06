@@ -5,6 +5,16 @@
 
 namespace bgg
 {
+#define CHESS_COLOR_ENTRIES(E) \
+  E(WHITE)                     \
+  E(BLACK)
+
+#define CHESS_COLOR_NAMES(E) \
+  E(White)                   \
+  E(Black)
+
+  DEFINE_ENUM(ChessColor, CHESS_COLOR_ENTRIES, CHESS_COLOR_NAMES);
+
 #define CHESS_PIECE_ENTRIES(E) \
   E(WHITE_KING)                \
   E(WHITE_QUEEN)               \
@@ -40,12 +50,38 @@ namespace bgg
   E(BLACK_PAWN_H)
 
 #define CHESS_PIECE_NAMES(E) \
-  E(King)                    \
-  E(Queen)                   \
-  E(Rook)                    \
-  E(Bishop)                  \
-  E(Knight)                  \
-  E(Pawn)
+  E(WhiteKing)               \
+  E(WhiteQueen)              \
+  E(WhiteRookA)              \
+  E(WhiteRookH)              \
+  E(WhiteBishopC)            \
+  E(WhiteBishopF)            \
+  E(WhiteKnightB)            \
+  E(WhiteKnightG)            \
+  E(WhitePawnA)              \
+  E(WhitePawnB)              \
+  E(WhitePawnC)              \
+  E(WhitePawnD)              \
+  E(WhitePawnE)              \
+  E(WhitePawnF)              \
+  E(WhitePawnG)              \
+  E(WhitePawnH)              \
+  E(BlackKing)               \
+  E(BlackQueen)              \
+  E(BlackRookA)              \
+  E(BlackRookH)              \
+  E(BlackBishopC)            \
+  E(BlackBishopF)            \
+  E(BlackKnightB)            \
+  E(BlackKnightG)            \
+  E(BlackPawnA)              \
+  E(BlackPawnB)              \
+  E(BlackPawnC)              \
+  E(BlackPawnD)              \
+  E(BlackPawnE)              \
+  E(BlackPawnF)              \
+  E(BlackPawnG)              \
+  E(BlackPawnH)
 
   DEFINE_ENUM(ChessPiece, CHESS_PIECE_ENTRIES, CHESS_PIECE_NAMES);
 }

@@ -20,10 +20,13 @@ namespace sf
 }
 namespace bgg
 {
+  class SfGameRuleAdapter;
   class SfChessBoard final : public SfGameBoard
   {
     std::shared_ptr<SfBoardState> currentBoardState_;
     std::shared_ptr<SfBoardState> lastBoardState_;
+
+    std::shared_ptr<SfGameRuleAdapter> gameRule_;
 
     SfItemStore itemStore_;
     SfTileMap tileMap_;
@@ -35,6 +38,7 @@ namespace bgg
     SfChessBoard(sf::Vector2i const &currentWndSize,
                  sf::Vector2i paddingTopLeft,
                  sf::Vector2i paddingBottomRight,
+                 std::shared_ptr<SfGameRuleAdapter> gameRule,
                  SfItemStore itemStore_,
                  SfTileMap tileMap) noexcept;
 

@@ -2,12 +2,17 @@
 #pragma once
 
 #include <filesystem>
+#include <format>
+#include <boost/assert.hpp>
 
 #include "model/GameType.h"
 #include "SfChessBoard.h"
 #include "SfChessTextureAtlas001.h"
 #include "SfBoardPieceEnabledState.h"
 #include "SfBoardPieceDisabledState.h"
+#include "SfChessRuleAdapter.h"
+
+#include "model/ChessPiece.h"
 
 namespace bgg
 {
@@ -67,67 +72,73 @@ namespace bgg
       SfTileMap tileMap(chessTextureAtlas, {8, 8}, tileLayout);
       SfItemStore itemStore(chessTextureAtlas);
 
-      // Note that these following variables are the texture indexes of the
-      // pieces in the texture atlas.
+      // this vector obj maps each ChessPiece enum to a item entry
+      std::vector<SfItemStore::Entry> itemEntries(
+          std::size_t(ChessPiece::COUNT), itemStore.end());
 
-      const std::string LOWER_COLOR = (side == 0) ? "white" : "black";
-      int lowerKing = (side == 0) ? ChessTextureCell::WHITE_KING : ChessTextureCell::BLACK_KING;
-      int lowerRook = lowerKing + 2;
-      int lowerBishop = lowerKing + 3;
-      int lowerKnight = lowerKing + 4;
-      int lowerPawn = lowerKing + 5;
+      // this vector obj maps each ChessPiece enum to a coresponding texture index
+      std::vector<int> textureIndexes{
+          ChessTextureCell::WHITE_KING,
+          ChessTextureCell::WHITE_QUEEN,
+          ChessTextureCell::WHITE_ROOK,
+          ChessTextureCell::WHITE_ROOK,
+          ChessTextureCell::WHITE_BISHOP,
+          ChessTextureCell::WHITE_BISHOP,
+          ChessTextureCell::WHITE_KNIGHT,
+          ChessTextureCell::WHITE_KNIGHT,
+          ChessTextureCell::WHITE_PAWN,
+          ChessTextureCell::WHITE_PAWN,
+          ChessTextureCell::WHITE_PAWN,
+          ChessTextureCell::WHITE_PAWN,
+          ChessTextureCell::WHITE_PAWN,
+          ChessTextureCell::WHITE_PAWN,
+          ChessTextureCell::WHITE_PAWN,
+          ChessTextureCell::WHITE_PAWN,
 
-      const std::string UPPER_COLOR = (side == 0) ? "black" : "white";
-      int upperKing = (side == 0) ? ChessTextureCell::BLACK_KING : ChessTextureCell::WHITE_KING;
-      int upperRook = upperKing + 2;
-      int upperBishop = upperKing + 3;
-      int upperKnight = upperKing + 4;
-      int upperPawn = upperKing + 5;
+          ChessTextureCell::BLACK_KING,
+          ChessTextureCell::BLACK_QUEEN,
+          ChessTextureCell::BLACK_ROOK,
+          ChessTextureCell::BLACK_ROOK,
+          ChessTextureCell::BLACK_BISHOP,
+          ChessTextureCell::BLACK_BISHOP,
+          ChessTextureCell::BLACK_KNIGHT,
+          ChessTextureCell::BLACK_KNIGHT,
+          ChessTextureCell::BLACK_PAWN,
+          ChessTextureCell::BLACK_PAWN,
+          ChessTextureCell::BLACK_PAWN,
+          ChessTextureCell::BLACK_PAWN,
+          ChessTextureCell::BLACK_PAWN,
+          ChessTextureCell::BLACK_PAWN,
+          ChessTextureCell::BLACK_PAWN,
+          ChessTextureCell::BLACK_PAWN};
 
-      // Add queens and kings
-      if (side == 0)
+      // add piece items to itemStore, also assign the returned entry
+      for (int i = 0; i < ChessPiece::COUNT; ++i)
       {
-        itemStore.addItem(ChessTextureCell::BLACK_QUEEN, ZOrder::SECOND_LAYER, UPPER_COLOR + " queen");
-        itemStore.addItem(ChessTextureCell::WHITE_QUEEN, ZOrder::SECOND_LAYER, LOWER_COLOR + " queen");
-        itemStore.addItem(ChessTextureCell::BLACK_KING, ZOrder::SECOND_LAYER, UPPER_COLOR + " king");
-        itemStore.addItem(ChessTextureCell::WHITE_KING, ZOrder::SECOND_LAYER, LOWER_COLOR + " king");
+
+        std::optional<std::string> itemName = ChessPiece::toString(i);
+        BOOST_ASSERT_MSG(
+            itemName,
+            std::format("Enum ChessPiece with value {} should have a associated string", i)
+                .c_str());
+
+        itemEntries[i] = itemStore.addItem(
+            textureIndexes[i], ZOrder::SECOND_LAYER, itemName.value());
       }
-      else
+
+      // assert valid item entries before creating chess board
+      BOOST_ASSERT_MSG(int(itemEntries.size()) == ChessPiece::COUNT,
+                       "itemEntries_ size must be equal to"
+                       " the number of chess pieces (32)");
+      for (int i = 0; i < ChessPiece::COUNT; ++i)
       {
-        itemStore.addItem(ChessTextureCell::BLACK_QUEEN, ZOrder::SECOND_LAYER, LOWER_COLOR + " queen");
-        itemStore.addItem(ChessTextureCell::WHITE_QUEEN, ZOrder::SECOND_LAYER, UPPER_COLOR + " queen");
-        itemStore.addItem(ChessTextureCell::BLACK_KING, ZOrder::SECOND_LAYER, LOWER_COLOR + " king");
-        itemStore.addItem(ChessTextureCell::WHITE_KING, ZOrder::SECOND_LAYER, UPPER_COLOR + " king");
+        BOOST_ASSERT_MSG(!itemEntries[std::size_t(i)].isNull(),
+                         "itemEntries_ should not contain null item entry");
       }
 
-      // Add left and right rooks
-      itemStore.addItem(upperRook, ZOrder::SECOND_LAYER, UPPER_COLOR + " left rook");
-      itemStore.addItem(upperRook, ZOrder::SECOND_LAYER, UPPER_COLOR + " right rook");
-      itemStore.addItem(lowerRook, ZOrder::SECOND_LAYER, LOWER_COLOR + " left rook");
-      itemStore.addItem(lowerRook, ZOrder::SECOND_LAYER, LOWER_COLOR + " right rook");
-
-      // Add left and right knights
-      itemStore.addItem(upperKnight, ZOrder::SECOND_LAYER, UPPER_COLOR + " left knight");
-      itemStore.addItem(upperKnight, ZOrder::SECOND_LAYER, UPPER_COLOR + " right knight");
-      itemStore.addItem(lowerKnight, ZOrder::SECOND_LAYER, LOWER_COLOR + " left knight");
-      itemStore.addItem(lowerKnight, ZOrder::SECOND_LAYER, LOWER_COLOR + " right knight");
-
-      // Add left and right bishops
-      itemStore.addItem(upperBishop, ZOrder::SECOND_LAYER, UPPER_COLOR + " left bishop");
-      itemStore.addItem(upperBishop, ZOrder::SECOND_LAYER, UPPER_COLOR + " right bishop");
-      itemStore.addItem(lowerBishop, ZOrder::SECOND_LAYER, LOWER_COLOR + " left bishop");
-      itemStore.addItem(lowerBishop, ZOrder::SECOND_LAYER, LOWER_COLOR + " right bishop");
-
-      // Add pawns
-      int constexpr PAWNS_PER_SIDE = 8;
-      for (int i = 0; i < PAWNS_PER_SIDE; ++i)
-      {
-        std::string upperPawnName = UPPER_COLOR + " pawn " + std::to_string(i);
-        itemStore.addItem(upperPawn, ZOrder::SECOND_LAYER, upperPawnName);
-
-        std::string lowerPawnName = LOWER_COLOR + " pawn " + std::to_string(i);
-        itemStore.addItem(lowerPawn, ZOrder::SECOND_LAYER, lowerPawnName);
-      }
+      std::shared_ptr<SfGameRuleAdapter>
+          gameRule = std::make_shared<SfChessRuleAdapter>(
+              std::move(itemEntries), side);
 
       // create chessBoard with the loaded texture atlas
       std::shared_ptr<SfGameBoard>
@@ -135,19 +146,14 @@ namespace bgg
               currentWndSize,
               paddingTopLeft,
               paddingBottomRight,
+              std::move(gameRule),
               std::move(itemStore),
               std::move(tileMap));
 
       // assign the initial state of the board
       std::shared_ptr<SfBoardState> initialBoardState;
-      if (side == 0)
-      {
-        initialBoardState = std::make_shared<SfBoardPieceEnabledState>(chessBoard);
-      }
-      else
-      {
-        initialBoardState = std::make_shared<SfBoardPieceDisabledState>(chessBoard);
-      }
+
+      initialBoardState = std::make_shared<SfBoardPieceDisabledState>(chessBoard);
 
       chessBoard->changeState(initialBoardState);
 

@@ -11,10 +11,10 @@
     enum                                                                      \
     {                                                                         \
       ENTRY_LIST(GENERATE_ENUM_ENTRY)                                         \
-          Count                                                               \
+          __count                                                             \
     };                                                                        \
                                                                               \
-    static constexpr int COUNT = static_cast<int>(NAME::Count);               \
+    static constexpr int COUNT = static_cast<int>(NAME::__count);             \
     static constexpr const char *NAMES[] = {NAME_LIST(GENERATE_ENUM_STRING)}; \
                                                                               \
     static bool isValid(int value) noexcept                                   \

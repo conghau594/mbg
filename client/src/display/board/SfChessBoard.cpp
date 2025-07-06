@@ -14,10 +14,12 @@ namespace bgg
   SfChessBoard::SfChessBoard(sf::Vector2i const &currentWndSize,
                              sf::Vector2i paddingTopLeft,
                              sf::Vector2i paddingBottomRight,
+                             std::shared_ptr<SfGameRuleAdapter> gameRule,
                              SfItemStore itemStore,
                              SfTileMap tileMap) noexcept
       : paddingTopLeft_(std::move(paddingTopLeft)),
         paddingBottomRight_(std::move(paddingBottomRight)),
+        gameRule_(gameRule),
         itemStore_(std::move(itemStore)),
         tileMap_(std::move(tileMap))
   {

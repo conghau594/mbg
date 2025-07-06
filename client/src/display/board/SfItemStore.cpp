@@ -6,21 +6,16 @@
 
 namespace bgg
 {
-  std::atomic<size_t> SfItemStore::nextMapId{1};
-
   SfItemStore::SfItemStore(SfItemStore &&other) noexcept
       : itemTextureAtlas_(std::move(other.itemTextureAtlas_)),
         boardItems_(std::move(other.boardItems_)),
-        id_(other.id_),
         nextBaseItemId_(other.nextBaseItemId_.load())
   {
-    other.id_ = 0;
   }
 
   SfItemStore::SfItemStore(
       std::shared_ptr<const SfTextureAtlas> itemTextureAtlas) noexcept
       : itemTextureAtlas_(std::move(itemTextureAtlas)),
-        id_(nextMapId++),
         nextBaseItemId_(0)
   {
   }
@@ -38,15 +33,17 @@ namespace bgg
       int textureCellIndex,
       int zOrder,
       std::string name,
-      bool visible) noexcept
-      -> std::optional<SfItemStore::Entry>
+      bool visible) noexcept -> SfItemStore::Entry
   {
     sf::IntRect textureCellRect = itemTextureAtlas_->getRegion(textureCellIndex);
     size_t id = generateNextId(zOrder);
 
     auto [iter, inserted] = boardItems_.try_emplace(
         id, itemTextureAtlas_, textureCellRect, std::move(name), visible);
-    return inserted ? Entry(iter, id_) : std::optional<Entry>(std::nullopt);
+
+    BOOST_ASSERT_MSG(inserted, "With a unique id, emplacing to boardItems_ should not fail");
+
+    return Entry(iter, &boardItems_);
   }
 
   auto SfItemStore::removeItem(std::size_t itemId) noexcept -> bool
@@ -56,25 +53,25 @@ namespace bgg
 
   auto SfItemStore::removeItem(Entry &entry) noexcept -> bool
   {
-    if (entry.isNull() || entry.mapId_ == id_ || entry.iter_ != boardItems_.end())
+    if (entry.isNull() || entry.itemMapPtr_ != &boardItems_)
     {
       return false;
     }
 
-    boardItems_.erase(entry.iter_);
-    entry.mapId_ = 0; // make sure the entry is null
-    entry.iter_ = boardItems_.end();
+    boardItems_.erase(entry.itemIter_);
+    entry.itemMapPtr_ = nullptr; // make sure the entry is null
+    entry.itemIter_ = boardItems_.end();
     return true;
   }
 
   auto SfItemStore::begin() const noexcept -> SfItemStore::Entry
   {
-    return Entry(boardItems_.begin(), id_);
+    return Entry(boardItems_.begin(), &boardItems_);
   }
 
   auto SfItemStore::end() const noexcept -> SfItemStore::Entry
   {
-    return Entry(boardItems_.end(), id_);
+    return Entry(boardItems_.end(), &boardItems_);
   }
 
   auto SfItemStore::generateNextId(int zOrder) noexcept -> std::size_t
@@ -97,14 +94,16 @@ namespace bgg
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  SfItemStore::Entry::Entry(std::map<std::size_t, SfBoardItem>::iterator iter, std::size_t mapId)
-      : iter_(std::move(iter)), mapId_(mapId)
+  SfItemStore::Entry::Entry(
+      std::map<std::size_t, SfBoardItem>::iterator itemIter,
+      std::map<std::size_t, SfBoardItem> *itemMapPtr) noexcept
+      : itemIter_(std::move(itemIter)), itemMapPtr_(itemMapPtr)
   {
   }
 
   void SfItemStore::Entry::operator++() noexcept
   {
-    ++iter_;
+    ++itemIter_;
   }
 
   auto SfItemStore::Entry::operator*() noexcept -> SfBoardItem &
@@ -112,25 +111,26 @@ namespace bgg
     return getItem();
   }
 
-  auto SfItemStore::Entry::operator==(SfItemStore::Entry const &rhs) const noexcept -> bool
+  auto SfItemStore::Entry::operator==(
+      SfItemStore::Entry const &rhs) const noexcept -> bool
   {
-    return (iter_ == rhs.iter_) && (mapId_ == rhs.mapId_);
+    return (itemMapPtr_ == rhs.itemMapPtr_) && (itemIter_ == rhs.itemIter_);
   }
 
   auto SfItemStore::Entry::isNull() const noexcept -> bool
   {
-    return mapId_ == 0;
+    return (itemMapPtr_ == nullptr) || (itemIter_ == itemMapPtr_->end());
   }
 
   auto SfItemStore::Entry::getId() const noexcept -> std::size_t const &
   {
     BOOST_ASSERT_MSG(!isNull(), "Invalid entry. It may be removed from its map.");
-    return iter_->first;
+    return itemIter_->first;
   }
 
   auto SfItemStore::Entry::getItem() noexcept -> SfBoardItem &
   {
     BOOST_ASSERT_MSG(!isNull(), "Invalid entry. It may be removed from its map.");
-    return iter_->second;
+    return itemIter_->second;
   }
 } // namespace bgg
