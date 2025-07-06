@@ -40,11 +40,11 @@ namespace bgg
   void SfMessageScreen::update(sf::Time const &elapsed) noexcept
   {
     // update the window display
-    ImGui::SFML::Update(*window(), elapsed);
+    ImGui::SFML::Update(*getWindow(), elapsed);
     layOutScreen();
-    window()->clear();
-    ImGui::SFML::Render(*window());
-    window()->display();
+    getWindow()->clear();
+    ImGui::SFML::Render(*getWindow());
+    getWindow()->display();
 
     // handle button presses
     if (pressedButtonIndex_ >= 0 &&
@@ -93,8 +93,8 @@ namespace bgg
     ImGui::SetNextWindowSize(ImVec2(MENU_WIDTH, MENU_HEIGHT), ImGuiCond_Always);
 
     // change window position
-    ImVec2 center(0.5f * float(window()->getSize().x),
-                  0.5f * float(window()->getSize().y));
+    ImVec2 center(0.5f * float(getWindow()->getSize().x),
+                  0.5f * float(getWindow()->getSize().y));
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     // begin ImGui window

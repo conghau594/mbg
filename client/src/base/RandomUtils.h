@@ -2,11 +2,11 @@
 #pragma once
 #include <random>
 
-namespace util
+namespace utils
 {
 
   template <typename T = int>
-  inline T randomInt(T a, T b)
+  [[nodiscard]] inline T randomInt(T a, T b)
   {
     static std::random_device rd;
     static std::mt19937 engine(rd());
@@ -15,7 +15,7 @@ namespace util
   }
 
   template <typename T = float>
-  inline T randomFloat(T a, T b)
+  [[nodiscard]] inline T randomFloat(T a, T b)
   {
     static std::random_device rd;
     static std::mt19937 engine(rd());
@@ -23,4 +23,4 @@ namespace util
     return dist(engine);
   }
 
-} // namespace util
+} // namespace utils

@@ -30,11 +30,16 @@ namespace bgg
     {
     }
 
-    bool operator==(const ErrorCode &other) const noexcept
+    [[nodiscard]]
+    auto operator==(const ErrorCode &other) const noexcept -> bool
     {
       return (value == other.value) && (category == other.category);
     }
 
-    bool failed() const noexcept { return value != 0; }
+    [[nodiscard]]
+    auto failed() const noexcept -> bool
+    {
+      return value != 0;
+    }
   };
 }

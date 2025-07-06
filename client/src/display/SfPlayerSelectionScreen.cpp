@@ -27,7 +27,7 @@ namespace bgg
         pressedButtonIndex_(-1),
         gameType_(gameType)
   {
-    serverMessageHandler().setHandler<FindGameAcceptedNotification>(
+    getServerMsgHandler().setHandler<FindGameAcceptedNotification>(
         [this](FindGameAcceptedNotification const &response) -> bool
         {
           onFindGameAcceptedNotification(response);
@@ -46,12 +46,12 @@ namespace bgg
   void SfPlayerSelectionScreen::update(sf::Time const &elapsed) noexcept
   {
     // update the window display
-    ImGui::SFML::Update(*window(), elapsed);
+    ImGui::SFML::Update(*getWindow(), elapsed);
     layOutScreen();
 
-    window()->clear();
-    ImGui::SFML::Render(*window());
-    window()->display();
+    getWindow()->clear();
+    ImGui::SFML::Render(*getWindow());
+    getWindow()->display();
 
     // handle button presses
     if (pressedButtonIndex_ >= 0 &&
@@ -79,8 +79,8 @@ namespace bgg
     ImFont *font36 = ImGui::GetIO().Fonts->Fonts[FONT_VENITE_ADOREMUS_36];
     ImGui::PushFont(font36);
 
-    ImVec2 center(0.5f * float(window()->getSize().x),
-                  0.5f * float(window()->getSize().y));
+    ImVec2 center(0.5f * float(getWindow()->getSize().x),
+                  0.5f * float(getWindow()->getSize().y));
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     // ImGuiIO &io = ImGui::GetIO();
     // io.FontGlobalScale = 2.0f;
@@ -132,7 +132,7 @@ namespace bgg
     FindGameRequest request{"", gameType_, playerType_};
     gameDisplay_->send(request);
     std::shared_ptr<GameScreen> waitScreen = std::make_shared<SfMessageScreen>(
-        window(), "Sending request...");
+        getWindow(), "Sending request...");
 
     changeSubscreen(waitScreen);
   }
@@ -144,7 +144,7 @@ namespace bgg
     if (errcode.value == 0)
     {
       std::shared_ptr<GameScreen> findingScreen = std::make_shared<SfGameFindingScreen>(
-          window(), gameDisplay_, gameType_, playerType_);
+          getWindow(), gameDisplay_, gameType_, playerType_);
 
       changeSubscreen(nullptr);
       gameDisplay_->pushScreen(findingScreen);
@@ -166,7 +166,7 @@ namespace bgg
                             std::to_string(errcode.value) + ")";
 
       std::shared_ptr<GameScreen> retryScreen = std::make_shared<SfMessageScreen>(
-          window(), message, buttonLabels, buttonCallbacks);
+          getWindow(), message, buttonLabels, buttonCallbacks);
 
       changeSubscreen(retryScreen);
     }

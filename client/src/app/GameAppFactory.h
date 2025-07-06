@@ -9,6 +9,6 @@ namespace bgg
   {
   public:
     virtual ~GameAppFactory() = default;
-    virtual auto createGameApp() -> GameApp = 0;
+    [[nodiscard]] virtual auto createGameApp() -> GameApp = 0;
   };
 } // namespace bgg

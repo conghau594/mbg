@@ -120,9 +120,9 @@ namespace bgg
             msg = e.what();
             errCodeValue = -1;
           }
-          
+
           std::string gameId = "@Test123";
-          int side = 0; //0: WHITE, 1: BLACK
+          int side = 0; // 0: WHITE, 1: BLACK
           emit(FindGameResponse{ErrorCode{errCodeValue, "Mock", msg}, std::move(gameId), side});
         });
   }
@@ -228,9 +228,9 @@ namespace bgg
       int failurePercent /*=0*/, int minDelay /*=100*/, int maxDelay /*=2000*/)
   {
     std::this_thread::sleep_for(
-        std::chrono::milliseconds(util::randomInt(minDelay, maxDelay)));
+        std::chrono::milliseconds(utils::randomInt(minDelay, maxDelay)));
 
-    if (util::randomInt(1, 100) < failurePercent)
+    if (utils::randomInt(1, 100) < failurePercent)
     {
       throw std::runtime_error("Failed to connect to server");
     }

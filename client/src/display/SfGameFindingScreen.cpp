@@ -34,14 +34,14 @@ namespace bgg
         playerType_(playerType),
         isCancelButtonPressed_(false)
   {
-    serverMessageHandler().setHandler<FindGameResponse>(
+    getServerMsgHandler().setHandler<FindGameResponse>(
         [this](FindGameResponse const &response) -> bool
         {
           onFindGameResponse(response);
           return true;
         });
 
-    serverMessageHandler().setHandler<CancelMatchmakingResponse>(
+    getServerMsgHandler().setHandler<CancelMatchmakingResponse>(
         [this](CancelMatchmakingResponse const &response) -> bool
         {
           onCancelMatchmakingResponse(response);
@@ -66,11 +66,11 @@ namespace bgg
       std::shared_ptr<SfGameBoard> chessBoard = SfGameBoardFactory().create(
           side,
           gameType_,
-          sf::Vector2i(window()->getSize()),
+          sf::Vector2i(getWindow()->getSize()),
           {0, resignRegionHeight},
           {0, 0});
       std::shared_ptr<GameScreen> chessScreen = std::make_shared<SfGamePlayScreen>(
-          window(), gameDisplay_, chessBoard, resignRegionHeight);
+          getWindow(), gameDisplay_, chessBoard, resignRegionHeight);
 
       gameDisplay_->changeScreen(chessScreen);
     }
@@ -90,7 +90,7 @@ namespace bgg
     // gameDisplay_->send(CancelMatchmakingRequest{});
 
     // std::shared_ptr<GameScreen> cancelingScreen = std::make_shared<SfMessageScreen>(
-    //     window(), "Canceling...");
+    //     getWindow(), "Canceling...");
 
     // changeSubscreen(cancelingScreen);
   }
@@ -135,7 +135,7 @@ namespace bgg
       };
 
       std::shared_ptr<GameScreen> messageScreen = std::make_shared<SfMessageScreen>(
-          window(),
+          getWindow(),
           message,
           std::vector<std::string>{"OK"},
           std::vector<std::function<void()>>{okButtonCallback});

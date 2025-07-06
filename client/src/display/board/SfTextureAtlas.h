@@ -18,6 +18,7 @@ namespace bgg
 
     ~SfTextureAtlas() = default;
 
+    [[nodiscard]]
     auto getTexture() const noexcept -> sf::Texture const *
     {
       return &texture_;

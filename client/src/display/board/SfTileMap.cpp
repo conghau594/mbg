@@ -5,6 +5,12 @@
 
 #include "SfTileMap.h"
 #include "SfTextureAtlas.h"
+#include "SfBoardItem.h"
+
+#ifdef _DEBUG
+#include <iostream>
+#include <format>
+#endif
 
 namespace bgg
 {
@@ -97,6 +103,11 @@ namespace bgg
     transformer_.setPosition(sf::Vector2f(position));
   }
 
+  void SfTileMap::setOrigin(sf::Vector2i const &origin) noexcept
+  {
+    transformer_.setOrigin(sf::Vector2f(origin));
+  }
+
   void SfTileMap::scale(sf::Vector2f const &factors) noexcept
   {
     transformer_.scale(factors);
@@ -163,5 +174,34 @@ namespace bgg
     sf::Vector2i tileSize = getTileSize();
     sf::Vector2i tileTopLeft = mapTopLeft + tileSize.componentWiseMul(tileCoords);
     return sf::IntRect(tileTopLeft, tileSize);
+  }
+
+  void SfTileMap::fitItemToTile(
+      SfBoardItem &item,
+      sf::Vector2i const &tile,
+      sf::Vector2i const &tileArea) const noexcept
+  {
+
+    sf::IntRect tileRect = tileToScreenRect(tile);
+    sf::Vector2f tileSize = sf::Vector2f(tileRect.size.componentWiseMul(tileArea));
+    sf::Vector2f scaleFactors = tileSize.componentWiseDiv(sf::Vector2f(item.getSize()));
+
+    item.setScale(scaleFactors);
+    item.setPosition(tileRect.position);
+    item.setVisible(true);
+
+#ifdef _DEBUG
+    std::string debugInfo = std::format(
+        "\nPut item '{}' on tile ({}, {})"
+        " at position ({}, {})"
+        " with size ({}, {}) and origin ({}, {})",
+        item.getName(),
+        tile.x, tile.y,
+        item.getPosition().x, item.getPosition().y,
+        item.getSize().x, item.getSize().y,
+        item.getOrigin().x, item.getOrigin().y);
+
+    std::clog << debugInfo;
+#endif
   }
 }

@@ -22,8 +22,9 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
   using Listener = std::function<void(DATA const &)>;
 
   template <typename DATA>
-  struct ListenerMapWithMutex
+  class ListenerMapWithMutex
   {
+  public:
     std::map<std::size_t, Listener<DATA>> listenerMap;
     mutable std::shared_mutex mapMutex;
   };
@@ -58,10 +59,11 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
         template ToFunction<void>::template EncloseBy<std::variant>;
 
   private:
-    struct SubscribeVisitor
+    class SubscribeVisitor
     {
       Bus *const eventBus;
 
+    public:
       template <typename DATA>
         requires(is_in_template_v<DATA, typename EVENT::Pack>)
       decltype(auto) operator()(Listener<DATA> const &e) const
@@ -70,11 +72,12 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
       }
     };
 
-    struct UnsubscribeVisitor
+    class UnsubscribeVisitor
     {
       Bus *const eventBus;
       std::size_t const listenerId;
 
+    public:
       template <typename DATA>
         requires(is_in_template_v<DATA, typename EVENT::Pack>)
       decltype(auto) operator()(DATA const & /*dummy*/) const
@@ -83,10 +86,11 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
       }
     };
 
-    struct EmitVisitor
+    class EmitVisitor
     {
       Bus const *const eventBus;
 
+    public:
       template <typename DATA>
         requires(is_in_template_v<DATA, typename EVENT::Pack>)
       decltype(auto) operator()(DATA const &d) const

@@ -49,10 +49,10 @@ namespace bgg
     virtual void doEnter() = 0;
     virtual void doExit() = 0;
 
-    [[nodiscard]] auto window() const noexcept
+    [[nodiscard]] auto getWindow() const noexcept
         -> std::shared_ptr<sf::RenderWindow> const & { return window_; }
 
-    [[nodiscard]] auto serverMessageHandler() noexcept
+    [[nodiscard]] auto getServerMsgHandler() noexcept
         -> peeb::Handler<ServerMessage> & { return serverMessageHandler_; }
 
     static void askExitConfirmation(

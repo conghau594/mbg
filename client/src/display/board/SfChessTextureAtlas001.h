@@ -2,6 +2,7 @@
 #pragma once
 
 #include "SfTextureAtlas.h"
+#include "ChessTextureCell.h"
 
 namespace bgg
 {
@@ -19,6 +20,7 @@ namespace bgg
     }
 
   private:
+    [[nodiscard]]
     auto getRegion(int regionIndex) const -> sf::IntRect override
     {
       sf::Vector2i topleft{atlasCellSize_.x * regionIndex, 0};

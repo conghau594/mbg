@@ -19,7 +19,7 @@ namespace bgg
 {
   class MockGameService : public GameService
   {
-    util::ThreadPool threadPool_;
+    utils::ThreadPool threadPool_;
     std::shared_ptr<boost::uuids::random_generator> uuidGenerator_;
     std::shared_ptr<ClientEventBus> eventBus_;
     std::vector<std::size_t> subscriptionIdList_;

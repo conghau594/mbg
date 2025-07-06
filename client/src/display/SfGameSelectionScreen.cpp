@@ -41,12 +41,12 @@ namespace bgg
   void SfGameSelectionScreen::update(sf::Time const &elapsed) noexcept
   {
     // update the window display
-    ImGui::SFML::Update(*window(), elapsed);
+    ImGui::SFML::Update(*getWindow(), elapsed);
     layOutScreen();
 
-    window()->clear();
-    ImGui::SFML::Render(*window());
-    window()->display();
+    getWindow()->clear();
+    ImGui::SFML::Render(*getWindow());
+    getWindow()->display();
 
     // handle button presses
     if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < int(gameNames_.size()))
@@ -55,14 +55,14 @@ namespace bgg
       std::vector<std::string> playerTypeNames(
           std::begin(PlayerType::NAMES), std::end(PlayerType::NAMES));
       std::shared_ptr<GameScreen> playerSelectionScreen = std::make_shared<SfPlayerSelectionScreen>(
-          window(), gameDisplay_, playerTypeNames, gameType);
+          getWindow(), gameDisplay_, playerTypeNames, gameType);
 
       gameDisplay_->pushScreen(playerSelectionScreen);
       // deactivate();
     }
     else if (pressedButtonIndex_ == int(gameNames_.size()))
     {
-      askExitConfirmation(window(), shared_from_this(), "Are you sure?");
+      askExitConfirmation(getWindow(), shared_from_this(), "Are you sure?");
     }
 
     pressedButtonIndex_ = -1;
@@ -79,8 +79,8 @@ namespace bgg
     ImFont *font36 = ImGui::GetIO().Fonts->Fonts[FONT_VENITE_ADOREMUS_36];
     ImGui::PushFont(font36);
 
-    ImVec2 center(0.5f * float(window()->getSize().x),
-                  0.5f * float(window()->getSize().y));
+    ImVec2 center(0.5f * float(getWindow()->getSize().x),
+                  0.5f * float(getWindow()->getSize().y));
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     int constexpr IM_GUI_FLAGS = ImGuiWindowFlags_NoBackground |

@@ -4,6 +4,7 @@
 #include <string>
 
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
 #include "SfTextureAtlas.h"
 
 namespace bgg
@@ -43,6 +44,11 @@ namespace bgg
       sprite_.setPosition(sf::Vector2f(position));
     }
 
+    void setOrigin(sf::Vector2i const &origin) noexcept
+    {
+      sprite_.setOrigin(sf::Vector2f(origin));
+    }
+
     void scale(sf::Vector2f const &factors) noexcept
     {
       sprite_.scale(factors);
@@ -53,27 +59,32 @@ namespace bgg
       sprite_.move(sf::Vector2f(offset));
     }
 
-    [[nodiscard]] auto isVisible() const noexcept -> bool
+    [[nodiscard]]
+    auto isVisible() const noexcept -> bool
     {
       return isVisible_;
     }
 
-    [[nodiscard]] auto getName() const noexcept -> std::string
+    [[nodiscard]]
+    auto getName() const noexcept -> std::string
     {
       return name_;
     }
 
-    [[nodiscard]] auto getPosition() const noexcept -> sf::Vector2i
+    [[nodiscard]]
+    auto getPosition() const noexcept -> sf::Vector2i
     {
       return sf::Vector2i(sprite_.getPosition());
     }
 
-    [[nodiscard]] auto getSize() const noexcept -> sf::Vector2i
+    [[nodiscard]]
+    auto getSize() const noexcept -> sf::Vector2i
     {
       return sf::Vector2i(sprite_.getGlobalBounds().size);
     }
 
-    [[nodiscard]] auto getOrigin() const noexcept -> sf::Vector2i
+    [[nodiscard]]
+    auto getOrigin() const noexcept -> sf::Vector2i
     {
       return sf::Vector2i(sprite_.getOrigin());
     }

@@ -12,6 +12,7 @@
 namespace bgg
 {
   class SfTextureAtlas;
+  class SfBoardItem;
   class SfTileMap final : public sf::Drawable
   {
     std::shared_ptr<const SfTextureAtlas> const mapTextureAtlas_;
@@ -28,19 +29,36 @@ namespace bgg
     void setVisible(bool visible) noexcept;
     void setScale(sf::Vector2f const &factors) noexcept;
     void setPosition(sf::Vector2i const &position) noexcept;
+    void setOrigin(sf::Vector2i const &origin) noexcept;
 
     void scale(sf::Vector2f const &factors) noexcept;
     void move(sf::Vector2i const &offset) noexcept;
 
-    [[nodiscard]] auto isVisible() const noexcept -> bool;
-    [[nodiscard]] auto getSizeInTiles() const noexcept -> sf::Vector2i;
-    [[nodiscard]] auto getPosition() const noexcept -> sf::Vector2i;
-    [[nodiscard]] auto getOrigin() const noexcept -> sf::Vector2i;
-    [[nodiscard]] auto getSize() const noexcept -> sf::Vector2i;
-    [[nodiscard]] auto getTileSize() const noexcept -> sf::Vector2i;
+    [[nodiscard]]
+    auto isVisible() const noexcept -> bool;
+    [[nodiscard]]
+    auto getSizeInTiles() const noexcept -> sf::Vector2i;
+    [[nodiscard]]
+    auto getPosition() const noexcept -> sf::Vector2i;
+    [[nodiscard]]
+    auto getOrigin() const noexcept -> sf::Vector2i;
+    [[nodiscard]]
+    auto getSize() const noexcept -> sf::Vector2i;
+    [[nodiscard]]
+    auto getTileSize() const noexcept -> sf::Vector2i;
 
-    [[nodiscard]] auto screenToTile(sf::Vector2i const &screenCoords) const noexcept -> sf::Vector2i;
-    [[nodiscard]] auto tileToScreenRect(sf::Vector2i const &tileCoords) const noexcept -> sf::IntRect;
+    [[nodiscard]]
+    auto screenToTile(sf::Vector2i const &screenCoords) const noexcept -> sf::Vector2i;
+    [[nodiscard]]
+    auto tileToScreenRect(sf::Vector2i const &tileCoords) const noexcept -> sf::IntRect;
+
+    /**
+     * \param tileArea size in tiles of the area that the item covers
+     */
+    void fitItemToTile(
+        SfBoardItem &item,
+        sf::Vector2i const &tile,
+        sf::Vector2i const &tileArea = {1, 1}) const noexcept;
 
   private:
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

@@ -30,13 +30,13 @@ namespace bgg
   void SfGamePlayScreen::update(sf::Time const &elapsed)
   {
     // update the window display
-    ImGui::SFML::Update(*window(), elapsed);
+    ImGui::SFML::Update(*getWindow(), elapsed);
     layOutScreen();
 
-    window()->clear();
-    window()->draw(*gameBoard_);
-    ImGui::SFML::Render(*window());
-    window()->display();
+    getWindow()->clear();
+    getWindow()->draw(*gameBoard_);
+    ImGui::SFML::Render(*getWindow());
+    getWindow()->display();
 
     // handle button presses
     if (pressedButtonIndex_ == 0)
@@ -47,7 +47,7 @@ namespace bgg
           [this]()
           {
             std::shared_ptr<GameScreen> waitScreen(new SfConfirmationScreen(
-                window(), "Wait a second...", {}, {}));
+                getWindow(), "Wait a second...", {}, {}));
 
             // TODO: Send resign request
             gameDisplay_->popScreen();
@@ -62,7 +62,7 @@ namespace bgg
           }};
 
       std::shared_ptr<GameScreen> pauseScreen(new SfConfirmationScreen(
-          window(), msg, buttonLabels, buttonCallbacks));
+          getWindow(), msg, buttonLabels, buttonCallbacks));
 
       gameDisplay_->pushScreen(pauseScreen);
       // deactivate();
@@ -106,7 +106,7 @@ namespace bgg
         120.0f, float(resignRegionHeight_) - 2.0f * VERTICAL_SPACING);
 
     float const buttonVerticalOffset = 0.5f * float(resignRegionHeight_); // Offset from the top of the window
-    ImVec2 center(0.5f * float(window()->getSize().x), float(buttonVerticalOffset));
+    ImVec2 center(0.5f * float(getWindow()->getSize().x), float(buttonVerticalOffset));
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     int constexpr IM_GUI_FLAGS = ImGuiWindowFlags_NoBackground |

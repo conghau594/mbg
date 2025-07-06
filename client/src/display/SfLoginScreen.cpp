@@ -27,7 +27,7 @@ namespace bgg
         passwordBuffer_{0},
         pressedButtonIndex_(-1)
   {
-    serverMessageHandler().setHandler<LoginResponse>(
+    getServerMsgHandler().setHandler<LoginResponse>(
         [this](LoginResponse const &response) -> bool
         {
           onLoginResponse(response);
@@ -37,7 +37,7 @@ namespace bgg
 
   SfLoginScreen::~SfLoginScreen()
   {
-    serverMessageHandler().resetHandler<LoginResponse>();
+    getServerMsgHandler().resetHandler<LoginResponse>();
   }
 
   void SfLoginScreen::doExit() noexcept
@@ -51,12 +51,12 @@ namespace bgg
   void SfLoginScreen::update(sf::Time const &elapsed) noexcept
   {
     // update the window display
-    ImGui::SFML::Update(*window(), elapsed);
+    ImGui::SFML::Update(*getWindow(), elapsed);
     layOutScreen();
 
-    window()->clear();
-    ImGui::SFML::Render(*window());
-    window()->display();
+    getWindow()->clear();
+    ImGui::SFML::Render(*getWindow());
+    getWindow()->display();
 
     // handle button presses
     if (pressedButtonIndex_ == 0)
@@ -65,7 +65,7 @@ namespace bgg
     }
     else if (pressedButtonIndex_ == 1)
     {
-      askExitConfirmation(window(), shared_from_this(), "Are you sure?");
+      askExitConfirmation(getWindow(), shared_from_this(), "Are you sure?");
     }
 
     pressedButtonIndex_ = -1;
@@ -108,8 +108,8 @@ namespace bgg
     ImVec2 BUTTON_SIZE((INPUT_BOX_SIZE.x - ITEM_SPACING.x) * 0.5f, INPUT_BOX_SIZE.y);
 
     // change window position
-    ImVec2 center(0.5f * float(window()->getSize().x),
-                  0.5f * float(window()->getSize().y));
+    ImVec2 center(0.5f * float(getWindow()->getSize().x),
+                  0.5f * float(getWindow()->getSize().y));
 
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::Begin("Login Screen", nullptr, IM_GUI_FLAGS);
@@ -165,7 +165,7 @@ namespace bgg
     LoginRequest request{usernameBuffer_, passwordBuffer_};
     gameDisplay_->send(request);
     std::shared_ptr<GameScreen> waitScreen = std::make_shared<SfMessageScreen>(
-        window(), "Connecting to server...");
+        getWindow(), "Connecting to server...");
 
     changeSubscreen(waitScreen);
   }
@@ -178,7 +178,7 @@ namespace bgg
       std::vector<std::string> gameTypeNames(
           std::begin(GameType::NAMES), std::end(GameType::NAMES));
       std::shared_ptr<GameScreen> gameSelectionScreen = std::make_shared<SfGameSelectionScreen>(
-          window(), gameDisplay_, gameTypeNames);
+          getWindow(), gameDisplay_, gameTypeNames);
 
       changeSubscreen(nullptr);
       gameDisplay_->pushScreen(gameSelectionScreen);
@@ -200,7 +200,7 @@ namespace bgg
                             std::to_string(errcode.value) + ")";
 
       std::shared_ptr<GameScreen> retryScreen = std::make_shared<SfMessageScreen>(
-          window(), message, buttonLabels, buttonCallbacks);
+          getWindow(), message, buttonLabels, buttonCallbacks);
 
       changeSubscreen(retryScreen);
     }

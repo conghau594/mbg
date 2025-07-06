@@ -8,7 +8,7 @@
 
 #include "ThreadPool.h"
 
-namespace util
+namespace utils
 {
 
   ThreadPool::ThreadPool(int threadCount)
