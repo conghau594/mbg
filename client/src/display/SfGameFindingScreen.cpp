@@ -63,12 +63,9 @@ namespace bgg
       int side = 0;
       //==============
       int resignRegionHeight = 60;
+      sf::Vector2i wndSize = sf::Vector2i(getWindow()->getSize());
       std::shared_ptr<SfGameBoard> chessBoard = SfGameBoardFactory().create(
-          side,
-          gameType_,
-          sf::Vector2i(getWindow()->getSize()),
-          {0, resignRegionHeight},
-          {0, 0});
+          side, gameType_, sf::IntRect({0, 0}, wndSize));
       std::shared_ptr<GameScreen> chessScreen = std::make_shared<SfGamePlayScreen>(
           getWindow(), gameDisplay_, chessBoard, resignRegionHeight);
 

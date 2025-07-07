@@ -13,28 +13,22 @@
 
 namespace bgg
 {
-
   SfChessBoard::SfChessBoard(
-      sf::Vector2i const &currentWndSize,
-      sf::Vector2i paddingTopLeft,
-      sf::Vector2i paddingBottomRight,
-      std::shared_ptr<SfGameRuleAdapter> gameRule,
-      SfItemStore itemStore,
-      SfTileMap tileMap) noexcept
-      : paddingTopLeft_(std::move(paddingTopLeft)),
-        paddingBottomRight_(std::move(paddingBottomRight)),
-        gameRule_(std::move(gameRule)),
+      sf::IntRect const &boardRect,
+      std::unique_ptr<SfGameRuleAdapter> gameRule,
+      std::unique_ptr<SfItemStore> itemStore,
+      std::unique_ptr<SfTileMap> tileMap) noexcept
+      : gameRule_(std::move(gameRule)),
         itemStore_(std::move(itemStore)),
         tileMap_(std::move(tileMap))
   {
-    fitWindow(currentWndSize);
+    fitRectangle(boardRect);
+
     std::list<SfItemPlacement> itemPlacements = gameRule_->getItemPlacements();
-    for(auto& [entry, tile] : itemPlacements)
+    for (auto &[entry, tile] : itemPlacements)
     {
-      tileMap_.fitItemToTile(entry.getItem(), tile);
+      tileMap_->fitItemToTile(entry.getItem(), tile);
     }
-    //TODO: fix this
-    //fitWindow(currentWndSize);
   }
 
   void SfChessBoard::onEvent(sf::Event const &event) noexcept
@@ -63,10 +57,6 @@ namespace bgg
         currentBoardState_->onMousePressed(mouseBtnReleased->position);
       }
     }
-    else if (auto wndResized = event.getIf<sf::Event::Resized>())
-    {
-      // fitWindow(sf::Vector2i(wndResized->size));
-    }
   }
 
   void SfChessBoard::send(ClientEvent const &request) noexcept
@@ -77,8 +67,8 @@ namespace bgg
   void SfChessBoard::draw(sf::RenderTarget &target, sf::RenderStates states) const noexcept
   {
     // draw the tileMap
-    target.draw(tileMap_, states);
-    for (SfBoardItem &item : itemStore_)
+    target.draw(*tileMap_, states);
+    for (SfBoardItem &item : *itemStore_)
     {
       target.draw(item, states);
     }
@@ -98,14 +88,14 @@ namespace bgg
     }
   }
 
-  void SfChessBoard::fitWindow(sf::Vector2i const &wndSize) noexcept
+  void SfChessBoard::fitRectangle(sf::IntRect const &boardRect) noexcept
   {
-    sf::Vector2i maxBoardSize = wndSize - paddingTopLeft_ - paddingBottomRight_;
-    sf::Vector2i mapSize = tileMap_.getSize();
-    sf::Vector2i mapPosition = tileMap_.getPosition();
+    sf::Vector2i const &maxBoardSize = boardRect.size;
+    sf::Vector2i mapSize = tileMap_->getSize();
+    sf::Vector2i mapPosition = tileMap_->getPosition();
 
     float scaleFactor;
-    sf::Vector2i offset;
+    sf::Vector2i moveVector;
 
     if (maxBoardSize.x * mapSize.y > maxBoardSize.y * mapSize.x)
     {
@@ -113,9 +103,9 @@ namespace bgg
       int newBoardSideWidth = int(scaleFactor * float(mapSize.x));
 
       sf::Vector2i newPosition{
-          paddingTopLeft_.x + (maxBoardSize.x - newBoardSideWidth) / 2,
-          paddingTopLeft_.y};
-      offset = newPosition - mapPosition;
+          boardRect.position.x + (maxBoardSize.x - newBoardSideWidth) / 2,
+          boardRect.position.y};
+      moveVector = newPosition - mapPosition;
     }
     else
     {
@@ -123,18 +113,12 @@ namespace bgg
       int newBoardSideHeight = int(scaleFactor * float(mapSize.y));
 
       sf::Vector2i newPosition{
-          paddingTopLeft_.x,
-          paddingTopLeft_.y + (maxBoardSize.y - newBoardSideHeight) / 2};
-      offset = newPosition - mapPosition;
+          boardRect.position.x,
+          boardRect.position.y + (maxBoardSize.y - newBoardSideHeight) / 2};
+      moveVector = newPosition - mapPosition;
     }
 
-    tileMap_.move(offset);
-    tileMap_.scale(sf::Vector2f{scaleFactor, scaleFactor});
-
-    for (SfBoardItem &item : itemStore_)
-    {
-      item.move(offset);
-      item.scale(sf::Vector2f{scaleFactor, scaleFactor});
-    }
+    tileMap_->move(moveVector);
+    tileMap_->scale(sf::Vector2f{scaleFactor, scaleFactor});
   }
 } // namespace bgg

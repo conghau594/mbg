@@ -6,13 +6,6 @@
 
 namespace bgg
 {
-  SfItemStore::SfItemStore(SfItemStore &&other) noexcept
-      : itemTextureAtlas_(std::move(other.itemTextureAtlas_)),
-        boardItems_(std::move(other.boardItems_)),
-        nextBaseItemId_(other.nextBaseItemId_.load())
-  {
-  }
-
   SfItemStore::SfItemStore(
       std::shared_ptr<const SfTextureAtlas> itemTextureAtlas) noexcept
       : itemTextureAtlas_(std::move(itemTextureAtlas)),

@@ -22,22 +22,13 @@ namespace bgg
   {
   public:
     [[nodiscard]]
-    auto create(
-        int type,
-        int side,
-        sf::Vector2i currentWndSize,
-        sf::Vector2i paddingTopLeft,
-        sf::Vector2i paddingBottomRight) const
+    auto create(int type, int side, sf::IntRect const &boardRect) const
         -> std::shared_ptr<SfGameBoard>
     {
       switch (type)
       {
       case GameType::CHESS:
-        return createChessBoard(
-            side,
-            std::move(currentWndSize),
-            std::move(paddingTopLeft),
-            std::move(paddingBottomRight));
+        return createChessBoard(side, boardRect);
       case GameType::GOMOKU:
       default:
         return nullptr;
@@ -47,10 +38,7 @@ namespace bgg
   private:
     [[nodiscard]]
     auto createChessBoard(
-        int const &side,
-        sf::Vector2i &&currentWndSize,
-        sf::Vector2i &&paddingTopLeft,
-        sf::Vector2i &&paddingBottomRight) const
+        int const &side, sf::IntRect const &boardRect) const
         -> std::shared_ptr<SfGameBoard>
     {
       sf::Vector2i constexpr mapSizeInTiles{8, 8};
@@ -69,12 +57,14 @@ namespace bgg
       std::shared_ptr<SfTextureAtlas>
           chessTextureAtlas = std::make_shared<SfChessTextureAtlas001>();
 
-      SfTileMap tileMap(chessTextureAtlas, {8, 8}, tileLayout);
-      SfItemStore itemStore(chessTextureAtlas);
+      auto tileMap = std::make_unique<SfTileMap>(
+          chessTextureAtlas, sf::Vector2i{8, 8}, tileLayout);
+
+      auto itemStore = std::make_unique<SfItemStore>(chessTextureAtlas);
 
       // this vector obj maps each ChessPiece enum to a item entry
       std::vector<SfItemStore::Entry> itemEntries(
-          std::size_t(ChessPiece::COUNT), itemStore.end());
+          std::size_t(ChessPiece::COUNT), itemStore->end());
 
       // this vector obj maps each ChessPiece enum to a coresponding texture index
       std::vector<int> textureIndexes{
@@ -115,14 +105,13 @@ namespace bgg
       // add piece items to itemStore, also assign the returned entry
       for (int i = 0; i < ChessPiece::COUNT; ++i)
       {
-
         std::optional<std::string> itemName = ChessPiece::toString(i);
         BOOST_ASSERT_MSG(
             itemName,
             std::format("Enum ChessPiece with value {} should have a associated string", i)
                 .c_str());
 
-        itemEntries[std::size_t(i)] = itemStore.addItem(
+        itemEntries[std::size_t(i)] = itemStore->addItem(
             textureIndexes[std::size_t(i)], ZOrder::SECOND_LAYER, itemName.value());
       }
 
@@ -136,19 +125,13 @@ namespace bgg
                          "itemEntries_ should not contain null item entry");
       }
 
-      std::shared_ptr<SfGameRuleAdapter>
-          gameRule = std::make_shared<SfChessRuleAdapter>(
-              std::move(itemEntries), side);
+      std::unique_ptr<SfGameRuleAdapter> gameRule = std::make_unique<SfChessRuleAdapter>(
+          std::move(itemEntries), side);
 
       // create chessBoard with the loaded texture atlas
       std::shared_ptr<SfGameBoard>
           chessBoard = std::make_shared<SfChessBoard>(
-              currentWndSize,
-              paddingTopLeft,
-              paddingBottomRight,
-              std::move(gameRule),
-              std::move(itemStore),
-              std::move(tileMap));
+              boardRect, std::move(gameRule), std::move(itemStore), std::move(tileMap));
 
       // assign the initial state of the board
       std::shared_ptr<SfBoardState> initialBoardState;

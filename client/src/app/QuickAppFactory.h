@@ -14,56 +14,63 @@
 #include "peeb/EventBus.hpp"
 namespace bgg
 {
-  class QuickAppFactory final : public GameAppFactory
-  {
-    int gameType_;
-
-  public:
-    QuickAppFactory(int gameType) : gameType_(gameType) {}
-
-    auto createGameApp() noexcept -> GameApp override
+    class QuickAppFactory final : public GameAppFactory
     {
-      int constexpr RESIGN_REGION_HEIGHT = 80;
-      int constexpr WINDOW_SIDE_LENGTH = 800;
-      int constexpr WINDOW_MIN_SIDE_LENGTH = 300;
+        int gameType_;
 
-      sf::Vector2u constexpr WINDOW_SIZE(
-          WINDOW_SIDE_LENGTH, WINDOW_SIDE_LENGTH + RESIGN_REGION_HEIGHT);
-      sf::Vector2u constexpr WINDOW_MIN_SIZE(
-          WINDOW_MIN_SIDE_LENGTH, WINDOW_MIN_SIDE_LENGTH + RESIGN_REGION_HEIGHT);
-      constexpr char WINDOW_TITLE[] = "BGG - Board Games Galore";
+    public:
+        QuickAppFactory(int gameType) : gameType_(gameType) {}
 
-      std::shared_ptr<sf::RenderWindow>
-          window = std::make_shared<sf::RenderWindow>(
-              sf::VideoMode(WINDOW_SIZE),
-              WINDOW_TITLE /*,
-               sf::Style::Titlebar | sf::Style::Close*/
-          );
-      window->setMinimumSize(WINDOW_MIN_SIZE);
-      window->setVerticalSyncEnabled(true);
+        auto createGameApp() noexcept -> GameApp override
+        {
+            int constexpr RESIGN_REGION_HEIGHT = 80;
+            int constexpr BOARD_SIDE_LENGTH = 1000;
+            int constexpr BOARD_MIN_SIDE_LENGTH = 400;
 
-      std::shared_ptr<ClientEventBus>
-          eventBus = std::make_shared<ClientEventBus>();
-      std::shared_ptr<GameService>
-          gameService = std::make_shared<MockGameService>(eventBus);
-      std::shared_ptr<GameDisplay>
-          gameDisplay = std::make_shared<SfGameDisplay>(window, eventBus);
+            sf::Vector2u constexpr WINDOW_SIZE(
+                BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH + RESIGN_REGION_HEIGHT);
+            sf::Vector2u constexpr WINDOW_MIN_SIZE(
+                BOARD_MIN_SIDE_LENGTH, BOARD_MIN_SIDE_LENGTH + RESIGN_REGION_HEIGHT);
+            constexpr char WINDOW_TITLE[] = "BGG - Board Games Galore";
 
-      //==============
-      int side = ChessColor::BLACK; // test value
-      //==============
-      std::shared_ptr<SfGameBoard>
-          chessBoard = SfGameBoardFactory().create(
-              gameType_, side, sf::Vector2i{WINDOW_SIZE}, {0, RESIGN_REGION_HEIGHT}, {0, 0});
+            std::shared_ptr<sf::RenderWindow>
+                window = std::make_shared<sf::RenderWindow>(
+                    sf::VideoMode(WINDOW_SIZE),
+                    WINDOW_TITLE,
+                    sf::Style::Titlebar | sf::Style::Close);
 
-      std::shared_ptr<GameScreen>
-          chessScreen = std::make_shared<SfGamePlayScreen>(
-              window, gameDisplay, chessBoard, RESIGN_REGION_HEIGHT);
+            sf::View view(sf::FloatRect(
+                {0.0f, 0.0f},
+                {float(BOARD_SIDE_LENGTH), float(BOARD_SIDE_LENGTH + RESIGN_REGION_HEIGHT)}));
 
-      gameDisplay->pushScreen(chessScreen);
+            // activate it
+            window->setView(view);
 
-      // return GameApp object
-      return GameApp(gameDisplay, gameService);
-    }
-  };
+            window->setMinimumSize(WINDOW_MIN_SIZE);
+            window->setVerticalSyncEnabled(true);
+
+            std::shared_ptr<ClientEventBus>
+                eventBus = std::make_shared<ClientEventBus>();
+            std::shared_ptr<GameService>
+                gameService = std::make_shared<MockGameService>(eventBus);
+            std::shared_ptr<GameDisplay>
+                gameDisplay = std::make_shared<SfGameDisplay>(window, eventBus);
+
+            //==============
+            int side = ChessColor::BLACK; // test value
+            //==============
+            sf::IntRect boardRect({0, RESIGN_REGION_HEIGHT}, {BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH});
+            std::shared_ptr<SfGameBoard>
+                chessBoard = SfGameBoardFactory().create(gameType_, side, boardRect);
+
+            std::shared_ptr<GameScreen>
+                chessScreen = std::make_shared<SfGamePlayScreen>(
+                    window, gameDisplay, chessBoard, RESIGN_REGION_HEIGHT);
+
+            gameDisplay->pushScreen(chessScreen);
+
+            // return GameApp object
+            return GameApp(gameDisplay, gameService);
+        }
+    };
 } // namespace bgg

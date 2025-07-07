@@ -26,21 +26,17 @@ namespace bgg
     std::shared_ptr<SfBoardState> currentBoardState_;
     std::shared_ptr<SfBoardState> lastBoardState_;
 
-    std::shared_ptr<SfGameRuleAdapter> gameRule_;
+    std::unique_ptr<SfGameRuleAdapter> gameRule_;
 
-    SfItemStore itemStore_;
-    SfTileMap tileMap_;
-
-    sf::Vector2i paddingTopLeft_;     ///< fixed even the window is resized
-    sf::Vector2i paddingBottomRight_; ///< fixed even the window is resized
+    std::unique_ptr<SfItemStore> itemStore_;
+    std::unique_ptr<SfTileMap> tileMap_;
 
   public:
-    SfChessBoard(sf::Vector2i const &currentWndSize,
-                 sf::Vector2i paddingTopLeft,
-                 sf::Vector2i paddingBottomRight,
-                 std::shared_ptr<SfGameRuleAdapter> gameRule,
-                 SfItemStore itemStore_,
-                 SfTileMap tileMap) noexcept;
+    SfChessBoard(
+        sf::IntRect const &boardRect,
+        std::unique_ptr<SfGameRuleAdapter> gameRule,
+        std::unique_ptr<SfItemStore> itemStore,
+        std::unique_ptr<SfTileMap> tileMap) noexcept;
 
   private:
     void onEvent(sf::Event const &event) noexcept override;
@@ -48,7 +44,7 @@ namespace bgg
     void draw(sf::RenderTarget &target, sf::RenderStates states) const noexcept override;
     void changeState(std::shared_ptr<SfBoardState> newState) noexcept override;
 
-    void fitWindow(sf::Vector2i const &wndSize) noexcept;
+    void fitRectangle(sf::IntRect const &boardRect) noexcept;
   };
 
 } // namespace bgg

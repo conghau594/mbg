@@ -12,7 +12,7 @@ namespace bgg
   public:
     virtual ~SfTextureAtlas() = default;
 
-    SfTextureAtlas(sf::Texture texture, bool smooth = true) noexcept
+    SfTextureAtlas(sf::Texture texture, bool smooth = false) noexcept
         : texture_(std::move(texture))
     {
       texture_.setSmooth(smooth);

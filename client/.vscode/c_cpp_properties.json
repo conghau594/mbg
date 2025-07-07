@@ -1,24 +1,25 @@
+// !!!!!!!!!!!!!!!!!!
+//  Important note:
+//
+// This file is for configurations including intelliSense
+// which help you open included file or view hint while
+// programming.
+//
 {
-    "configurations": [
-        {
-            "name": "Win32",
-            "includePath": [
-                "e:/src/bgg/client/**",
-                "F:/Software/Programming/PM13_Cong_Cu_Ho_Tro/vcpkg/vcpkg/installed/x64-windows-static/include"
-            ],
-            "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE"
-            ],
-            "compilerPathInCppPropertiesJson": "F:/Software/Programming/compiler/MinGW/mingw32-x86_64/bin/gcc.exe",
-            "mergeConfigurations": false,
-            "recursiveIncludes": {},
-            "compilerPath": "F:/Software/Programming/compiler/MinGW/mingw32-x86_64/bin/gcc.exe",
-            "browse": {
-                "limitSymbolsToIncludedHeaders": true
-            }
-        }
-    ],
-    "version": 4
+  "configurations": [
+    {
+      "name": "Win32",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${vcpkgRoot}/x64-windows-static/include"
+      ],
+      "defines": ["_DEBUG", "UNICODE", "_UNICODE"],
+      "windowsSdkVersion": "10.0.26100.0",
+      "cStandard": "c17",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "windows-msvc-x64",
+      "configurationProvider": "ms-vscode.cmake-tools"
+    }
+  ],
+  "version": 4
 }

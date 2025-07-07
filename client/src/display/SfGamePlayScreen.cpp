@@ -73,7 +73,35 @@ namespace bgg
   {
     if (event.has_value())
     {
-      gameBoard_->onEvent(*event);
+      if (auto wndResized = event->getIf<sf::Event::Resized>())
+      {
+        float windowRatio = float(wndResized->size.x) / wndResized->size.y;
+        float viewRatio = 1.0f;
+
+        float sizeX = 1.f;
+        float sizeY = 1.f;
+        float posX = 0.f;
+        float posY = 0.f;
+
+        if (windowRatio > viewRatio)
+        {
+          sizeX = viewRatio / windowRatio;
+          posX = (1.f - sizeX) / 2.f;
+        }
+        else if (windowRatio < viewRatio)
+        {
+          sizeY = windowRatio / viewRatio;
+          posY = (1.f - sizeY) / 2.f;
+        }
+
+        sf::View view(getWindow()->getView());
+        view.setViewport(sf::FloatRect({posX, posY}, {sizeX, sizeY}));
+        getWindow()->setView(view);
+      }
+      else
+      {
+        gameBoard_->onEvent(*event);
+      }
     }
   }
 

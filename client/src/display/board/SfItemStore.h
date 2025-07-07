@@ -26,7 +26,15 @@ namespace bgg
   public:
     class Entry;
 
-    SfItemStore(SfItemStore &&other) noexcept;
+    // !!! IMPORTANT:
+    //
+    // This class cannot move-construct not due to the std::atomic variable
+    // but the change of iterator when use std::move(std::map). There is
+    // no problem when compiling with GCC but with MSVC, I got the assert
+    // of "map/set iterators incompatible".
+    //
+    // SfItemStore(SfItemStore &&other) noexcept;
+
     SfItemStore(std::shared_ptr<const SfTextureAtlas> itemTextureAtlas) noexcept;
 
     // auto addItem(SfBoardItem item, int zOrder, bool visible) noexcept
