@@ -4,8 +4,6 @@
 #include <imgui.h>      // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 
-#include <functional>
-
 #include "GameDisplay.h"
 #include "SfGamePlayScreen.h"
 #include "SfConfirmationScreen.h"
@@ -97,9 +95,9 @@ namespace bgg
     char constexpr buttonLabel[] = "Resign";
 
     // ImVec2 const TEXT_SIZE = ImGui::CalcTextSize(buttonLabel);
-    ImGuiStyle const &style = ImGui::GetStyle();
+    // ImGuiStyle const &style = ImGui::GetStyle();
     // ImVec2 const ITEM_SPACING = style.ItemSpacing;
-    ImVec2 const MENU_PADDING = style.WindowPadding;
+    // ImVec2 const MENU_PADDING = style.WindowPadding;
 
     float constexpr VERTICAL_SPACING = 15.0f;
     ImVec2 const BUTTON_SIZE(

@@ -66,31 +66,27 @@ namespace bgg
         {ChessPiece::BLACK_PAWN_G, Square{"g7"}},
         {ChessPiece::BLACK_PAWN_H, Square{"h7"}}};
 
-    class PiecePlacement
+    class CandidateMoveInfo final
     {
     public:
       Piece piece;
-      Square square;
-    };
-
-    class CandidateMoveInfo
-    {
-    public:
-      PiecePlacement piecePlacement;
+      Square originSquare;
 
       std::list<Square> quietMoves;
       std::list<Square> captureMoves;
       std::optional<Square> specialMove; ///< includes: castling, promotion, en passant;
     };
 
-    class Board
+    class Board final
     {
     public:
       static int constexpr SIDE_LENGTH = 8;
       static int constexpr AREA = SIDE_LENGTH * SIDE_LENGTH;
-      static int constexpr EMPTY_SQUARE = -1;
+
       static int constexpr FIRST_COL = int('a');
       static int constexpr FIRST_ROW = int('1');
+
+      static Piece constexpr EMPTY_SQUARE = -1;
 
     private:
       Piece pieceMap_[AREA];
@@ -98,6 +94,10 @@ namespace bgg
     public:
       Board() noexcept;
       auto operator[](Square const &square) noexcept -> int &;
+
+    private:
+      static constexpr auto indexToSquare(int index) -> Square;
+      static constexpr auto squareToIndex(Square const &square) -> std::size_t;
     };
 
   private:
@@ -109,13 +109,11 @@ namespace bgg
     ChessRule(int side) noexcept;
     auto getPiecePlacements() const noexcept -> std::map<Piece, Square> const &;
 
-    auto getSelectablePieces() const noexcept -> std::list<PiecePlacement>;
+    auto getSelectablePieces() const noexcept -> std::map<Piece, Square>;
     auto getCandidateMoves(Square const &square) const noexcept
         -> std::optional<CandidateMoveInfo>;
     auto getPiece(Square const &square) const noexcept -> int;
     auto getSquare(int piece) const noexcept -> Square;
-
-  private:
   };
 
 } // namespace bgg

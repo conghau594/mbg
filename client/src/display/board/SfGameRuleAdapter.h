@@ -42,7 +42,7 @@ namespace bgg
     virtual auto getItemPlacements() const -> std::list<SfItemPlacement> = 0;
 
     [[nodiscard]]
-    virtual auto getSelectableTiles() const -> std::list<TileCoords> = 0;
+    virtual auto getSelectableTiles() const -> std::list<SfItemPlacement> = 0;
 
     [[nodiscard]]
     virtual auto getReachableTiles(TileCoords const &tile) const
@@ -54,6 +54,9 @@ namespace bgg
     [[nodiscard]]
     virtual auto getItemEntry(int itemIndex) const -> SfItemStore::Entry = 0;
 
+    /**
+     * \return {-1, -1} if the item with itemIndex is not existing 
+     */
     [[nodiscard]]
     virtual auto getItemTile(int itemIndex) const -> TileCoords = 0;
   };

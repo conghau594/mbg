@@ -59,11 +59,11 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
         template ToFunction<void>::template EncloseBy<std::variant>;
 
   private:
-    class SubscribeVisitor
+    class SubscribeVisitor final
     {
+    public:
       Bus *const eventBus;
 
-    public:
       template <typename DATA>
         requires(is_in_template_v<DATA, typename EVENT::Pack>)
       decltype(auto) operator()(Listener<DATA> const &e) const
@@ -72,12 +72,12 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
       }
     };
 
-    class UnsubscribeVisitor
+    class UnsubscribeVisitor final
     {
+    public:
       Bus *const eventBus;
       std::size_t const listenerId;
 
-    public:
       template <typename DATA>
         requires(is_in_template_v<DATA, typename EVENT::Pack>)
       decltype(auto) operator()(DATA const & /*dummy*/) const
@@ -86,11 +86,11 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
       }
     };
 
-    class EmitVisitor
+    class EmitVisitor final
     {
+    public:
       Bus const *const eventBus;
 
-    public:
       template <typename DATA>
         requires(is_in_template_v<DATA, typename EVENT::Pack>)
       decltype(auto) operator()(DATA const &d) const

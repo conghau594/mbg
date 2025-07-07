@@ -1,5 +1,7 @@
 // SfChessBoard.cpp
 
+#include <list>
+
 #include <boost/assert.hpp>
 
 #include <SFML/Window/Event.hpp>
@@ -7,23 +9,32 @@
 
 #include "SfChessBoard.h"
 #include "SfBoardState.h"
+#include "SfGameRuleAdapter.h"
 
 namespace bgg
 {
 
-  SfChessBoard::SfChessBoard(sf::Vector2i const &currentWndSize,
-                             sf::Vector2i paddingTopLeft,
-                             sf::Vector2i paddingBottomRight,
-                             std::shared_ptr<SfGameRuleAdapter> gameRule,
-                             SfItemStore itemStore,
-                             SfTileMap tileMap) noexcept
+  SfChessBoard::SfChessBoard(
+      sf::Vector2i const &currentWndSize,
+      sf::Vector2i paddingTopLeft,
+      sf::Vector2i paddingBottomRight,
+      std::shared_ptr<SfGameRuleAdapter> gameRule,
+      SfItemStore itemStore,
+      SfTileMap tileMap) noexcept
       : paddingTopLeft_(std::move(paddingTopLeft)),
         paddingBottomRight_(std::move(paddingBottomRight)),
-        gameRule_(gameRule),
+        gameRule_(std::move(gameRule)),
         itemStore_(std::move(itemStore)),
         tileMap_(std::move(tileMap))
   {
     fitWindow(currentWndSize);
+    std::list<SfItemPlacement> itemPlacements = gameRule_->getItemPlacements();
+    for(auto& [entry, tile] : itemPlacements)
+    {
+      tileMap_.fitItemToTile(entry.getItem(), tile);
+    }
+    //TODO: fix this
+    //fitWindow(currentWndSize);
   }
 
   void SfChessBoard::onEvent(sf::Event const &event) noexcept
@@ -99,7 +110,7 @@ namespace bgg
     if (maxBoardSize.x * mapSize.y > maxBoardSize.y * mapSize.x)
     {
       scaleFactor = float(maxBoardSize.y) / float(mapSize.y);
-      int newBoardSideWidth = int(scaleFactor * mapSize.x);
+      int newBoardSideWidth = int(scaleFactor * float(mapSize.x));
 
       sf::Vector2i newPosition{
           paddingTopLeft_.x + (maxBoardSize.x - newBoardSideWidth) / 2,
@@ -109,7 +120,7 @@ namespace bgg
     else
     {
       scaleFactor = float(maxBoardSize.x) / float(mapSize.x);
-      int newBoardSideHeight = int(scaleFactor * mapSize.y);
+      int newBoardSideHeight = int(scaleFactor * float(mapSize.y));
 
       sf::Vector2i newPosition{
           paddingTopLeft_.x,

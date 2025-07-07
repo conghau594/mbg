@@ -22,14 +22,14 @@ namespace bgg
   {
     // check if the tile levels are valid
     BOOST_ASSERT_MSG(0 < tileLayout.size() &&
-                         tileLayout.size() >= mapSizeInTiles.x * mapSizeInTiles.y,
+                         tileLayout.size() <= std::size_t(mapSizeInTiles.x * mapSizeInTiles.y),
                      "Invalid tile layout");
 
     // resize the vertex array to fit the level size
     int const tilesPerMapRow = mapSizeInTiles.x;
     int const tilesPerMapCol = mapSizeInTiles.y;
     vertices_.setPrimitiveType(sf::PrimitiveType::Triangles);
-    vertices_.resize(6 * tilesPerMapRow * tilesPerMapCol);
+    vertices_.resize(std::size_t(6 * tilesPerMapRow * tilesPerMapCol));
 
     // Get the region of the first tile and make it as the base rectangle
     sf::FloatRect const firstRegionRect = sf::FloatRect(mapTextureAtlas_->getRegion(tileLayout[0]));
@@ -42,9 +42,9 @@ namespace bgg
       for (int j = 0; j < tilesPerMapCol; ++j)
       {
         // get a pointer to the triangles' vertices of the current tile
-        sf::Vertex *triangles = &vertices_[(i + j * tilesPerMapRow) * 6];
+        sf::Vertex *triangles = &vertices_[std::size_t(6 * (i + j * tilesPerMapRow))];
         // get its position in the tileset texture
-        int const &curRegionIndex = tileLayout[i + j * tilesPerMapRow];
+        int const &curRegionIndex = tileLayout[std::size_t(i + j * tilesPerMapRow)];
         sf::FloatRect const curRegionRect = sf::FloatRect(mapTextureAtlas_->getRegion(curRegionIndex));
 
         float const &curTileWidth = curRegionRect.size.x;

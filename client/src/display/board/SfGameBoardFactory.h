@@ -122,8 +122,8 @@ namespace bgg
             std::format("Enum ChessPiece with value {} should have a associated string", i)
                 .c_str());
 
-        itemEntries[i] = itemStore.addItem(
-            textureIndexes[i], ZOrder::SECOND_LAYER, itemName.value());
+        itemEntries[std::size_t(i)] = itemStore.addItem(
+            textureIndexes[std::size_t(i)], ZOrder::SECOND_LAYER, itemName.value());
       }
 
       // assert valid item entries before creating chess board

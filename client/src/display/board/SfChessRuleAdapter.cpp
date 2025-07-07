@@ -20,15 +20,97 @@ namespace bgg
   {
   }
 
-  auto SfChessRuleAdapter::getItemTile(int itemIndex) const noexcept -> TileCoords
+  auto SfChessRuleAdapter::getItemPlacements() const -> std::list<SfItemPlacement>
   {
-    return {0, 0};
-    // return itemPositions[itemIndex];
+    std::map<ChessRule::Piece, ChessRule::Square>
+        piecePlacements = rule_.getPiecePlacements();
+
+    std::list<SfItemPlacement> itemPlacements;
+    for (auto &[piece, square] : piecePlacements)
+    {
+      itemPlacements.emplace_back(
+          itemEntries_[std::size_t(piece)], squareToTileConverter_(square));
+    }
+
+    return itemPlacements;
   }
 
-  auto SfChessRuleAdapter::getItemEntry(int index) const noexcept -> SfItemStore::Entry
+  auto SfChessRuleAdapter::getSelectableTiles() const noexcept
+      -> std::list<SfItemPlacement>
   {
-    return itemEntries_[std::size_t(index)];
+    std::map<ChessRule::Piece, ChessRule::Square>
+        piecePlacements = rule_.getSelectablePieces();
+
+    std::list<SfItemPlacement> itemPlacements;
+    for (auto &[piece, square] : piecePlacements)
+    {
+      itemPlacements.emplace_back(
+          itemEntries_[std::size_t(piece)], squareToTileConverter_(square));
+    }
+
+    return itemPlacements;
+  }
+
+  auto SfChessRuleAdapter::getReachableTiles(TileCoords const &tile) const noexcept
+      -> std::optional<SfReachableTileInfo>
+  {
+    ChessRule::Square originSquare = tileToSquareConverter_(tile);
+
+    std::optional<ChessRule::CandidateMoveInfo>
+        candidateMovesOpt = rule_.getCandidateMoves(originSquare);
+    if (!candidateMovesOpt.has_value())
+    {
+      return std::optional<SfReachableTileInfo>(std::nullopt);
+    }
+
+    ChessRule::CandidateMoveInfo const &candidateMoveInfo = candidateMovesOpt.value();
+
+    SfItemPlacement itemPlacement{
+      itemEntries_[std::size_t(candidateMoveInfo.piece)],
+      squareToTileConverter_(originSquare)
+    };
+    
+    std::list<TileCoords> quietMoves;
+    for (auto &square : candidateMoveInfo.quietMoves)
+    {
+      quietMoves.emplace_back(squareToTileConverter_(square));
+    }
+
+    std::list<TileCoords> captureMoves;
+    for (auto &square : candidateMoveInfo.captureMoves)
+    {
+      captureMoves.emplace_back(squareToTileConverter_(square));
+    }
+
+    std::vector<TileCoords> specialMoves;
+    if (candidateMoveInfo.specialMove.has_value())
+    {
+      ChessRule::Square square = candidateMoveInfo.specialMove.value();
+      specialMoves.emplace_back(squareToTileConverter_(square));
+    }
+
+    return SfReachableTileInfo{
+        std::move(itemPlacement),
+        std::move(quietMoves),
+        std::move(captureMoves),
+        std::move(specialMoves)};
+  }
+
+  auto SfChessRuleAdapter::getItemIndex(TileCoords const &tile) const noexcept -> int
+  {
+    ChessRule::Square square = tileToSquareConverter_(tile);
+    return rule_.getPiece(square);
+  }
+
+  auto SfChessRuleAdapter::getItemTile(int itemIndex) const noexcept -> TileCoords
+  {
+    ChessRule::Square square = rule_.getSquare(itemIndex);
+    return squareToTileConverter_(square);
+  }
+
+  auto SfChessRuleAdapter::getItemEntry(int itemIndex) const noexcept -> SfItemStore::Entry
+  {
+    return itemEntries_[std::size_t(itemIndex)];
   }
 
   constexpr auto SfChessRuleAdapter::squareToTileAtWhite(

@@ -10,13 +10,13 @@ namespace bgg
     sf::Texture texture_;
 
   public:
+    virtual ~SfTextureAtlas() = default;
+
     SfTextureAtlas(sf::Texture texture, bool smooth = true) noexcept
         : texture_(std::move(texture))
     {
       texture_.setSmooth(smooth);
     }
-
-    ~SfTextureAtlas() = default;
 
     [[nodiscard]]
     auto getTexture() const noexcept -> sf::Texture const *

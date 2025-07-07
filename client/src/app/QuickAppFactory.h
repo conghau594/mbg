@@ -50,7 +50,7 @@ namespace bgg
           gameDisplay = std::make_shared<SfGameDisplay>(window, eventBus);
 
       //==============
-      int side = 0; // test value
+      int side = ChessColor::BLACK; // test value
       //==============
       std::shared_ptr<SfGameBoard>
           chessBoard = SfGameBoardFactory().create(

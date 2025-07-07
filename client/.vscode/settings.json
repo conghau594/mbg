@@ -118,8 +118,8 @@
     "string_view": "cpp",
     "slist": "cpp",
     "*.rh": "cpp",
-    "xstddef": "cpp"
+    "xstddef": "cpp",
+    "resumable": "cpp"
   },
   "C_Cpp.errorSquiggles": "disabled",
-  "C_Cpp.default.compilerPath": "F:/Software/Programming/compiler/MinGW/mingw32-x86_64/bin/gcc.exe"
 }
