@@ -23,8 +23,8 @@ compile_commands.json
 
 # Ignore VS Code settings except essentials
 .vscode/*
-.vscode/c_cpp_properties.json
-!.vscode/settings.json
+client/.vscode/c_cpp_properties.json
+client/.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 

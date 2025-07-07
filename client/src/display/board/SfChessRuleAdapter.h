@@ -7,6 +7,10 @@
 #include "SfItemStore.h"
 #include "model/ChessRule.h"
 
+#define BGG_VALIDATE_TILE(tile) BOOST_ASSERT_MSG(             \
+    tile.x >= 0 && tile.x <= 7 && tile.y >= 0 && tile.y <= 7, \
+    "Tile coords must be from 0 to 7")
+
 namespace bgg
 {
   class SfBoardItem;
@@ -15,7 +19,8 @@ namespace bgg
   {
     std::vector<SfItemStore::Entry> itemEntries_;
     ChessRule rule_;
-    TileCoords (*squareToTileConverter_)(ChessRule::Square const &square) noexcept;
+    TileCoords (*const squareToTileConverter_)(ChessRule::Square const &square);
+    ChessRule::Square (*const tileToSquareConverter_)(TileCoords const &square);
 
   public:
     SfChessRuleAdapter(
@@ -47,7 +52,14 @@ namespace bgg
 
     auto getItemEntry(int itemIndex) const noexcept -> SfItemStore::Entry override;
 
-    static auto squareToTileAtWhiteSide(ChessRule::Square const &square) noexcept -> TileCoords;
-    static auto squareToTileAtBlackSide(ChessRule::Square const &square) noexcept -> TileCoords;
+    static constexpr auto squareToTileAtWhite(
+        ChessRule::Square const &square) noexcept -> TileCoords;
+    static constexpr auto squareToTileAtBlack(
+        ChessRule::Square const &square) noexcept -> TileCoords;
+
+    static constexpr auto tileToSquareAtWhite(
+        TileCoords const &tile) noexcept -> ChessRule::Square;
+    static constexpr auto tileToSquareAtBlack(
+        TileCoords const &tile) noexcept -> ChessRule::Square;
   };
 } // namespace bgg

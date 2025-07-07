@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "e:/src/bgg/client/**",
+                "F:/Software/Programming/PM13_Cong_Cu_Ho_Tro/vcpkg/vcpkg/installed/x64-windows-static/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "compilerPathInCppPropertiesJson": "F:/Software/Programming/compiler/MinGW/mingw32-x86_64/bin/gcc.exe",
+            "mergeConfigurations": false,
+            "recursiveIncludes": {},
+            "compilerPath": "F:/Software/Programming/compiler/MinGW/mingw32-x86_64/bin/gcc.exe",
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ],
+    "version": 4
+}

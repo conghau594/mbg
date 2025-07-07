@@ -6,7 +6,21 @@
 #include <map>
 #include <optional>
 
+#include <boost/assert.hpp>
+
 #include "ChessPiece.h"
+
+#define BGG_VALIDATE_SIDE(side) BOOST_ASSERT_MSG(           \
+    side == ChessColor::WHITE || side == ChessColor::BLACK, \
+    "Player side must be PieceColor::WHITE or PieceColor::BLACK")
+
+#define BGG_VALIDATE_SQUARE(square) BOOST_ASSERT_MSG(                             \
+    square[0] >= 'a' && square[0] <= 'h' && square[1] >= '1' && square[1] <= '8', \
+    "Square index must be from 'a1' to 'h8'")
+
+#define BGG_VALIDATE_PIECE(piece) BOOST_ASSERT_MSG(                       \
+    piece >= ChessPiece::WHITE_KING && piece <= ChessPiece::BLACK_PAWN_H, \
+    "Piece must be from ChessPiece::WHITE_KING to ChessPiece::BLACK_PAWN_H")
 
 namespace bgg
 {
