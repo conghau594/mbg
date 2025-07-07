@@ -21,13 +21,15 @@ namespace bgg
 
   auto ChessRule::getSelectablePieces() const noexcept -> std::map<Piece, Square>
   {
-    return std::map<Piece, Square>();
+    // TODO:
+    return piecePlacements_;
   }
 
   auto ChessRule::getCandidateMoves(Square const &square) const noexcept
       -> std::optional<CandidateMoveInfo>
   {
     BGG_VALIDATE_SQUARE(square);
+    // TODO:
     return std::optional<CandidateMoveInfo>(std::nullopt);
   }
 
@@ -40,6 +42,7 @@ namespace bgg
   auto ChessRule::getSquare(int piece) const noexcept -> Square
   {
     BGG_VALIDATE_PIECE(piece);
+    // TODO:
     return Square{"a1"};
   }
 
@@ -68,7 +71,7 @@ namespace bgg
   {
     int const row = index / SIDE_LENGTH + FIRST_ROW;
     int const col = index % SIDE_LENGTH + FIRST_COL;
-    
+
     return Square{char(col), char(row), '\0'};
   }
 

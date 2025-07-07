@@ -26,17 +26,16 @@ namespace bgg
     std::shared_ptr<SfBoardState> currentBoardState_;
     std::shared_ptr<SfBoardState> lastBoardState_;
 
-    std::unique_ptr<SfGameRuleAdapter> gameRule_;
-
-    std::unique_ptr<SfItemStore> itemStore_;
-    std::unique_ptr<SfTileMap> tileMap_;
+    std::shared_ptr<SfGameRuleAdapter> gameRule_;
+    std::shared_ptr<SfTileMap> tileMap_;
+    std::shared_ptr<SfItemStore> itemStore_;
 
   public:
     SfChessBoard(
         sf::IntRect const &boardRect,
-        std::unique_ptr<SfGameRuleAdapter> gameRule,
-        std::unique_ptr<SfItemStore> itemStore,
-        std::unique_ptr<SfTileMap> tileMap) noexcept;
+        std::shared_ptr<SfGameRuleAdapter> gameRule,
+        std::shared_ptr<SfTileMap> tileMap,
+        std::shared_ptr<SfItemStore> itemStore) noexcept;
 
   private:
     void onEvent(sf::Event const &event) noexcept override;

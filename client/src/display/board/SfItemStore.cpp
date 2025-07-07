@@ -57,14 +57,24 @@ namespace bgg
     return true;
   }
 
-  auto SfItemStore::begin() const noexcept -> SfItemStore::Entry
+  auto SfItemStore::begin() noexcept -> SfItemStore::Entry
   {
     return Entry(boardItems_.begin(), &boardItems_);
   }
 
-  auto SfItemStore::end() const noexcept -> SfItemStore::Entry
+  auto SfItemStore::end() noexcept -> SfItemStore::Entry
   {
     return Entry(boardItems_.end(), &boardItems_);
+  }
+
+  auto SfItemStore::begin() const noexcept -> SfItemStore::Entry
+  {
+    return Entry(boardItems_.begin(), &boardItems_, false);
+  }
+
+  auto SfItemStore::end() const noexcept -> SfItemStore::Entry
+  {
+    return Entry(boardItems_.end(), &boardItems_, false);
   }
 
   auto SfItemStore::generateNextId(int zOrder) noexcept -> std::size_t
@@ -89,8 +99,16 @@ namespace bgg
   /////////////////////////////////////////////////////////////////////////////
   SfItemStore::Entry::Entry(
       std::map<std::size_t, SfBoardItem>::iterator itemIter,
-      std::map<std::size_t, SfBoardItem> *itemMapPtr) noexcept
-      : itemIter_(std::move(itemIter)), itemMapPtr_(itemMapPtr)
+      std::map<std::size_t, SfBoardItem> *itemMapPtr,
+      bool isMutable) noexcept
+      : itemIter_(std::move(itemIter)),
+        itemMapPtr_(itemMapPtr),
+        isMutable_(isMutable)
+  {
+  }
+
+  SfItemStore::Entry::Entry(SfItemStore const &itemStore) noexcept
+      : Entry(itemStore.end())
   {
   }
 
@@ -124,6 +142,9 @@ namespace bgg
   auto SfItemStore::Entry::getItem() noexcept -> SfBoardItem &
   {
     BOOST_ASSERT_MSG(!isNull(), "Invalid entry. It may be removed from its map.");
+    BOOST_ASSERT_MSG(isMutable_, "This entry is immutable because it was produced"
+                                 " from a const ItemStore");
+
     return itemIter_->second;
   }
 } // namespace bgg

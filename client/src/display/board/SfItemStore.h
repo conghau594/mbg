@@ -50,6 +50,9 @@ namespace bgg
 
     auto removeItem(Entry &entry) noexcept -> bool;
 
+    [[nodiscard]] auto begin() noexcept -> Entry;
+    [[nodiscard]] auto end() noexcept -> Entry;
+
     [[nodiscard]] auto begin() const noexcept -> Entry;
     [[nodiscard]] auto end() const noexcept -> Entry;
 
@@ -64,19 +67,26 @@ namespace bgg
 
     std::map<std::size_t, SfBoardItem>::iterator itemIter_;
     std::map<std::size_t, SfBoardItem> *itemMapPtr_;
+    bool isMutable_;
 
     Entry(
         std::map<std::size_t, SfBoardItem>::iterator itemIter,
-        std::map<std::size_t, SfBoardItem> *itemMapPtr) noexcept;
+        std::map<std::size_t, SfBoardItem> *itemMapPtr,
+        bool isMutable = true) noexcept;
 
   public:
+    /**
+     * Construct an null Entry object associated with an ItemStore
+     *
+     */
+    Entry(SfItemStore const &itemStore) noexcept;
+
     void operator++() noexcept;
     [[nodiscard]] auto operator*() noexcept -> SfBoardItem &;
     [[nodiscard]] auto operator==(Entry const &rhs) const noexcept -> bool;
 
     /**
      * An Entry object is null when and only when it's removed from its SfItemStore.
-     * We cannot construct an null Entry object.
      */
     [[nodiscard]] auto isNull() const noexcept -> bool;
 

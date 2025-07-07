@@ -57,7 +57,7 @@ namespace bgg
                 gameDisplay = std::make_shared<SfGameDisplay>(window, eventBus);
 
             //==============
-            int side = ChessColor::BLACK; // test value
+            int side = ChessColor::WHITE; // test value
             //==============
             sf::IntRect boardRect({0, RESIGN_REGION_HEIGHT}, {BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH});
             std::shared_ptr<SfGameBoard>

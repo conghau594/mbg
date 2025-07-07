@@ -20,32 +20,35 @@ namespace bgg
   {
   }
 
-  auto SfChessRuleAdapter::getItemPlacements() const -> std::list<SfItemPlacement>
+  auto SfChessRuleAdapter::getItemPlacements() const -> SfItemPlacementMap
   {
     std::map<ChessRule::Piece, ChessRule::Square>
         piecePlacements = rule_.getPiecePlacements();
 
-    std::list<SfItemPlacement> itemPlacements;
+    SfItemPlacementMap itemPlacements;
     for (auto &[piece, square] : piecePlacements)
     {
-      itemPlacements.emplace_back(
-          itemEntries_[std::size_t(piece)], squareToTileConverter_(square));
+      auto [iter, inserted] = itemPlacements.try_emplace(
+          squareToTileConverter_(square), itemEntries_[std::size_t(piece)]);
+
+      BOOST_ASSERT_MSG(inserted, "There should be one item per tile");
     }
 
     return itemPlacements;
   }
 
-  auto SfChessRuleAdapter::getSelectableTiles() const noexcept
-      -> std::list<SfItemPlacement>
+  auto SfChessRuleAdapter::getSelectableTiles() const noexcept -> SfItemPlacementMap
   {
     std::map<ChessRule::Piece, ChessRule::Square>
         piecePlacements = rule_.getSelectablePieces();
 
-    std::list<SfItemPlacement> itemPlacements;
+    SfItemPlacementMap itemPlacements;
     for (auto &[piece, square] : piecePlacements)
     {
-      itemPlacements.emplace_back(
-          itemEntries_[std::size_t(piece)], squareToTileConverter_(square));
+      auto [iter, inserted] = itemPlacements.try_emplace(
+          squareToTileConverter_(square), itemEntries_[std::size_t(piece)]);
+
+      BOOST_ASSERT_MSG(inserted, "There should be one item per tile");
     }
 
     return itemPlacements;
@@ -65,11 +68,6 @@ namespace bgg
 
     ChessRule::CandidateMoveInfo const &candidateMoveInfo = candidateMovesOpt.value();
 
-    SfItemPlacement itemPlacement{
-      itemEntries_[std::size_t(candidateMoveInfo.piece)],
-      squareToTileConverter_(originSquare)
-    };
-    
     std::list<TileCoords> quietMoves;
     for (auto &square : candidateMoveInfo.quietMoves)
     {
@@ -90,7 +88,8 @@ namespace bgg
     }
 
     return SfReachableTileInfo{
-        std::move(itemPlacement),
+        itemEntries_[std::size_t(candidateMoveInfo.piece)],
+        squareToTileConverter_(originSquare),
         std::move(quietMoves),
         std::move(captureMoves),
         std::move(specialMoves)};

@@ -27,8 +27,8 @@ namespace bgg
         std::vector<SfItemStore::Entry> itemEntries, int side) noexcept;
 
   private:
-    auto getItemPlacements() const -> std::list<SfItemPlacement> override;
-    auto getSelectableTiles() const noexcept -> std::list<SfItemPlacement> override;
+    auto getItemPlacements() const -> SfItemPlacementMap override;
+    auto getSelectableTiles() const noexcept -> SfItemPlacementMap override;
     auto getReachableTiles(TileCoords const &tile) const noexcept
         -> std::optional<SfReachableTileInfo> override;
 

@@ -15,17 +15,17 @@ namespace bgg
 {
   SfChessBoard::SfChessBoard(
       sf::IntRect const &boardRect,
-      std::unique_ptr<SfGameRuleAdapter> gameRule,
-      std::unique_ptr<SfItemStore> itemStore,
-      std::unique_ptr<SfTileMap> tileMap) noexcept
+      std::shared_ptr<SfGameRuleAdapter> gameRule,
+      std::shared_ptr<SfTileMap> tileMap,
+      std::shared_ptr<SfItemStore> itemStore) noexcept
       : gameRule_(std::move(gameRule)),
-        itemStore_(std::move(itemStore)),
-        tileMap_(std::move(tileMap))
+        tileMap_(std::move(tileMap)),
+        itemStore_(std::move(itemStore))
   {
     fitRectangle(boardRect);
 
-    std::list<SfItemPlacement> itemPlacements = gameRule_->getItemPlacements();
-    for (auto &[entry, tile] : itemPlacements)
+    SfItemPlacementMap itemPlacements = gameRule_->getItemPlacements();
+    for (auto &[tile, entry] : itemPlacements)
     {
       tileMap_->fitItemToTile(entry.getItem(), tile);
     }
@@ -33,7 +33,8 @@ namespace bgg
 
   void SfChessBoard::onEvent(sf::Event const &event) noexcept
   {
-    BOOST_ASSERT_MSG(currentBoardState_, "currentBoardState_ of SfChessBoard cannot be null");
+    BOOST_ASSERT_MSG(currentBoardState_,
+                     "currentBoardState_ of SfChessBoard cannot be null");
     if (lastBoardState_ != currentBoardState_)
     {
       lastBoardState_ = currentBoardState_;
@@ -70,7 +71,10 @@ namespace bgg
     target.draw(*tileMap_, states);
     for (SfBoardItem &item : *itemStore_)
     {
-      target.draw(item, states);
+      if (item.isVisible())
+      {
+        target.draw(item, states);
+      }
     }
   }
 

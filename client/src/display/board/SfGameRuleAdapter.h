@@ -1,6 +1,7 @@
 // SfGameRuleAdapter.h
 #pragma once
 
+#include <map>
 #include <list>
 #include <vector>
 #include <optional>
@@ -12,18 +13,28 @@
 namespace bgg
 {
   using TileCoords = sf::Vector2i;
-
-  class SfItemPlacement
+  class TileComparator
   {
   public:
-    SfItemStore::Entry entry;
-    TileCoords tile;
+    auto operator()(
+        const TileCoords &lhs, const TileCoords &rhs) const noexcept -> bool
+    {
+      if (lhs.x == rhs.x)
+      {
+        return lhs.y < rhs.y;
+      }
+
+      return lhs.x < rhs.x;
+    }
   };
+
+  using SfItemPlacementMap = std::map<TileCoords, SfItemStore::Entry, TileComparator>;
 
   class SfReachableTileInfo
   {
   public:
-    SfItemPlacement itemPlacement;
+    SfItemStore::Entry entry;
+    TileCoords tile;
 
     std::list<TileCoords> quietMoves;
     std::list<TileCoords> captureMoves;
@@ -39,10 +50,10 @@ namespace bgg
     virtual ~SfGameRuleAdapter() = default;
 
     [[nodiscard]]
-    virtual auto getItemPlacements() const -> std::list<SfItemPlacement> = 0;
+    virtual auto getItemPlacements() const -> SfItemPlacementMap = 0;
 
     [[nodiscard]]
-    virtual auto getSelectableTiles() const -> std::list<SfItemPlacement> = 0;
+    virtual auto getSelectableTiles() const -> SfItemPlacementMap = 0;
 
     [[nodiscard]]
     virtual auto getReachableTiles(TileCoords const &tile) const
@@ -55,7 +66,7 @@ namespace bgg
     virtual auto getItemEntry(int itemIndex) const -> SfItemStore::Entry = 0;
 
     /**
-     * \return {-1, -1} if the item with itemIndex is not existing 
+     * \return {-1, -1} if the item with itemIndex is not existing
      */
     [[nodiscard]]
     virtual auto getItemTile(int itemIndex) const -> TileCoords = 0;

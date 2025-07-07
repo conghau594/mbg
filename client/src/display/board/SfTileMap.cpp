@@ -163,7 +163,19 @@ namespace bgg
     sf::Vector2i mapTopLeft = sf::Vector2i(transformer_.getTransform().transformPoint(
         vertices_[0].position));
 
-    return (screenCoords - mapTopLeft).componentWiseDiv(getTileSize());
+    sf::Vector2i tileSize = getTileSize();
+    sf::Vector2i coordsRelativeToMap = screenCoords - mapTopLeft;
+    if (coordsRelativeToMap.x < 0)
+    {
+      coordsRelativeToMap.x -= tileSize.x;
+    }
+
+    if (coordsRelativeToMap.y < 0)
+    {
+      coordsRelativeToMap.y -= tileSize.y;
+    }
+
+    return coordsRelativeToMap.componentWiseDiv(tileSize);
   }
 
   auto SfTileMap::tileToScreenRect(sf::Vector2i const &tileCoords) const noexcept
@@ -184,22 +196,20 @@ namespace bgg
 
     sf::IntRect tileRect = tileToScreenRect(tile);
     sf::Vector2f tileSize = sf::Vector2f(tileRect.size.componentWiseMul(tileArea));
-    sf::Vector2f scaleFactors = tileSize.componentWiseDiv(sf::Vector2f(item.getSize()));
 
-    item.setScale(scaleFactors);
+    sf::Vector2f scaleFactors = tileSize.componentWiseDiv(sf::Vector2f(item.getSize()));
+    item.scale(scaleFactors);
     item.setPosition(tileRect.position);
     item.setVisible(true);
 
 #ifdef _DEBUG
     std::string debugInfo = std::format(
-        "\nPut item '{}' on tile ({}, {})"
-        " at position ({}, {})"
-        " with size ({}, {}) and origin ({}, {})",
+        "\nFit item '{}' to tile ({}, {})"
+        " at position ({}, {})  with size ({}, {})",
         item.getName(),
         tile.x, tile.y,
         item.getPosition().x, item.getPosition().y,
-        item.getSize().x, item.getSize().y,
-        item.getOrigin().x, item.getOrigin().y);
+        item.getSize().x, item.getSize().y);
 
     std::clog << debugInfo;
 #endif

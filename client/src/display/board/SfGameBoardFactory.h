@@ -57,14 +57,14 @@ namespace bgg
       std::shared_ptr<SfTextureAtlas>
           chessTextureAtlas = std::make_shared<SfChessTextureAtlas001>();
 
-      auto tileMap = std::make_unique<SfTileMap>(
+      auto tileMap = std::make_shared<SfTileMap>(
           chessTextureAtlas, sf::Vector2i{8, 8}, tileLayout);
 
-      auto itemStore = std::make_unique<SfItemStore>(chessTextureAtlas);
+      auto itemStore = std::make_shared<SfItemStore>(chessTextureAtlas);
 
       // this vector obj maps each ChessPiece enum to a item entry
       std::vector<SfItemStore::Entry> itemEntries(
-          std::size_t(ChessPiece::COUNT), itemStore->end());
+          std::size_t(ChessPiece::COUNT), *itemStore);
 
       // this vector obj maps each ChessPiece enum to a coresponding texture index
       std::vector<int> textureIndexes{
@@ -125,19 +125,27 @@ namespace bgg
                          "itemEntries_ should not contain null item entry");
       }
 
-      std::unique_ptr<SfGameRuleAdapter> gameRule = std::make_unique<SfChessRuleAdapter>(
+      std::shared_ptr<SfGameRuleAdapter> gameRule = std::make_shared<SfChessRuleAdapter>(
           std::move(itemEntries), side);
 
       // create chessBoard with the loaded texture atlas
       std::shared_ptr<SfGameBoard>
           chessBoard = std::make_shared<SfChessBoard>(
-              boardRect, std::move(gameRule), std::move(itemStore), std::move(tileMap));
+              boardRect, gameRule, tileMap, itemStore);
 
       // assign the initial state of the board
       std::shared_ptr<SfBoardState> initialBoardState;
 
-      initialBoardState = std::make_shared<SfBoardPieceDisabledState>(chessBoard);
+      if (side == ChessColor::WHITE)
 
+      {
+        initialBoardState = std::make_shared<SfBoardPieceEnabledState>(
+            chessBoard, std::move(gameRule), std::move(tileMap), std::move(itemStore));
+      }
+      else
+      {
+        initialBoardState = std::make_shared<SfBoardPieceDisabledState>(chessBoard);
+      }
       chessBoard->changeState(initialBoardState);
 
       return chessBoard;
