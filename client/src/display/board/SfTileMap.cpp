@@ -198,11 +198,13 @@ namespace bgg
     item.setPosition(tileRect.position);
     item.setVisible(true);
 
-    spdlog::debug(
+    //==========
+    SPDLOG_DEBUG(
         "Fit item '{}' to tile ({}, {}) at position ({}, {}) with size ({}, {})",
         item.getName(),
         tile.x, tile.y,
         item.getPosition().x, item.getPosition().y,
         item.getSize().x, item.getSize().y);
+    //==========
   }
 }

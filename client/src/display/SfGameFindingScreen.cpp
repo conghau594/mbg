@@ -1,8 +1,10 @@
 // SfGameFindingScreen.cpp
 
+#include "SfGameFindingScreen.h"
+
 #include <SFML/Graphics/RenderWindow.hpp>
 
-#include "SfGameFindingScreen.h"
+#include "base/Logger.h"
 
 #include "GameDisplay.h"
 #include "SfMessageScreen.h"
@@ -13,9 +15,6 @@
 
 #include "display/board/SfGameBoardFactory.h"
 
-#ifdef _DEBUG
-#include <iostream>
-#endif
 namespace bgg
 {
   SfGameFindingScreen::SfGameFindingScreen(
@@ -74,16 +73,13 @@ namespace bgg
     catch (std::exception const &e)
     {
       // TODO: need to handle this exception in detail
-#ifdef _DEBUG
-      std::clog << "\n"
-                << e.what();
-#endif
+      spdlog::critical("From SfGameFindingScreen::goToGamePlayScreen: {}", e.what());
     }
   }
 
   void SfGameFindingScreen::sendCancelMatchmakingRequest() noexcept
   {
-    // TODO: implement later
+    // TODO: sendCancelMatchmakingRequest()
     // gameDisplay_->send(CancelMatchmakingRequest{});
 
     // std::shared_ptr<GameScreen> cancelingScreen = std::make_shared<SfMessageScreen>(
@@ -94,7 +90,7 @@ namespace bgg
 
   void SfGameFindingScreen::onCancelMatchmakingResponse(CancelMatchmakingResponse const & /*response*/) noexcept
   {
-    // TODO: implement later
+    // TODO: onCancelMatchmakingResponse(CancelMatchmakingResponse)
     //  ErrorCode const &errcode = response.errcode;
     //  if (errcode.value == 0) // no error -> canceled successfully
     //  {

@@ -46,7 +46,7 @@ namespace bgg
         std::string name = "",
         bool visible = true) noexcept -> Entry;
 
-    auto removeItem(std::size_t itemId) noexcept -> bool;
+    // auto removeItem(std::size_t itemId) noexcept -> bool;
 
     auto removeItem(Entry &entry) noexcept -> bool;
 

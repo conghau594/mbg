@@ -93,7 +93,15 @@ namespace bgg
 
     public:
       Board() noexcept;
-      auto operator[](Square const &square) noexcept -> int &;
+
+      /**
+       * \brief square to piece
+       *
+       *
+       * \return reference to the piece at the position `square`
+       */
+      auto operator[](Square const &square) noexcept -> Piece &;
+      auto operator[](Square const &square) const noexcept -> Piece;
 
     private:
       static constexpr auto indexToSquare(int index) -> Square;
@@ -107,13 +115,21 @@ namespace bgg
 
   public:
     ChessRule(int side) noexcept;
+    [[nodiscard]]
+    auto getColor() const noexcept -> int;
+    [[nodiscard]]
     auto getPiecePlacements() const noexcept -> std::map<Piece, Square> const &;
 
+    [[nodiscard]]
     auto getSelectablePieces() const noexcept -> std::map<Piece, Square>;
+    [[nodiscard]]
     auto getCandidateMoves(Square const &square) const noexcept
         -> std::optional<CandidateMoveInfo>;
-    auto getPiece(Square const &square) const noexcept -> int;
-    auto getSquare(int piece) const noexcept -> Square;
+
+    [[nodiscard]]
+    auto getPiece(Square const &square) const noexcept -> std::optional<Piece>;
+    [[nodiscard]]
+    auto getSquare(int piece) const noexcept -> std::optional<Square>;
   };
 
 } // namespace bgg

@@ -40,8 +40,11 @@ namespace bgg
   private:
     void onEvent(sf::Event const &event) noexcept override;
     void send(ClientEvent const &request) noexcept override;
-    void draw(sf::RenderTarget &target, sf::RenderStates states) const noexcept override;
-    void changeState(std::shared_ptr<SfBoardState> newState) noexcept override;
+    void draw(
+        sf::RenderTarget &target,
+        sf::RenderStates states) const noexcept override;
+    void changeState(
+        std::shared_ptr<SfBoardState> newState) noexcept override;
 
     void fitRectangle(sf::IntRect const &boardRect) noexcept;
   };

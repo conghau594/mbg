@@ -5,8 +5,14 @@
 namespace bgg
 {
   SfBoardPieceDisabledState::SfBoardPieceDisabledState(
-      std::shared_ptr<SfGameBoard> gameBoard) noexcept
-      : gameBoard_(std::move(gameBoard))
+      std::shared_ptr<SfGameBoard> gameBoard,
+      std::shared_ptr<SfGameRuleAdapter> gameRule,
+      std::shared_ptr<SfTileMap> tileMap,
+      std::shared_ptr<SfItemStore> itemStore) noexcept
+      : gameBoard_(std::move(gameBoard)),
+        gameRule_(std::move(gameRule)),
+        tileMap_(std::move(tileMap)),
+        itemStore_(std::move(itemStore))
   {
   }
 

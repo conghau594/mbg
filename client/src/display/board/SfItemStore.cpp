@@ -39,10 +39,10 @@ namespace bgg
     return Entry(iter, &boardItems_);
   }
 
-  auto SfItemStore::removeItem(std::size_t itemId) noexcept -> bool
-  {
-    return bool(boardItems_.erase(itemId));
-  }
+  // auto SfItemStore::removeItem(std::size_t itemId) noexcept -> bool
+  // {
+  //   return bool(boardItems_.erase(itemId));
+  // }
 
   auto SfItemStore::removeItem(Entry &entry) noexcept -> bool
   {

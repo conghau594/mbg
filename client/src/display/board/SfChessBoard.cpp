@@ -55,7 +55,7 @@ namespace bgg
     {
       if (mouseBtnReleased->button == sf::Mouse::Button::Left)
       {
-        currentBoardState_->onMousePressed(mouseBtnReleased->position);
+        currentBoardState_->onMouseReleased(mouseBtnReleased->position);
       }
     }
   }
@@ -78,7 +78,8 @@ namespace bgg
     }
   }
 
-  void SfChessBoard::changeState(std::shared_ptr<SfBoardState> newState) noexcept
+  void SfChessBoard::changeState(
+      std::shared_ptr<SfBoardState> newState) noexcept
   {
     if (currentBoardState_ != nullptr)
     {

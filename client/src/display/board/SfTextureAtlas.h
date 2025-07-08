@@ -24,6 +24,7 @@ namespace bgg
       return &texture_;
     }
 
+    [[nodiscard]]
     virtual auto getRegion(int regionIndex) const -> sf::IntRect = 0;
   };
 

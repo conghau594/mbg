@@ -20,26 +20,26 @@ namespace bgg
     }
 
   private:
-    [[nodiscard]]
     auto getRegion(int regionIndex) const -> sf::IntRect override
     {
-      int scalePercent = 100;
+      sf::Vector2i scalePercents = {100, 100};
       if (regionIndex == ChessTextureCell::CHOICE_HIGHLIGHTER)
       {
-        scalePercent = 95;
+        scalePercents = {95, 95};
       }
       else if (ChessTextureCell::WHITE_KING <= regionIndex &&
                regionIndex <= ChessTextureCell::BLACK_PAWN)
       {
-        scalePercent = 105;
+        scalePercents = {105, 105};
       }
 
-      sf::Vector2i cellSize = (scalePercent * atlasCellSize_) / 100;
+      sf::Vector2i cellSize = scalePercents.componentWiseMul(atlasCellSize_) / 100;
       sf::Vector2i moveVector = (atlasCellSize_ - cellSize) / 2;
       sf::Vector2i topleft = regionIndexToTexCoords(regionIndex) + moveVector;
       return {topleft, cellSize};
     }
 
+    [[nodiscard]]
     auto regionIndexToTexCoords(int regionIndex) const -> sf::Vector2i
     {
       int xCell = regionIndex % atlasSizeInCells_.x;

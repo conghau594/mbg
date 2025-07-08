@@ -4,16 +4,26 @@
 #include <memory>
 
 #include "SfBoardState.h"
-
+#include "SfItemStore.h"
+#include "SfGameRuleAdapter.h"
 namespace bgg
 {
   class SfGameBoard;
+  class SfTileMap;
   class SfBoardPieceDisabledState final : public SfBoardState
   {
     std::shared_ptr<SfGameBoard> gameBoard_;
 
+    std::shared_ptr<SfGameRuleAdapter> gameRule_;
+    std::shared_ptr<SfItemStore> itemStore_;
+    std::shared_ptr<SfTileMap> tileMap_;
+
   public:
-    SfBoardPieceDisabledState(std::shared_ptr<SfGameBoard> gameBoard) noexcept;
+    SfBoardPieceDisabledState(
+        std::shared_ptr<SfGameBoard> gameBoard,
+        std::shared_ptr<SfGameRuleAdapter> gameRule,
+        std::shared_ptr<SfTileMap> tileMap,
+        std::shared_ptr<SfItemStore> itemStore) noexcept;
 
   private:
     void onEnter() noexcept override;

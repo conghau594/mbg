@@ -50,6 +50,9 @@ namespace bgg
     virtual ~SfGameRuleAdapter() = default;
 
     [[nodiscard]]
+    virtual auto getSide() const -> int = 0;
+
+    [[nodiscard]]
     virtual auto getItemPlacements() const -> SfItemPlacementMap = 0;
 
     [[nodiscard]]
@@ -60,7 +63,7 @@ namespace bgg
         -> std::optional<SfReachableTileInfo> = 0;
 
     [[nodiscard]]
-    virtual auto getItemIndex(TileCoords const &tile) const -> int = 0;
+    virtual auto getItemIndex(TileCoords const &tile) const -> std::optional<int> = 0;
 
     [[nodiscard]]
     virtual auto getItemEntry(int itemIndex) const -> SfItemStore::Entry = 0;
@@ -69,6 +72,6 @@ namespace bgg
      * \return {-1, -1} if the item with itemIndex is not existing
      */
     [[nodiscard]]
-    virtual auto getItemTile(int itemIndex) const -> TileCoords = 0;
+    virtual auto getItemTile(int itemIndex) const -> std::optional<TileCoords> = 0;
   };
 } // namespace bgg

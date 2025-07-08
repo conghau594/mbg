@@ -1,16 +1,15 @@
 // SfBoardPieceEnabledState.cpp
 
+#include "base/Logger.h"
+
 #include "SfBoardPieceEnabledState.h"
 #include "SfBoardPieceSelectedState.h"
 #include "SfGameBoard.h"
-#include "ChessTextureCell.h"
-#include "ZOrder.h"
 #include "SfTileMap.h"
 
-#ifdef _DEBUG
-#include <iostream>
-#include <format>
-#endif
+#include "ChessTextureCell.h"
+#include "ZOrder.h"
+
 namespace bgg
 {
   SfBoardPieceEnabledState::SfBoardPieceEnabledState(
@@ -25,23 +24,24 @@ namespace bgg
         choiceHighlighter_(*itemStore_),
         lastHoveredTile_{-1, -1}
   {
+  }
+
+  void SfBoardPieceEnabledState::onEnter() noexcept
+  {
     choiceHighlighter_ = itemStore_->addItem(
         ChessTextureCell::CHOICE_HIGHLIGHTER,
         ZOrder::THIRD_LAYER,
         ChessTextureCell::toString(ChessTextureCell::CHOICE_HIGHLIGHTER).value(),
         false);
-  }
 
-  void SfBoardPieceEnabledState::onEnter() noexcept
-  {
     selectableTiles_ = gameRule_->getSelectableTiles();
 
-#ifdef _DEBUG
-    std::string debugInfo = std::format(
-        "\nThere are {} selectable tiles.",
-        selectableTiles_.size());
-    std::clog << debugInfo;
-#endif
+    // sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
+
+    //==========
+    SPDLOG_INFO("Entered {}", typeid(*this).name());
+    SPDLOG_DEBUG("There are {} selectable tiles", selectableTiles_.size());
+    //==========
   }
 
   void SfBoardPieceEnabledState::onExit() noexcept
@@ -58,14 +58,14 @@ namespace bgg
     }
 
     SfItemPlacementMap::iterator found = selectableTiles_.find(tile);
-    if (found != selectableTiles_.end())
+    if (found == selectableTiles_.end())
     {
-      tileMap_->fitItemToTile(choiceHighlighter_.getItem(), tile);
-      choiceHighlighter_.getItem().setVisible(true);
+      choiceHighlighter_.getItem().setVisible(false);
     }
     else
     {
-      choiceHighlighter_.getItem().setVisible(false);
+      tileMap_->fitItemToTile(choiceHighlighter_.getItem(), tile);
+      choiceHighlighter_.getItem().setVisible(true);
     }
 
     lastHoveredTile_ = tile;
@@ -73,15 +73,22 @@ namespace bgg
 
   void SfBoardPieceEnabledState::onMousePressed(sf::Vector2i const &mousePos) noexcept
   {
-    // TODO:
+    TileCoords tile = tileMap_->screenToTile(mousePos);
+    SfItemPlacementMap::iterator found = selectableTiles_.find(tile);
+    if (found == selectableTiles_.end())
+    {
+      return;
+    }
+
+    // choiceHighlighter_.getItem().setVisible(false);
 
     std::shared_ptr<SfBoardState>
         pieceSelectedState = std::make_shared<SfBoardPieceSelectedState>(
-            gameBoard_, gameRule_, tileMap_, itemStore_);
+            gameBoard_, gameRule_, tileMap_, itemStore_, tile);
     gameBoard_->changeState(pieceSelectedState);
   }
 
-  void SfBoardPieceEnabledState::onMouseReleased(sf::Vector2i const &mousePos) noexcept
+  void SfBoardPieceEnabledState::onMouseReleased(sf::Vector2i const & /*mousePos*/) noexcept
   {
     // do nothing
   }

@@ -13,6 +13,12 @@ namespace bgg
     // place initial pieces based on the value of side:
     // 0 is white side, 1 is black side.
   }
+
+  auto ChessRule::getColor() const noexcept -> int
+  {
+    return side_;
+  }
+
   auto ChessRule::getPiecePlacements() const noexcept
       -> std::map<Piece, Square> const &
   {
@@ -21,7 +27,7 @@ namespace bgg
 
   auto ChessRule::getSelectablePieces() const noexcept -> std::map<Piece, Square>
   {
-    // TODO:
+    // TODO: getSelectablePieces()
     return piecePlacements_;
   }
 
@@ -29,21 +35,47 @@ namespace bgg
       -> std::optional<CandidateMoveInfo>
   {
     BGG_VALIDATE_SQUARE(square);
-    // TODO:
-    return std::optional<CandidateMoveInfo>(std::nullopt);
+    // TODO: getCandidateMoves(Square const &square)
+
+    std::optional<Piece> piece = getPiece(square);
+    if (!piece.has_value())
+    {
+      return std::optional<CandidateMoveInfo>(std::nullopt);
+    }
+
+    CandidateMoveInfo candidateMoveInfo{
+        piece.value(),
+        square,
+        {Square{"a2"}, Square{"e6"}, Square{"b1"}},
+        {Square{"f1"}, Square{"d5"}},
+        Square{"e4"}};
+
+    return candidateMoveInfo; //
   }
 
-  auto ChessRule::getPiece(Square const &square) const noexcept -> int
+  auto ChessRule::getPiece(Square const &square) const noexcept
+      -> std::optional<Piece>
   {
     BGG_VALIDATE_SQUARE(square);
-    // TODO:
-    return 0;
+    if (board_[square] == Board::EMPTY_SQUARE)
+    {
+      return std::nullopt;
+    }
+
+    return board_[square];
   }
-  auto ChessRule::getSquare(int piece) const noexcept -> Square
+
+  auto ChessRule::getSquare(int piece) const noexcept -> std::optional<Square>
   {
     BGG_VALIDATE_PIECE(piece);
-    // TODO:
-    return Square{"a1"};
+
+    std::map<Piece, Square>::const_iterator found = piecePlacements_.find(piece);
+    if (found == piecePlacements_.end())
+    {
+      return std::nullopt;
+    }
+
+    return found->second;
   }
 
   ChessRule::Board::Board() noexcept
@@ -61,7 +93,13 @@ namespace bgg
     }
   }
 
-  auto ChessRule::Board::operator[](Square const &square) noexcept -> int &
+  auto ChessRule::Board::operator[](Square const &square) noexcept -> Piece &
+  {
+    BGG_VALIDATE_SQUARE(square);
+    return pieceMap_[squareToIndex(square)];
+  }
+
+  auto ChessRule::Board::operator[](Square const &square) const noexcept -> Piece
   {
     BGG_VALIDATE_SQUARE(square);
     return pieceMap_[squareToIndex(square)];

@@ -137,14 +137,14 @@ namespace bgg
       std::shared_ptr<SfBoardState> initialBoardState;
 
       if (side == ChessColor::WHITE)
-
       {
         initialBoardState = std::make_shared<SfBoardPieceEnabledState>(
             chessBoard, std::move(gameRule), std::move(tileMap), std::move(itemStore));
       }
       else
       {
-        initialBoardState = std::make_shared<SfBoardPieceDisabledState>(chessBoard);
+        initialBoardState = std::make_shared<SfBoardPieceDisabledState>(
+            chessBoard, std::move(gameRule), std::move(tileMap), std::move(itemStore));
       }
       chessBoard->changeState(initialBoardState);
 

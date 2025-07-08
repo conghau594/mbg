@@ -20,6 +20,11 @@ namespace bgg
   {
   }
 
+  auto SfChessRuleAdapter::getSide() const -> int
+  {
+    return rule_.getColor();
+  }
+
   auto SfChessRuleAdapter::getItemPlacements() const -> SfItemPlacementMap
   {
     std::map<ChessRule::Piece, ChessRule::Square>
@@ -95,16 +100,25 @@ namespace bgg
         std::move(specialMoves)};
   }
 
-  auto SfChessRuleAdapter::getItemIndex(TileCoords const &tile) const noexcept -> int
+  auto SfChessRuleAdapter::getItemIndex(TileCoords const &tile) const noexcept
+      -> std::optional<int>
   {
     ChessRule::Square square = tileToSquareConverter_(tile);
     return rule_.getPiece(square);
   }
 
-  auto SfChessRuleAdapter::getItemTile(int itemIndex) const noexcept -> TileCoords
+  auto SfChessRuleAdapter::getItemTile(int itemIndex) const noexcept
+      -> std::optional<TileCoords>
   {
-    ChessRule::Square square = rule_.getSquare(itemIndex);
-    return squareToTileConverter_(square);
+    std::optional<ChessRule::Square> square = rule_.getSquare(itemIndex);
+    if (square.has_value())
+    {
+      return squareToTileConverter_(square.value());
+    }
+    else
+    {
+      return std::nullopt;
+    }
   }
 
   auto SfChessRuleAdapter::getItemEntry(int itemIndex) const noexcept -> SfItemStore::Entry
