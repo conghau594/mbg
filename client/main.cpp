@@ -2,20 +2,20 @@
 #include "app/ChessAppFactory.h"
 #include "app/QuickAppFactory.h"
 
-#ifdef _DEBUG
-#include <iostream>
-#endif
+#include "base/Logger.h"
 
 /**
  * GAME_TYPE:
  *  -1: All games
  *   0: ChessGame
- * 
+ *
  */
 #define GAME_TYPE 0
 
 int main()
 {
+  utils::Logger::setUp();
+
   try
   {
 #if defined(GAME_TYPE) && (GAME_TYPE < 0)
@@ -30,7 +30,7 @@ int main()
   catch (std::exception const &e)
   {
     // TODO: Log failure with `e`
-    std::clog << "\nException from main: " << e.what();
+    spdlog::critical("Failure at running app: {}", e.what());
   }
   return 0;
 }
@@ -43,4 +43,3 @@ namespace peeb
 {
   template class Bus<bgg::ClientEvent, bgg::ServerMessage>;
 }
-

@@ -1,4 +1,5 @@
 // SfTileMap.cpp
+#include "base/Logger.h"
 
 #include <boost/assert.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
@@ -6,11 +7,6 @@
 #include "SfTileMap.h"
 #include "SfTextureAtlas.h"
 #include "SfBoardItem.h"
-
-#ifdef _DEBUG
-#include <iostream>
-#include <format>
-#endif
 
 namespace bgg
 {
@@ -202,16 +198,11 @@ namespace bgg
     item.setPosition(tileRect.position);
     item.setVisible(true);
 
-#ifdef _DEBUG
-    std::string debugInfo = std::format(
-        "\nFit item '{}' to tile ({}, {})"
-        " at position ({}, {})  with size ({}, {})",
+    spdlog::debug(
+        "Fit item '{}' to tile ({}, {}) at position ({}, {}) with size ({}, {})",
         item.getName(),
         tile.x, tile.y,
         item.getPosition().x, item.getPosition().y,
         item.getSize().x, item.getSize().y);
-
-    std::clog << debugInfo;
-#endif
   }
 }

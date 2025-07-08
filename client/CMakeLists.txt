@@ -47,6 +47,24 @@ message(STATUS "ImGui populated: ${ImGui_POPULATED}")
 message(STATUS "ImGui Added: ${ImGui_ADDED}")
 
 ###############################################################################
+# FetchContent for spdlog                                                      #
+###############################################################################
+FetchContent_Declare(spdlog
+  GIT_REPOSITORY https://github.com/gabime/spdlog
+  GIT_TAG v1.15.3
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(spdlog)
+
+message(STATUS "spdlog updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_SPDLOG}")
+message(STATUS "spdlog source directory: ${spdlog_SOURCE_DIR}")
+message(STATUS "spdlog binary directory: ${spdlog_BINARY_DIR}")
+message(STATUS "spdlog populated: ${spdlog_POPULATED}")
+message(STATUS "spdlog Added: ${spdlog_ADDED}")
+
+###############################################################################
 # FetchContent for ImGui-SFML                                                 #
 ###############################################################################
 FetchContent_Declare(ImGui_SFML
@@ -278,6 +296,7 @@ target_link_libraries(bggclient PRIVATE
   ImGui-SFML::ImGui-SFML
   Boost::assert
   Boost::uuid
+  spdlog
 )
 
 target_include_directories(bggclient PRIVATE 
