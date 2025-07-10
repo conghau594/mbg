@@ -20,6 +20,9 @@ namespace bgg
   public:
     virtual void onEvent(sf::Event const &event) = 0;
     virtual void changeState(std::shared_ptr<SfBoardState> newState) = 0;
+    virtual void pushState(std::shared_ptr<SfBoardState> newState) = 0;
+    virtual void popState() = 0;
+    virtual void clearStates() = 0;
 
     virtual void send(ClientEvent const &request) = 0;
   };

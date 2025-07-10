@@ -33,29 +33,37 @@ namespace bgg
 
   void SfChessBoard::onEvent(sf::Event const &event) noexcept
   {
-    BOOST_ASSERT_MSG(currentBoardState_,
-                     "currentBoardState_ of SfChessBoard cannot be null");
-    if (lastBoardState_ != currentBoardState_)
+    if (stateStack_.empty())
     {
-      lastBoardState_ = currentBoardState_;
+      return;
+    }
+
+    BOOST_ASSERT_MSG(stateStack_.back() != nullptr,
+                     "The current board state of SfChessBoard cannot be null");
+
+    auto &currentBoardState = stateStack_.back();
+
+    if (lastBoardState_ != currentBoardState)
+    {
+      lastBoardState_ = currentBoardState;
     }
 
     if (auto mouseMoved = event.getIf<sf::Event::MouseMoved>())
     {
-      currentBoardState_->onMouseMoved(mouseMoved->position);
+      currentBoardState->onMouseMoved(mouseMoved->position);
     }
     else if (auto mouseBtnPressed = event.getIf<sf::Event::MouseButtonPressed>())
     {
       if (mouseBtnPressed->button == sf::Mouse::Button::Left)
       {
-        currentBoardState_->onMousePressed(mouseBtnPressed->position);
+        currentBoardState->onMousePressed(mouseBtnPressed->position);
       }
     }
     else if (auto mouseBtnReleased = event.getIf<sf::Event::MouseButtonReleased>())
     {
       if (mouseBtnReleased->button == sf::Mouse::Button::Left)
       {
-        currentBoardState_->onMouseReleased(mouseBtnReleased->position);
+        currentBoardState->onMouseReleased(mouseBtnReleased->position);
       }
     }
   }
@@ -81,16 +89,51 @@ namespace bgg
   void SfChessBoard::changeState(
       std::shared_ptr<SfBoardState> newState) noexcept
   {
-    if (currentBoardState_ != nullptr)
+    BOOST_ASSERT_MSG(
+        !stateStack_.empty(),
+        "You should not change board state while the state stack is empty");
+
+    auto &lastState = stateStack_.back();
+    lastState->onExit();
+    lastState = std::move(newState);
+    lastState->onEnter();
+  }
+
+  void SfChessBoard::pushState(std::shared_ptr<SfBoardState> newState) noexcept
+  {
+    if (!stateStack_.empty())
     {
-      currentBoardState_->onExit();
+      stateStack_.back()->onExit();
     }
 
-    currentBoardState_ = newState;
-    if (newState != nullptr)
+    stateStack_.push_back(std::move(newState));
+    stateStack_.back()->onEnter();
+  }
+
+  void SfChessBoard::popState() noexcept
+  {
+    BOOST_ASSERT_MSG(
+        !stateStack_.empty(),
+        "You should not pop a board state while the state stack is empty");
+
+    stateStack_.back()->onExit();
+    stateStack_.pop_back();
+
+    if (!stateStack_.empty())
     {
-      newState->onEnter();
+      stateStack_.back()->onEnter();
     }
+  }
+
+  void SfChessBoard::clearStates() noexcept
+  {
+    if (stateStack_.empty())
+    {
+      return;
+    }
+
+    stateStack_.back()->onExit();
+    stateStack_.clear();
   }
 
   void SfChessBoard::fitRectangle(sf::IntRect const &boardRect) noexcept

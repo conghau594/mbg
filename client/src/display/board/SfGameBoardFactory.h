@@ -146,7 +146,7 @@ namespace bgg
         initialBoardState = std::make_shared<SfBoardPieceDisabledState>(
             chessBoard, std::move(gameRule), std::move(tileMap), std::move(itemStore));
       }
-      chessBoard->changeState(initialBoardState);
+      chessBoard->pushState(initialBoardState);
 
       return chessBoard;
     }

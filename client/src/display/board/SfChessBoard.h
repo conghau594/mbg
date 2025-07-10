@@ -23,7 +23,7 @@ namespace bgg
   class SfGameRuleAdapter;
   class SfChessBoard final : public SfGameBoard
   {
-    std::shared_ptr<SfBoardState> currentBoardState_;
+    std::list<std::shared_ptr<SfBoardState>> stateStack_;
     std::shared_ptr<SfBoardState> lastBoardState_;
 
     std::shared_ptr<SfGameRuleAdapter> gameRule_;
@@ -45,6 +45,10 @@ namespace bgg
         sf::RenderStates states) const noexcept override;
     void changeState(
         std::shared_ptr<SfBoardState> newState) noexcept override;
+
+    void pushState(std::shared_ptr<SfBoardState> newState) noexcept override;
+    void popState() noexcept override;
+    void clearStates() noexcept override;
 
     void fitRectangle(sf::IntRect const &boardRect) noexcept;
   };

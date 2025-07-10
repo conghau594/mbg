@@ -5,7 +5,6 @@
 #include "base/Logger.h"
 
 #include "SfBoardPieceSelectedState.h"
-#include "SfBoardPieceEnabledState.h"
 #include "SfBoardPieceDisabledState.h"
 #include "SfGameBoard.h"
 #include "SfTileMap.h"
@@ -26,50 +25,57 @@ namespace bgg
         tileMap_(std::move(tileMap)),
         itemStore_(std::move(itemStore)),
         choiceHighlighter_(*itemStore_),
+        selectedItemEntry_(*itemStore_),
+        originalSelectedItemZOrder_(-1),
         selectedTile_(std::move(selectedTile)),
         lastHoveredTile_{-1, -1}
   {
-  }
-
-  void SfBoardPieceSelectedState::onEnter() noexcept
-  {
-    //==========
-    SPDLOG_INFO("Entered {}", typeid(*this).name());
-    //==========
-
     choiceHighlighter_ = itemStore_->addItem(
         ChessTextureCell::CHOICE_HIGHLIGHTER,
         ZOrder::THIRD_LAYER,
         ChessTextureCell::toString(ChessTextureCell::CHOICE_HIGHLIGHTER).value(),
         false);
 
-    std::optional<SfReachableTileInfo>
-        reachableTileInfo = gameRule_->getReachableTiles(selectedTile_);
-    if (!reachableTileInfo.has_value())
+    bool somethingWrong = true;
+    if (auto itemIndex = gameRule_->getItemIndex(selectedTile_))
     {
-      std::shared_ptr<SfBoardState> pieceEnabledState =
-          std::make_shared<SfBoardPieceEnabledState>(
-              gameBoard_, gameRule_, tileMap_, itemStore_);
+      if (auto itemEntryOpt = gameRule_->getItemEntry(itemIndex.value()))
+      {
+        selectedItemEntry_ = itemEntryOpt.value();
+        originalSelectedItemZOrder_ = itemStore_->getZOrder(selectedItemEntry_);
+        itemStore_->changeZOrder(selectedItemEntry_, ZOrder::FOURTH_LAYER);
 
-      gameBoard_->changeState(pieceEnabledState);
-
-      //==========
-      SPDLOG_WARN("There is no reachable tile");
-      //==========
-      return;
+        somethingWrong = somethingWrong && false;
+      }
     }
 
-    addHighlighters(reachableTileInfo.value());
+    if (auto reachableTileInfo = gameRule_->getReachableTiles(selectedTile_))
+    {
+      addHighlighters(reachableTileInfo.value());
+      somethingWrong = somethingWrong && false;
 
-    //==========
-    SPDLOG_DEBUG("There are {} reachable tiles",
-                 reachableTileInfo.value().quietMoves.size() +
-                     reachableTileInfo.value().captureMoves.size() +
-                     reachableTileInfo.value().specialMoves.size());
-    //==========
+      //==========
+      SPDLOG_DEBUG("There are {} reachable tiles",
+                   reachableTileInfo.value().quietMoves.size() +
+                       reachableTileInfo.value().captureMoves.size() +
+                       reachableTileInfo.value().specialMoves.size());
+      //==========
+    }
+
+    if (somethingWrong)
+    {
+      gameBoard_->popState();
+
+      //==========
+      SPDLOG_WARN(
+          "Something wrong: there is no reachable tile from "
+          "or no item at the selected tile ({}, {})",
+          selectedTile_.x, selectedTile_.y);
+      //==========
+    }
   }
 
-  void SfBoardPieceSelectedState::onExit() noexcept
+  SfBoardPieceSelectedState::~SfBoardPieceSelectedState()
   {
     itemStore_->removeItem(choiceHighlighter_);
     for (auto &highlighter : staticHighlighters_)
@@ -78,8 +84,29 @@ namespace bgg
     }
   }
 
+  void SfBoardPieceSelectedState::onEnter() noexcept
+  {
+    //==========
+    SPDLOG_INFO("Entered {}", typeid(*this).name());
+    //==========
+  }
+
+  void SfBoardPieceSelectedState::onExit() noexcept
+  {
+    itemStore_->changeZOrder(selectedItemEntry_, originalSelectedItemZOrder_);
+    choiceHighlighter_.getItem().setVisible(false);
+    for (auto &highlighter : staticHighlighters_)
+    {
+      highlighter.getItem().setVisible(false);
+    }
+  }
+
   void SfBoardPieceSelectedState::onMouseMoved(sf::Vector2i const &mousePos) noexcept
   {
+    SfBoardItem &selectedItem = selectedItemEntry_.getItem();
+    selectedItem.setPosition(
+        mousePos - selectedItem.getSize() / 2 + sf::Vector2i{1, 1});
+
     TileCoords tile = tileMap_->screenToTile(mousePos);
     if (tile == lastHoveredTile_)
     {
@@ -113,11 +140,7 @@ namespace bgg
     SfItemPlacementMap::iterator found = reachableTiles_.find(tile);
     if (found == reachableTiles_.end())
     {
-      std::shared_ptr<SfBoardState> pieceEnabledState =
-          std::make_shared<SfBoardPieceEnabledState>(
-              gameBoard_, gameRule_, tileMap_, itemStore_);
-
-      gameBoard_->changeState(pieceEnabledState);
+      gameBoard_->popState();
       return;
     }
 

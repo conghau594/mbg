@@ -32,6 +32,8 @@ namespace bgg
         std::shared_ptr<SfTileMap> tileMap,
         std::shared_ptr<SfItemStore> itemStore) noexcept;
 
+    ~SfBoardPieceEnabledState() noexcept;
+
   private:
     void onEnter() noexcept override;
     void onExit() noexcept override;

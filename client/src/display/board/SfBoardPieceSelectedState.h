@@ -17,13 +17,16 @@ namespace bgg
     std::shared_ptr<SfGameBoard> gameBoard_;
 
     std::shared_ptr<SfGameRuleAdapter> gameRule_;
-    std::shared_ptr<SfItemStore> itemStore_;
     std::shared_ptr<SfTileMap> tileMap_;
+    std::shared_ptr<SfItemStore> itemStore_;
 
     SfItemPlacementMap reachableTiles_;
 
     std::list<SfItemStore::Entry> staticHighlighters_; ///< 'static' means these highlighters do not change until this state exits
-    SfItemStore::Entry choiceHighlighter_;             ///< choiceHighlighter_ is a dynamic highlighter
+
+    SfItemStore::Entry choiceHighlighter_; ///< choiceHighlighter_ is a dynamic highlighter
+    SfItemStore::Entry selectedItemEntry_;
+    int originalSelectedItemZOrder_;
 
     TileCoords selectedTile_;
     TileCoords lastHoveredTile_;
@@ -35,6 +38,8 @@ namespace bgg
         std::shared_ptr<SfTileMap> tileMap,
         std::shared_ptr<SfItemStore> itemStore,
         TileCoords selectedTile) noexcept;
+
+    ~SfBoardPieceSelectedState();
 
   private:
     void onEnter() noexcept override;

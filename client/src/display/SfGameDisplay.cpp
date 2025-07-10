@@ -12,8 +12,8 @@
 #include <imgui.h>      // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 
+#include "base/Logger.h"
 #include "GameScreen.h"
-
 namespace bgg
 {
   SfGameDisplay::SfGameDisplay(
@@ -62,7 +62,8 @@ namespace bgg
         break;
       }
 
-      BOOST_ASSERT_MSG(!screenStack_.empty(), "screenStack_ of SfGameDisplay cannot be empty.");
+      BOOST_ASSERT_MSG(screenStack_.back() != nullptr,
+                       "The screen cannot be empty.");
       if (currentScreen_ != screenStack_.back())
       {
         currentScreen_ = screenStack_.back();
@@ -94,11 +95,11 @@ namespace bgg
     for (auto &id : subscriptionIDs_)
     {
       std::size_t removedCount = eventBus_->unsubscribe(id);
-#ifdef _DEBUG
-      std::clog << "\n"
-                << removedCount << " message handler(s) with ID = "
-                << id << " has been removed from SfGameDisplay";
-#endif
+
+      //==============
+      SPDLOG_INFO("{} message handler(s) with ID = {} has been removed from {}",
+                  removedCount, id, typeid(*this).name());
+      //==============
     }
     subscriptionIDs_.clear();
   }
@@ -116,10 +117,9 @@ namespace bgg
 
   void SfGameDisplay::popScreen() noexcept
   {
-    if (screenStack_.empty())
-    {
-      return;
-    }
+    BOOST_ASSERT_MSG(
+        !screenStack_.empty(),
+        "You should not pop a screen while the screen stack is empty");
 
     screenStack_.back()->onExit();
     screenStack_.pop_back();
@@ -132,6 +132,10 @@ namespace bgg
 
   void SfGameDisplay::changeScreen(std::shared_ptr<GameScreen> newScreen) noexcept
   {
+    BOOST_ASSERT_MSG(
+        !screenStack_.empty(),
+        "You should not change screen while the screen stack is empty");
+
     auto &lastScreen = screenStack_.back();
     lastScreen->onExit();
     lastScreen = std::move(newScreen);

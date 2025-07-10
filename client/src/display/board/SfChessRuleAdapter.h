@@ -39,7 +39,7 @@ namespace bgg
         auto getItemTile(int itemIndex) const noexcept
             -> std::optional<TileCoords> override;
         auto getItemEntry(int itemIndex) const noexcept
-            -> SfItemStore::Entry override;
+            -> std::optional<SfItemStore::Entry> override;
 
         static constexpr auto squareToTileAtWhite(
             ChessRule::Square const &square) noexcept -> TileCoords;

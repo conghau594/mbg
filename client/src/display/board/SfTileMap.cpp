@@ -189,7 +189,6 @@ namespace bgg
       sf::Vector2i const &tile,
       sf::Vector2i const &tileArea) const noexcept
   {
-
     sf::IntRect tileRect = tileToScreenRect(tile);
     sf::Vector2f tileSize = sf::Vector2f(tileRect.size.componentWiseMul(tileArea));
 

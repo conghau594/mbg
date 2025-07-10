@@ -44,6 +44,31 @@ namespace bgg
   //   return bool(boardItems_.erase(itemId));
   // }
 
+  auto SfItemStore::getZOrder(Entry const &entry) const noexcept -> int
+  {
+    constexpr int NUM_SHIFTED_BITS = 8 * sizeof(std::size_t) - Z_ORDER_BIT_COUNT;
+    return entry.itemIter_->first >> NUM_SHIFTED_BITS;
+  }
+
+  void SfItemStore::changeZOrder(Entry &entry, int newZOrder) noexcept
+  {
+    BOOST_VERIFY_MSG(
+        !entry.isNull() && entry.itemMapPtr_ == &boardItems_,
+        "This entry should not be null and its store must be this store");
+
+    std::size_t newId = generateNextId(newZOrder);
+
+    auto [iter, inserted] = boardItems_.try_emplace(
+        newId, std::move(entry.getItem()));
+
+    BOOST_ASSERT_MSG(
+        inserted,
+        "With a unique id, emplacing to boardItems_ should not fail");
+
+    removeItem(entry);
+    entry = Entry(iter, &boardItems_);
+  }
+
   auto SfItemStore::removeItem(Entry &entry) noexcept -> bool
   {
     if (entry.isNull() || entry.itemMapPtr_ != &boardItems_)
@@ -133,11 +158,11 @@ namespace bgg
     return (itemMapPtr_ == nullptr) || (itemIter_ == itemMapPtr_->end());
   }
 
-  auto SfItemStore::Entry::getId() const noexcept -> std::size_t const &
-  {
-    BOOST_ASSERT_MSG(!isNull(), "Invalid entry. It may be removed from its map.");
-    return itemIter_->first;
-  }
+  // auto SfItemStore::Entry::getId() const noexcept -> std::size_t const &
+  // {
+  //   BOOST_ASSERT_MSG(!isNull(), "Invalid entry. It may be removed from its map.");
+  //   return itemIter_->first;
+  // }
 
   auto SfItemStore::Entry::getItem() noexcept -> SfBoardItem &
   {

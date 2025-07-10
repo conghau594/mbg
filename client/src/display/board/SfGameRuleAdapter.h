@@ -66,7 +66,7 @@ namespace bgg
     virtual auto getItemIndex(TileCoords const &tile) const -> std::optional<int> = 0;
 
     [[nodiscard]]
-    virtual auto getItemEntry(int itemIndex) const -> SfItemStore::Entry = 0;
+    virtual auto getItemEntry(int itemIndex) const -> std::optional<SfItemStore::Entry> = 0;
 
     /**
      * \return {-1, -1} if the item with itemIndex is not existing

@@ -13,7 +13,7 @@
 
 namespace bgg
 {
-  class SfItemStore
+  class SfItemStore final
   {
     std::shared_ptr<const SfTextureAtlas> const itemTextureAtlas_;
 
@@ -48,6 +48,8 @@ namespace bgg
 
     // auto removeItem(std::size_t itemId) noexcept -> bool;
 
+    auto getZOrder(Entry const &entry) const noexcept -> int;
+    void changeZOrder(Entry &entry, int newZOrder) noexcept;
     auto removeItem(Entry &entry) noexcept -> bool;
 
     [[nodiscard]] auto begin() noexcept -> Entry;
@@ -89,12 +91,6 @@ namespace bgg
      * An Entry object is null when and only when it's removed from its SfItemStore.
      */
     [[nodiscard]] auto isNull() const noexcept -> bool;
-
-    /**
-     * An assertion raises if the Entry object is null
-     *
-     */
-    [[nodiscard]] auto getId() const noexcept -> std::size_t const &;
 
     /**
      * An assertion raises if the Entry object is null

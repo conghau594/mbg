@@ -121,7 +121,8 @@ namespace bgg
     }
   }
 
-  auto SfChessRuleAdapter::getItemEntry(int itemIndex) const noexcept -> SfItemStore::Entry
+  auto SfChessRuleAdapter::getItemEntry(int itemIndex) const noexcept
+      -> std::optional<SfItemStore::Entry>
   {
     return itemEntries_[std::size_t(itemIndex)];
   }

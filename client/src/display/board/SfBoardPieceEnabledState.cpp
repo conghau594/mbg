@@ -24,29 +24,36 @@ namespace bgg
         choiceHighlighter_(*itemStore_),
         lastHoveredTile_{-1, -1}
   {
-  }
-
-  void SfBoardPieceEnabledState::onEnter() noexcept
-  {
     choiceHighlighter_ = itemStore_->addItem(
         ChessTextureCell::CHOICE_HIGHLIGHTER,
         ZOrder::THIRD_LAYER,
         ChessTextureCell::toString(ChessTextureCell::CHOICE_HIGHLIGHTER).value(),
         false);
 
+    tileMap_->fitItemToTile(choiceHighlighter_.getItem(), {-1, -1});
     selectableTiles_ = gameRule_->getSelectableTiles();
+    //==========
+    SPDLOG_DEBUG("There are {} selectable tiles", selectableTiles_.size());
+    //==========
+  }
 
-    // sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
+  SfBoardPieceEnabledState::~SfBoardPieceEnabledState() noexcept
+  {
+    itemStore_->removeItem(choiceHighlighter_);
+  }
+
+  void SfBoardPieceEnabledState::onEnter() noexcept
+  {
+    choiceHighlighter_.getItem().setVisible(true);
 
     //==========
     SPDLOG_INFO("Entered {}", typeid(*this).name());
-    SPDLOG_DEBUG("There are {} selectable tiles", selectableTiles_.size());
     //==========
   }
 
   void SfBoardPieceEnabledState::onExit() noexcept
   {
-    itemStore_->removeItem(choiceHighlighter_);
+    choiceHighlighter_.getItem().setVisible(false);
   }
 
   void SfBoardPieceEnabledState::onMouseMoved(sf::Vector2i const &mousePos) noexcept
@@ -85,7 +92,7 @@ namespace bgg
     std::shared_ptr<SfBoardState>
         pieceSelectedState = std::make_shared<SfBoardPieceSelectedState>(
             gameBoard_, gameRule_, tileMap_, itemStore_, tile);
-    gameBoard_->changeState(pieceSelectedState);
+    gameBoard_->pushState(pieceSelectedState);
   }
 
   void SfBoardPieceEnabledState::onMouseReleased(sf::Vector2i const & /*mousePos*/) noexcept
