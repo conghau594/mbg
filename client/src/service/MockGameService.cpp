@@ -123,7 +123,7 @@ namespace bgg
 
           std::string gameId = "@Test123";
           int side = 0; // 0: WHITE, 1: BLACK
-          emit(FindGameResponse{ErrorCode{errCodeValue, "Mock", msg}, std::move(gameId), side});
+          emit(FindGameResponse{ErrorCode{errCodeValue, "Mock", msg}, std::move(gameId)});
         });
   }
   // void MockGameService::sendRequest(FindGameRequest const & /*findGameRqt*/) noexcept

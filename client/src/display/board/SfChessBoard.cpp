@@ -70,11 +70,27 @@ namespace bgg
 
   void SfChessBoard::commitAction(BoardAction const &action) noexcept
   {
-    if(auto const& pieceMove = action.getIf<PieceMoveAction>())
+    if (auto const &pieceMove = action.getIf<PieceMoveAction>())
     {
-      // 
+      //
     }
     // TODO: SfChessBoard::send(ClientRequest const &request) noexcept
+  }
+
+  void SfChessBoard::handleServerMessage(ServerMessage const &msg) noexcept
+  {
+    if (auto gameUpdatedNotif = msg.getIf<GameUpdatedNotification>())
+    {
+      onGameUpdatedNotification(*gameUpdatedNotif);
+    }
+    else if (auto gameFinishedNotif = msg.getIf<GameFinishedNotification>())
+    {
+      onGameFinishedNotification(*gameFinishedNotif);
+    }
+    else if (auto commitMoveResponse = msg.getIf<CommitMoveResponse>())
+    {
+      onCommitMoveResponse(*commitMoveResponse);
+    }
   }
 
   void SfChessBoard::draw(sf::RenderTarget &target, sf::RenderStates states) const noexcept
@@ -173,5 +189,21 @@ namespace bgg
 
     tileMap_->move(moveVector);
     tileMap_->scale(sf::Vector2f{scaleFactor, scaleFactor});
+  }
+
+  
+  void SfChessBoard::onGameUpdatedNotification(
+      GameUpdatedNotification const &notif) noexcept
+  {
+  }
+
+  void SfChessBoard::onGameFinishedNotification(
+      GameFinishedNotification const &notif) noexcept
+  {
+  }
+
+  void SfChessBoard::onCommitMoveResponse(
+      CommitMoveResponse const &response) noexcept
+  {
   }
 } // namespace bgg

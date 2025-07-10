@@ -13,7 +13,7 @@ namespace bgg
     sf::Vector2i toSquare;
   };
 
-  class ResignAction final
+  class DrawCardAction final
   {
   public:
     //int gameType;
@@ -21,6 +21,6 @@ namespace bgg
 
   using BoardAction = peeb::Event<
       PieceMoveAction,
-      ResignAction>;
+      DrawCardAction>;
 
 }

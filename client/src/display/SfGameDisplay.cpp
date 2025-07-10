@@ -12,7 +12,6 @@
 #include <imgui.h>      // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 
-#include "base/Logger.h"
 #include "GameScreen.h"
 namespace bgg
 {

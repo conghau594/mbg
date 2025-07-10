@@ -21,6 +21,9 @@ namespace peeb
     requires(EventConcept<EVENT>)
   class Handler final
   {
+    //TODO: Consider replace return type `bool` by a common type RET.
+    //      Currently, each handler returns `false` if it does not handle
+    //      the input event data. Else it must return true. 
     using Pack = typename EVENT::Pack::ToConstRef::
         template ToFunction<bool>;
 

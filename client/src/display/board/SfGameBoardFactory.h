@@ -21,13 +21,13 @@ namespace bgg
   {
   public:
     [[nodiscard]]
-    auto create(int type, int side, sf::IntRect const &boardRect) const
+    auto create(FindGameResponse const &findGameResponse, sf::IntRect const &boardRect) const
         -> std::shared_ptr<SfGameBoard>
     {
-      switch (type)
+      switch (findGameResponse.gameType)
       {
       case GameType::CHESS:
-        return createChessBoard(side, boardRect);
+        return createChessBoard(findGameResponse, boardRect);
       case GameType::GOMOKU:
       default:
         return nullptr;
@@ -37,7 +37,8 @@ namespace bgg
   private:
     [[nodiscard]]
     auto createChessBoard(
-        int const &side, sf::IntRect const &boardRect) const
+        FindGameResponse const &findGameResponse,
+        sf::IntRect const &boardRect) const
         -> std::shared_ptr<SfGameBoard>
     {
       sf::Vector2i constexpr mapSizeInTiles{8, 8};
@@ -124,8 +125,11 @@ namespace bgg
                          "itemEntries_ should not contain null item entry");
       }
 
-      std::shared_ptr<SfGameRuleAdapter> gameRule = std::make_shared<SfChessRuleAdapter>(
-          std::move(itemEntries), side);
+      // TODO: need to consider how to initiate the GameRuleAdapter with
+      //       findGameResponse.initialBoard
+      std::shared_ptr<SfGameRuleAdapter>
+          gameRule = std::make_shared<SfChessRuleAdapter>(
+              std::move(itemEntries), findGameResponse.yourSide);
 
       // create chessBoard with the loaded texture atlas
       std::shared_ptr<SfGameBoard>
@@ -135,7 +139,7 @@ namespace bgg
       // assign the initial state of the board
       std::shared_ptr<SfBoardState> initialBoardState;
 
-      if (side == ChessColor::WHITE)
+      if (findGameResponse.yourTurn == findGameResponse.currentTurn)
       {
         initialBoardState = std::make_shared<SfPieceSelectableState>(
             chessBoard, std::move(gameRule), std::move(tileMap), std::move(itemStore));

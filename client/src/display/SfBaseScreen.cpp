@@ -102,6 +102,11 @@ namespace bgg
     }
   }
 
+  void SfBaseScreen::activate(bool active) noexcept
+  {
+    isActive_ = active;
+  }
+
   void SfBaseScreen::onWindowClosed()
   {
     askExitConfirmation(window_, shared_from_this(), "Do you want to quit?");

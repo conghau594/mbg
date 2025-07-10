@@ -50,7 +50,6 @@ namespace bgg
 
   void SfGameFindingScreen::update(sf::Time const &elapsed) noexcept
   {
-
     SfMessageScreen::update(elapsed);
   }
 
@@ -61,19 +60,19 @@ namespace bgg
       // TODO: Get value of `side` from GameStartedNotif from server
       int side = 0;
       //==============
-      int resignRegionHeight = 60;
-      sf::Vector2i wndSize = sf::Vector2i(getWindow()->getSize());
-      std::shared_ptr<SfGameBoard> chessBoard = SfGameBoardFactory().create(
-          side, gameType_, sf::IntRect({0, 0}, wndSize));
-      std::shared_ptr<GameScreen> chessScreen = std::make_shared<SfGamePlayScreen>(
-          getWindow(), gameDisplay_, chessBoard, resignRegionHeight);
+      // int resignRegionHeight = 60;
+      // sf::Vector2i wndSize = sf::Vector2i(getWindow()->getSize());
+      // std::shared_ptr<SfGameBoard> chessBoard = SfGameBoardFactory().create(
+      //     side, gameType_, sf::IntRect({0, 0}, wndSize));
+      // std::shared_ptr<GameScreen> chessScreen = std::make_shared<SfGamePlayScreen>(
+      //     getWindow(), gameDisplay_, chessBoard, resignRegionHeight);
 
-      gameDisplay_->changeScreen(chessScreen);
+      // gameDisplay_->changeScreen(chessScreen);
     }
     catch (std::exception const &e)
     {
       // TODO: need to handle this exception in detail
-      spdlog::critical("From SfGameFindingScreen::goToGamePlayScreen: {}", e.what());
+      SPDLOG_CRITICAL("From SfGameFindingScreen::goToGamePlayScreen: {}", e.what());
     }
   }
 
@@ -88,7 +87,8 @@ namespace bgg
     // changeSubscreen(cancelingScreen);
   }
 
-  void SfGameFindingScreen::onCancelMatchmakingResponse(CancelMatchmakingResponse const & /*response*/) noexcept
+  void SfGameFindingScreen::onCancelMatchmakingResponse(
+      CancelMatchmakingResponse const & /*response*/) noexcept
   {
     // TODO: onCancelMatchmakingResponse(CancelMatchmakingResponse)
     //  ErrorCode const &errcode = response.errcode;
@@ -107,14 +107,17 @@ namespace bgg
     // }
   }
 
-  void SfGameFindingScreen::onFindGameResponse(FindGameResponse const &response) noexcept
+  void SfGameFindingScreen::onFindGameResponse(
+      FindGameResponse const &response) noexcept
   {
     // TODO: this is just a simple implementation without synchronization with
-    //       CancelMatchmakingRequest -> need to reimplement
+    //       CancelMatchmakingRequest -> you need to reimplement along with
+    //       the function onCancelMatchmakingResponse.
     ErrorCode const &errcode = response.errcode;
     if (errcode.value == 0) // no error -> the game is found
     {
       goToGamePlayScreen();
+
       return;
     }
     else

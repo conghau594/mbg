@@ -31,6 +31,7 @@ namespace bgg
     void goToGamePlayScreen();
 
     void sendCancelMatchmakingRequest() noexcept;
+
     void onCancelMatchmakingResponse(CancelMatchmakingResponse const &response) noexcept;
     void onFindGameResponse(FindGameResponse const &response) noexcept;
   };

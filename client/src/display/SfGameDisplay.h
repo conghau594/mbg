@@ -10,9 +10,7 @@
 #include "GameDisplay.h"
 #include "service/ClientEventBus.h"
 
-#ifdef _DEBUG
-#include <iostream>
-#endif
+#include "base/Logger.h"
 
 namespace sf
 {
@@ -63,10 +61,9 @@ namespace bgg
         {
           std::lock_guard lock(messageMutex_);
           serverMessages_.push_back(d);
-#ifdef _DEBUG
-          std::clog << "\nSfGameDisplay has received ServerMessage of "
-                    << typeid(DATA).name();
-#endif
+
+          SPDLOG_INFO("{} has received the server message of {}",
+                      typeid(*this).name(), typeid(DATA).name());
         });
 
     if (!id)
@@ -77,9 +74,8 @@ namespace bgg
       throw(std::runtime_error(msg));
     }
     subscriptionIDs_.emplace_back(id.value());
-#ifdef _DEBUG
-    std::clog << "\nSfGameDisplay has subscribed to ServerMessage of "
-              << typeid(DATA).name() << " successfully";
-#endif
+
+    SPDLOG_INFO("{} has subscribed to the server message of {}",
+                typeid(*this).name(), typeid(DATA).name());
   }
 } // namespace bgg

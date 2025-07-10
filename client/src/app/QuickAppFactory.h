@@ -58,10 +58,22 @@ namespace bgg
 
             //==============
             int side = ChessColor::WHITE; // test value
+            FindGameResponse findGameResponse{
+                {0, "", "Mock"}, // error code
+                "TestingUser", // user id
+                "TestingGame", // game id
+                gameType_,
+                0, // playerType -> empty
+
+                std::map<ItemIndex, Position>(), // initialBoard -> empty
+                ChessColor::WHITE,               // yourSide
+                0,                               // yourTurn
+                0                                // currentTurn
+            };
             //==============
             sf::IntRect boardRect({0, RESIGN_REGION_HEIGHT}, {BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH});
             std::shared_ptr<SfGameBoard>
-                chessBoard = SfGameBoardFactory().create(gameType_, side, boardRect);
+                chessBoard = SfGameBoardFactory().create(findGameResponse, boardRect);
 
             std::shared_ptr<GameScreen>
                 chessScreen = std::make_shared<SfGamePlayScreen>(

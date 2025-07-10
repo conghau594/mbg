@@ -40,7 +40,8 @@ namespace bgg
   private:
     void onEvent(sf::Event const &event) noexcept override;
     void commitAction(BoardAction const &action) noexcept override;
-    
+    void handleServerMessage(ServerMessage const& msg) noexcept override;
+
     void draw(
         sf::RenderTarget &target,
         sf::RenderStates states) const noexcept override;
@@ -53,6 +54,11 @@ namespace bgg
     void clearStates() noexcept override;
 
     void fitRectangle(sf::IntRect const &boardRect) noexcept;
+
+    //
+    void onGameUpdatedNotification(GameUpdatedNotification const &notif) noexcept;
+    void onGameFinishedNotification(GameFinishedNotification const &notif) noexcept;
+    void onCommitMoveResponse(CommitMoveResponse const &response) noexcept;
   };
 
 } // namespace bgg

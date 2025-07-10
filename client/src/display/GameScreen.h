@@ -11,7 +11,7 @@ namespace bgg
   public:
     virtual ~GameScreen() = default;
     virtual void update() = 0;
-    virtual void deactivate() = 0;
+    virtual void activate(bool active) = 0;
     [[nodiscard]] virtual auto isActive() const -> bool = 0;
     virtual void onExit() = 0;
     virtual void onEnter() = 0;

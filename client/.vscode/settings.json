@@ -122,4 +122,5 @@
     "resumable": "cpp"
   },
   "C_Cpp.errorSquiggles": "disabled",
+  "todo-tree.tree.scanMode": "current file",
 }

@@ -29,6 +29,6 @@ namespace bgg
     void doEnter() override;
     void doExit() override;
 
-    void layOutScreen() noexcept;
+    void layOutScreen() noexcept;     
   };
 }

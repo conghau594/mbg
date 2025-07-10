@@ -39,7 +39,7 @@ namespace bgg
     struct
     {
       int x, y, z;
-    } pos;
+    } fromPosition, toPosition;
   };
 
   class ResignGameRequest final

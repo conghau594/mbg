@@ -70,6 +70,6 @@ namespace bgg
 
     [[nodiscard]] auto isActive() const noexcept
         -> bool override final { return isActive_; }
-    void deactivate() noexcept override final { isActive_ = false; }
+    void activate(bool active) noexcept override final;
   };
 }

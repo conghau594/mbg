@@ -23,6 +23,26 @@ namespace bgg
         resignRegionHeight_(resignRegionHeight),
         pressedButtonIndex_(-1)
   {
+    getServerMsgHandler().setHandler<GameUpdatedNotification>(
+        [this](GameUpdatedNotification const &notif) -> bool
+        {
+          gameBoard_->handleServerMessage(notif);
+          return true;
+        });
+
+    getServerMsgHandler().setHandler<GameFinishedNotification>(
+        [this](GameFinishedNotification const &notif) -> bool
+        {
+          gameBoard_->handleServerMessage(notif);
+          return true;
+        });
+
+    getServerMsgHandler().setHandler<CommitMoveResponse>(
+        [this](CommitMoveResponse const &response) -> bool
+        {
+          gameBoard_->handleServerMessage(response);
+          return true;
+        });
   }
 
   void SfGamePlayScreen::update(sf::Time const &elapsed)
@@ -46,23 +66,19 @@ namespace bgg
           {
             std::shared_ptr<GameScreen> waitScreen(new SfConfirmationScreen(
                 getWindow(), "Wait a second...", {}, {}));
+            changeSubscreen(waitScreen);
 
-            // TODO: Send resign request
-            gameDisplay_->popScreen();
-            gameDisplay_->pushScreen(waitScreen);
-
-            gameDisplay_->popScreen();
-            gameDisplay_->popScreen();
+            gameDisplay_->send(ResignGameRequest{});
           },
           [this]()
           {
-            gameDisplay_->popScreen();
+            changeSubscreen(nullptr);
           }};
 
       std::shared_ptr<GameScreen> pauseScreen(new SfConfirmationScreen(
           getWindow(), msg, buttonLabels, buttonCallbacks));
 
-      gameDisplay_->pushScreen(pauseScreen);
+      changeSubscreen(pauseScreen);
       // deactivate();
     }
 
@@ -71,47 +87,50 @@ namespace bgg
 
   void SfGamePlayScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &event)
   {
-    if (event.has_value())
+    if (!event.has_value())
     {
-      if (auto wndResized = event->getIf<sf::Event::Resized>())
+      return;
+    }
+
+    if (auto wndResized = event->getIf<sf::Event::Resized>())
+    {
+      float const windowRatio = float(wndResized->size.x) / float(wndResized->size.y);
+      float constexpr viewRatio = 1.0f;
+
+      float sizeX = 1.0f;
+      float sizeY = 1.0f;
+      float posX = 0.0f;
+      float posY = 0.0f;
+
+      if (windowRatio > viewRatio)
       {
-        float windowRatio = float(wndResized->size.x) /  float(wndResized->size.y);
-        float viewRatio = 1.0f;
-
-        float sizeX = 1.0f;
-        float sizeY = 1.0f;
-        float posX = 0.0f;
-        float posY = 0.0f;
-
-        if (windowRatio > viewRatio)
-        {
-          sizeX = viewRatio / windowRatio;
-          posX = (1.0f - sizeX) / 2.0f;
-        }
-        else if (windowRatio < viewRatio)
-        {
-          sizeY = windowRatio / viewRatio;
-          posY = (1.0f - sizeY) / 2.0f;
-        }
-
-        sf::View view(getWindow()->getView());
-        view.setViewport(sf::FloatRect({posX, posY}, {sizeX, sizeY}));
-        getWindow()->setView(view);
+        sizeX = viewRatio / windowRatio;
+        posX = (1.0f - sizeX) / 2.0f;
       }
-      else
+      else if (windowRatio < viewRatio)
       {
-        gameBoard_->onEvent(*event);
+        sizeY = windowRatio / viewRatio;
+        posY = (1.0f - sizeY) / 2.0f;
       }
+
+      sf::View view(getWindow()->getView());
+      view.setViewport(sf::FloatRect({posX, posY}, {sizeX, sizeY}));
+      getWindow()->setView(view);
+    }
+    else
+    {
+      gameBoard_->onEvent(*event);
     }
   }
 
   void SfGamePlayScreen::doEnter()
   {
+    // do nothing
   }
 
   void SfGamePlayScreen::doExit()
   {
-    // tileMap_.doExit();
+    // do nothing
   }
 
   void SfGamePlayScreen::layOutScreen() noexcept

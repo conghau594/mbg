@@ -9,6 +9,11 @@
 #include "SfMessageScreen.h"
 namespace bgg
 {
+  /**
+   * 
+   * This screen differs from `SfMessageScreen` in that it does not allow
+   * closing window.
+   */
   class SfConfirmationScreen final : public SfMessageScreen
   {
   public:
