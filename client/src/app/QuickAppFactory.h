@@ -23,9 +23,9 @@ namespace bgg
 
         auto createGameApp() noexcept -> GameApp override
         {
-            int constexpr RESIGN_REGION_HEIGHT = 80;
-            int constexpr BOARD_SIDE_LENGTH = 1000;
-            int constexpr BOARD_MIN_SIDE_LENGTH = 400;
+            int constexpr RESIGN_REGION_HEIGHT = 20;
+            int constexpr BOARD_SIDE_LENGTH = 160;
+            int constexpr BOARD_MIN_SIDE_LENGTH = 80;
 
             sf::Vector2u constexpr WINDOW_SIZE(
                 BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH + RESIGN_REGION_HEIGHT);

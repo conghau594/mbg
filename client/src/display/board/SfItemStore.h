@@ -4,7 +4,7 @@
 #include <map>
 #include <atomic>
 #include <string>
-#include <optional>
+#include <variant>
 #include <memory>
 
 #include <SFML/System/Vector2.hpp>
@@ -15,30 +15,30 @@ namespace bgg
 {
   class SfItemStore final
   {
+    using Container = std::map<std::size_t, SfBoardItem>;
+
     std::shared_ptr<const SfTextureAtlas> const itemTextureAtlas_;
 
-    mutable std::map<std::size_t, SfBoardItem> boardItems_;
+    Container boardItems_;
     std::atomic<std::size_t> nextBaseItemId_; ///< Id generator for the boardItems_ (std::map )
 
     constexpr static int Z_ORDER_BIT_COUNT = 8;
     constexpr static int MAX_Z_ORDER = 1 << Z_ORDER_BIT_COUNT;
 
   public:
+    class Iter;
     class Entry;
 
     // !!! IMPORTANT:
     //
     // This class cannot move-construct not due to the std::atomic variable
     // but the change of iterator when use std::move(std::map). There is
-    // no problem when compiling with GCC but with MSVC, I got the assert
+    // no problem when compiling with GCC but with MSVC, you got an assertion
     // of "map/set iterators incompatible".
     //
     // SfItemStore(SfItemStore &&other) noexcept;
 
     SfItemStore(std::shared_ptr<const SfTextureAtlas> itemTextureAtlas) noexcept;
-
-    // auto addItem(SfBoardItem item, int zOrder, bool visible) noexcept
-    //     -> std::optional<Entry>;
 
     auto addItem(
         int textureCellIndex,
@@ -52,29 +52,54 @@ namespace bgg
     void changeZOrder(Entry &entry, int newZOrder) noexcept;
     auto removeItem(Entry &entry) noexcept -> bool;
 
-    [[nodiscard]] auto begin() noexcept -> Entry;
-    [[nodiscard]] auto end() noexcept -> Entry;
+    [[nodiscard]] auto begin() noexcept -> Iter;
+    [[nodiscard]] auto end() noexcept -> Iter;
 
-    [[nodiscard]] auto begin() const noexcept -> Entry;
-    [[nodiscard]] auto end() const noexcept -> Entry;
+    [[nodiscard]] auto begin() const noexcept -> Iter;
+    [[nodiscard]] auto end() const noexcept -> Iter;
 
   private:
     [[nodiscard]] auto generateNextId(int zOrder) noexcept -> std::size_t;
   };
 
   /////////////////////////////////////////////////////////////////////////////
-  class SfItemStore::Entry
+  class SfItemStore::Iter final
   {
     friend class SfItemStore;
 
-    std::map<std::size_t, SfBoardItem>::iterator itemIter_;
-    std::map<std::size_t, SfBoardItem> *itemMapPtr_;
-    bool isMutable_;
+    std::variant<Container::iterator, Container::const_iterator> itemIter_;
+    Container const *const itemMapPtr_;
+
+    Iter(
+        std::variant<Container::iterator, Container::const_iterator> itemIter,
+        Container const *const itemMapPtr) noexcept;
+
+  public:
+    /**
+     * Construct an null Entry object associated with an ItemStore
+     *
+     */
+    Iter(SfItemStore const &itemStore) noexcept;
+
+    void operator++() noexcept;
+    [[nodiscard]] auto operator*() noexcept -> SfBoardItem &;
+    [[nodiscard]] auto operator*() const noexcept -> SfBoardItem const &;
+    [[nodiscard]] auto operator==(Iter const &rhs) const noexcept -> bool;
+
+    void *operator new(std::size_t) = delete;
+    void operator delete(void *) = delete;
+  };
+  /////////////////////////////////////////////////////////////////////////////
+  class SfItemStore::Entry final
+  {
+    friend class SfItemStore;
+
+    std::shared_ptr<Container::iterator> itemIter_;
+    Container const *itemMapPtr_;
 
     Entry(
-        std::map<std::size_t, SfBoardItem>::iterator itemIter,
-        std::map<std::size_t, SfBoardItem> *itemMapPtr,
-        bool isMutable = true) noexcept;
+        std::shared_ptr<Container::iterator> itemIter,
+        Container const *itemMapPtr) noexcept;
 
   public:
     /**
@@ -83,8 +108,12 @@ namespace bgg
      */
     Entry(SfItemStore const &itemStore) noexcept;
 
-    void operator++() noexcept;
-    [[nodiscard]] auto operator*() noexcept -> SfBoardItem &;
+    /**
+     * \return True if two entries are copies of each other. Otherwise false.
+     *
+     * \note Two entries cannot refer to one std::map::iterator except they
+     *       are copies of each other.
+     */
     [[nodiscard]] auto operator==(Entry const &rhs) const noexcept -> bool;
 
     /**

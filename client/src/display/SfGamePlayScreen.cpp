@@ -75,23 +75,23 @@ namespace bgg
     {
       if (auto wndResized = event->getIf<sf::Event::Resized>())
       {
-        float windowRatio = float(wndResized->size.x) / wndResized->size.y;
+        float windowRatio = float(wndResized->size.x) /  float(wndResized->size.y);
         float viewRatio = 1.0f;
 
-        float sizeX = 1.f;
-        float sizeY = 1.f;
-        float posX = 0.f;
-        float posY = 0.f;
+        float sizeX = 1.0f;
+        float sizeY = 1.0f;
+        float posX = 0.0f;
+        float posY = 0.0f;
 
         if (windowRatio > viewRatio)
         {
           sizeX = viewRatio / windowRatio;
-          posX = (1.f - sizeX) / 2.f;
+          posX = (1.0f - sizeX) / 2.0f;
         }
         else if (windowRatio < viewRatio)
         {
           sizeY = windowRatio / viewRatio;
-          posY = (1.f - sizeY) / 2.f;
+          posY = (1.0f - sizeY) / 2.0f;
         }
 
         sf::View view(getWindow()->getView());

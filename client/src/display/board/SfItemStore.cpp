@@ -13,15 +13,6 @@ namespace bgg
   {
   }
 
-  // auto SfItemStore::addItem(SfBoardItem item, int zOrder, bool visible) noexcept
-  //     -> std::optional<SfItemStore::Entry>
-  // {
-  //   size_t id = generateNextId(zOrder);
-  //   auto [iter, inserted] = boardItems_.try_emplace(id, std::move(item));
-  //   iter->second.setVisible(visible);
-  //   return inserted ? Entry(iter, id_) : std::optional<Entry>(std::nullopt);
-  // }
-
   auto SfItemStore::addItem(
       int textureCellIndex,
       int zOrder,
@@ -36,18 +27,15 @@ namespace bgg
 
     BOOST_ASSERT_MSG(inserted, "With a unique id, emplacing to boardItems_ should not fail");
 
-    return Entry(iter, &boardItems_);
+    return Entry(
+        std::make_shared<Container::iterator>(iter),
+        &boardItems_);
   }
-
-  // auto SfItemStore::removeItem(std::size_t itemId) noexcept -> bool
-  // {
-  //   return bool(boardItems_.erase(itemId));
-  // }
 
   auto SfItemStore::getZOrder(Entry const &entry) const noexcept -> int
   {
     constexpr int NUM_SHIFTED_BITS = 8 * sizeof(std::size_t) - Z_ORDER_BIT_COUNT;
-    return entry.itemIter_->first >> NUM_SHIFTED_BITS;
+    return int((*entry.itemIter_)->first >> NUM_SHIFTED_BITS);
   }
 
   void SfItemStore::changeZOrder(Entry &entry, int newZOrder) noexcept
@@ -65,41 +53,41 @@ namespace bgg
         inserted,
         "With a unique id, emplacing to boardItems_ should not fail");
 
-    removeItem(entry);
-    entry = Entry(iter, &boardItems_);
+    boardItems_.erase(*(entry.itemIter_));
+    *(entry.itemIter_) = iter;
   }
 
   auto SfItemStore::removeItem(Entry &entry) noexcept -> bool
   {
-    if (entry.isNull() || entry.itemMapPtr_ != &boardItems_)
+    if (entry.isNull() || (entry.itemMapPtr_ != &boardItems_))
     {
       return false;
     }
 
-    boardItems_.erase(entry.itemIter_);
-    entry.itemMapPtr_ = nullptr; // make sure the entry is null
-    entry.itemIter_ = boardItems_.end();
+    boardItems_.erase(*(entry.itemIter_));
+    // entry.itemMapPtr_ = nullptr;
+    entry.itemIter_ = nullptr; // make sure the entry is null but it still belongs to this store
     return true;
   }
 
-  auto SfItemStore::begin() noexcept -> SfItemStore::Entry
+  auto SfItemStore::begin() noexcept -> SfItemStore::Iter
   {
-    return Entry(boardItems_.begin(), &boardItems_);
+    return Iter(boardItems_.begin(), &boardItems_);
   }
 
-  auto SfItemStore::end() noexcept -> SfItemStore::Entry
+  auto SfItemStore::end() noexcept -> SfItemStore::Iter
   {
-    return Entry(boardItems_.end(), &boardItems_);
+    return Iter(boardItems_.end(), &boardItems_);
   }
 
-  auto SfItemStore::begin() const noexcept -> SfItemStore::Entry
+  auto SfItemStore::begin() const noexcept -> SfItemStore::Iter
   {
-    return Entry(boardItems_.begin(), &boardItems_, false);
+    return Iter(boardItems_.cbegin(), &boardItems_);
   }
 
-  auto SfItemStore::end() const noexcept -> SfItemStore::Entry
+  auto SfItemStore::end() const noexcept -> SfItemStore::Iter
   {
-    return Entry(boardItems_.end(), &boardItems_, false);
+    return Iter(boardItems_.cend(), &boardItems_);
   }
 
   auto SfItemStore::generateNextId(int zOrder) noexcept -> std::size_t
@@ -114,37 +102,67 @@ namespace bgg
     }
 
     constexpr int NUM_SHIFTED_BITS = 8 * sizeof(std::size_t) - Z_ORDER_BIT_COUNT;
-    std::size_t returnedId = nextBaseItemId_++;
-    BOOST_ASSERT_MSG(returnedId < (1ull << NUM_SHIFTED_BITS),
+    std::size_t baseId = nextBaseItemId_++;
+    BOOST_ASSERT_MSG(baseId < (1ull << NUM_SHIFTED_BITS),
                      "This failure may never occur");
 
-    return (std::size_t(zOrder) << NUM_SHIFTED_BITS) | returnedId;
+    return (std::size_t(zOrder) << NUM_SHIFTED_BITS) | baseId;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  SfItemStore::Iter::Iter(
+      std::variant<Container::iterator, Container::const_iterator> itemIter,
+      Container const *const itemMapPtr) noexcept
+      : itemIter_(std::move(itemIter)),
+        itemMapPtr_(itemMapPtr)
+  {
+  }
+
+  SfItemStore::Iter::Iter(SfItemStore const &itemStore) noexcept
+      : Iter(itemStore.end())
+  {
+  }
+
+  void SfItemStore::Iter::operator++() noexcept
+  {
+    if (std::holds_alternative<Container::iterator>(itemIter_))
+    {
+      ++(std::get<Container::iterator>(itemIter_));
+    }
+    else // if (std::holds_alternative<Container::const_iterator>(itemIter_))
+    {
+      ++(std::get<Container::const_iterator>(itemIter_));
+    }
+  }
+
+  auto SfItemStore::Iter::operator*() noexcept -> SfBoardItem &
+  {
+    return std::get<Container::iterator>(itemIter_)->second;
+  }
+
+  auto SfItemStore::Iter::operator*() const noexcept -> SfBoardItem const &
+  {
+    return std::get<Container::const_iterator>(itemIter_)->second;
+  }
+
+  auto SfItemStore::Iter::operator==(
+      SfItemStore::Iter const &rhs) const noexcept -> bool
+  {
+    return (itemMapPtr_ == rhs.itemMapPtr_) && (itemIter_ == rhs.itemIter_);
   }
 
   /////////////////////////////////////////////////////////////////////////////
   SfItemStore::Entry::Entry(
-      std::map<std::size_t, SfBoardItem>::iterator itemIter,
-      std::map<std::size_t, SfBoardItem> *itemMapPtr,
-      bool isMutable) noexcept
+      std::shared_ptr<Container::iterator> itemIter,
+      Container const *itemMapPtr) noexcept
       : itemIter_(std::move(itemIter)),
-        itemMapPtr_(itemMapPtr),
-        isMutable_(isMutable)
+        itemMapPtr_(itemMapPtr)
   {
   }
 
   SfItemStore::Entry::Entry(SfItemStore const &itemStore) noexcept
-      : Entry(itemStore.end())
+      : Entry(nullptr, &itemStore.boardItems_)
   {
-  }
-
-  void SfItemStore::Entry::operator++() noexcept
-  {
-    ++itemIter_;
-  }
-
-  auto SfItemStore::Entry::operator*() noexcept -> SfBoardItem &
-  {
-    return getItem();
   }
 
   auto SfItemStore::Entry::operator==(
@@ -155,7 +173,7 @@ namespace bgg
 
   auto SfItemStore::Entry::isNull() const noexcept -> bool
   {
-    return (itemMapPtr_ == nullptr) || (itemIter_ == itemMapPtr_->end());
+    return (itemMapPtr_ == nullptr) || (itemIter_ == nullptr);
   }
 
   // auto SfItemStore::Entry::getId() const noexcept -> std::size_t const &
@@ -167,9 +185,7 @@ namespace bgg
   auto SfItemStore::Entry::getItem() noexcept -> SfBoardItem &
   {
     BOOST_ASSERT_MSG(!isNull(), "Invalid entry. It may be removed from its map.");
-    BOOST_ASSERT_MSG(isMutable_, "This entry is immutable because it was produced"
-                                 " from a const ItemStore");
 
-    return itemIter_->second;
+    return (*itemIter_)->second;
   }
 } // namespace bgg

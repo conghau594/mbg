@@ -18,8 +18,8 @@ namespace bgg
     std::shared_ptr<SfGameBoard> gameBoard_;
 
     std::shared_ptr<SfGameRuleAdapter> gameRule_;
-    std::shared_ptr<SfItemStore> itemStore_;
     std::shared_ptr<SfTileMap> tileMap_;
+    std::shared_ptr<SfItemStore> itemStore_;
 
     SfItemPlacementMap selectableTiles_;
     SfItemStore::Entry choiceHighlighter_;
