@@ -10,7 +10,7 @@
 #include "SfMessageScreen.h"
 #include "SfGamePlayScreen.h"
 
-#include "service/ClientEvent.h"
+#include "service/ClientRequest.h"
 #include "service/ServerMessage.h"
 
 #include "display/board/SfGameBoardFactory.h"

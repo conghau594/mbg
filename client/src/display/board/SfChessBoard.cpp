@@ -68,9 +68,13 @@ namespace bgg
     }
   }
 
-  void SfChessBoard::send(ClientEvent const &request) noexcept
+  void SfChessBoard::commitAction(BoardAction const &action) noexcept
   {
-    // TODO: SfChessBoard::send(ClientEvent const &request) noexcept
+    if(auto const& pieceMove = action.getIf<PieceMoveAction>())
+    {
+      // 
+    }
+    // TODO: SfChessBoard::send(ClientRequest const &request) noexcept
   }
 
   void SfChessBoard::draw(sf::RenderTarget &target, sf::RenderStates states) const noexcept
@@ -86,8 +90,8 @@ namespace bgg
     }
   }
 
-  void SfChessBoard::changeState(
-      std::shared_ptr<SfBoardState> newState) noexcept
+  void SfChessBoard::changeState(std::shared_ptr<SfBoardState> newState,
+                                 sf::Vector2i const &mousePos) noexcept
   {
     BOOST_ASSERT_MSG(
         !stateStack_.empty(),
@@ -96,10 +100,11 @@ namespace bgg
     auto &lastState = stateStack_.back();
     lastState->onExit();
     lastState = std::move(newState);
-    lastState->onEnter();
+    lastState->onEnter(mousePos);
   }
 
-  void SfChessBoard::pushState(std::shared_ptr<SfBoardState> newState) noexcept
+  void SfChessBoard::pushState(std::shared_ptr<SfBoardState> newState,
+                               sf::Vector2i const &mousePos) noexcept
   {
     if (!stateStack_.empty())
     {
@@ -107,10 +112,10 @@ namespace bgg
     }
 
     stateStack_.push_back(std::move(newState));
-    stateStack_.back()->onEnter();
+    stateStack_.back()->onEnter(mousePos);
   }
 
-  void SfChessBoard::popState() noexcept
+  void SfChessBoard::popState(sf::Vector2i const &mousePos) noexcept
   {
     BOOST_ASSERT_MSG(
         !stateStack_.empty(),
@@ -121,7 +126,7 @@ namespace bgg
 
     if (!stateStack_.empty())
     {
-      stateStack_.back()->onEnter();
+      stateStack_.back()->onEnter(mousePos);
     }
   }
 

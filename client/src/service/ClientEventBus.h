@@ -3,18 +3,18 @@
 
 #include "peeb/EventBus.hpp"
 #include "ServerMessage.h"
-#include "ClientEvent.h"
+#include "ClientRequest.h"
 
 namespace bgg
 {
 
   using ClientEventBus = peeb::Bus<
-      ClientEvent,
+      ClientRequest,
       ServerMessage>;
 } // namespace bgg
 
 namespace peeb
 {
-  extern template class Bus<bgg::ClientEvent, bgg::ServerMessage>;
+  extern template class Bus<bgg::ClientRequest, bgg::ServerMessage>;
 
 } // namespace peeb

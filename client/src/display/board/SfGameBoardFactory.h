@@ -8,8 +8,7 @@
 #include "model/GameType.h"
 #include "SfChessBoard.h"
 #include "SfChessTextureAtlas001.h"
-#include "SfBoardPieceEnabledState.h"
-#include "SfBoardPieceDisabledState.h"
+#include "SfPieceSelectableState.h"
 #include "SfChessRuleAdapter.h"
 
 #include "model/ChessPiece.h"
@@ -138,15 +137,10 @@ namespace bgg
 
       if (side == ChessColor::WHITE)
       {
-        initialBoardState = std::make_shared<SfBoardPieceEnabledState>(
+        initialBoardState = std::make_shared<SfPieceSelectableState>(
             chessBoard, std::move(gameRule), std::move(tileMap), std::move(itemStore));
+        chessBoard->pushState(initialBoardState, {0, 0});
       }
-      else
-      {
-        initialBoardState = std::make_shared<SfBoardPieceDisabledState>(
-            chessBoard, std::move(gameRule), std::move(tileMap), std::move(itemStore));
-      }
-      chessBoard->pushState(initialBoardState);
 
       return chessBoard;
     }

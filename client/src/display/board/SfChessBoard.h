@@ -39,15 +39,17 @@ namespace bgg
 
   private:
     void onEvent(sf::Event const &event) noexcept override;
-    void send(ClientEvent const &request) noexcept override;
+    void commitAction(BoardAction const &action) noexcept override;
+    
     void draw(
         sf::RenderTarget &target,
         sf::RenderStates states) const noexcept override;
-    void changeState(
-        std::shared_ptr<SfBoardState> newState) noexcept override;
+    void changeState(std::shared_ptr<SfBoardState> newState,
+                     sf::Vector2i const &mousePos) noexcept override;
 
-    void pushState(std::shared_ptr<SfBoardState> newState) noexcept override;
-    void popState() noexcept override;
+    void pushState(std::shared_ptr<SfBoardState> newState,
+                   sf::Vector2i const &mousePos) noexcept override;
+    void popState(sf::Vector2i const &mousePos) noexcept override;
     void clearStates() noexcept override;
 
     void fitRectangle(sf::IntRect const &boardRect) noexcept;

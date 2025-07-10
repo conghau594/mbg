@@ -41,5 +41,5 @@ int main()
 
 namespace peeb
 {
-  template class Bus<bgg::ClientEvent, bgg::ServerMessage>;
+  template class Bus<bgg::ClientRequest, bgg::ServerMessage>;
 }

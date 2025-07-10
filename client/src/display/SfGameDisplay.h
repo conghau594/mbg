@@ -40,7 +40,7 @@ namespace bgg
 
   private:
     void run() override;
-    void send(ClientEvent const &request) noexcept override;
+    void send(ClientRequest const &request) noexcept override;
 
     void pushScreen(std::shared_ptr<GameScreen> newScreen) noexcept override;
     void popScreen() noexcept override;

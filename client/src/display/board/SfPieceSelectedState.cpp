@@ -1,20 +1,22 @@
-// SfBoardPieceSelectedState.cpp
+// SfPieceSelectedState.cpp
 
 #include <boost/assert.hpp>
 
 #include "base/Logger.h"
 
-#include "SfBoardPieceSelectedState.h"
-#include "SfBoardPieceDisabledState.h"
+#include "SfPieceSelectedState.h"
 #include "SfGameBoard.h"
 #include "SfTileMap.h"
 
 #include "ChessTextureCell.h"
-#include "model/ChessPiece.h"
 #include "ZOrder.h"
+
+#include "model/ChessPiece.h"
+#include "service/ClientRequest.h"
+
 namespace bgg
 {
-  SfBoardPieceSelectedState::SfBoardPieceSelectedState(
+  SfPieceSelectedState::SfPieceSelectedState(
       std::shared_ptr<SfGameBoard> gameBoard,
       std::shared_ptr<SfGameRuleAdapter> gameRule,
       std::shared_ptr<SfTileMap> tileMap,
@@ -45,14 +47,14 @@ namespace bgg
         originalSelectedItemZOrder_ = itemStore_->getZOrder(selectedItemEntry_);
         itemStore_->changeZOrder(selectedItemEntry_, ZOrder::FOURTH_LAYER);
 
-        somethingWrong = somethingWrong && false;
+        somethingWrong = false;
       }
     }
 
     if (auto reachableTileInfo = gameRule_->getReachableTiles(selectedTile_))
     {
       addHighlighters(reachableTileInfo.value());
-      somethingWrong = somethingWrong && false;
+      somethingWrong = false;
 
       //==========
       SPDLOG_DEBUG("There are {} reachable tiles",
@@ -62,20 +64,14 @@ namespace bgg
       //==========
     }
 
-    if (somethingWrong)
-    {
-      gameBoard_->popState();
-
-      //==========
-      SPDLOG_WARN(
-          "Something wrong: there is no reachable tile from "
-          "or no item at the selected tile ({}, {})",
-          selectedTile_.x, selectedTile_.y);
-      //==========
-    }
+    //==========
+    BOOST_ASSERT_MSG(!somethingWrong,
+                     "Something wrong: there is no reachable tile from "
+                     "or no item at the selectedTile_");
+    //==========
   }
 
-  SfBoardPieceSelectedState::~SfBoardPieceSelectedState()
+  SfPieceSelectedState::~SfPieceSelectedState()
   {
     itemStore_->removeItem(choiceHighlighter_);
     for (auto &highlighter : staticHighlighters_)
@@ -84,14 +80,16 @@ namespace bgg
     }
   }
 
-  void SfBoardPieceSelectedState::onEnter() noexcept
+  void SfPieceSelectedState::onEnter(sf::Vector2i const &mousePos) noexcept
   {
+    onMouseMoved(mousePos);
+
     //==========
     SPDLOG_INFO("Entered {}", typeid(*this).name());
     //==========
   }
 
-  void SfBoardPieceSelectedState::onExit() noexcept
+  void SfPieceSelectedState::onExit() noexcept
   {
     itemStore_->changeZOrder(selectedItemEntry_, originalSelectedItemZOrder_);
     choiceHighlighter_.getItem().setVisible(false);
@@ -99,13 +97,13 @@ namespace bgg
     {
       highlighter.getItem().setVisible(false);
     }
+    lastHoveredTile_ = {-1, -1};
   }
 
-  void SfBoardPieceSelectedState::onMouseMoved(sf::Vector2i const &mousePos) noexcept
+  void SfPieceSelectedState::onMouseMoved(sf::Vector2i const &mousePos) noexcept
   {
     SfBoardItem &selectedItem = selectedItemEntry_.getItem();
-    selectedItem.setPosition(
-        mousePos - selectedItem.getSize() / 2 + sf::Vector2i{1, 1});
+    selectedItem.setPosition(mousePos - selectedItem.getSize() / 2);
 
     TileCoords tile = tileMap_->screenToTile(mousePos);
     if (tile == lastHoveredTile_)
@@ -127,32 +125,30 @@ namespace bgg
     lastHoveredTile_ = tile;
   }
 
-  void SfBoardPieceSelectedState::onMousePressed(
+  void SfPieceSelectedState::onMousePressed(
       sf::Vector2i const & /*mousePos*/) noexcept
   {
     // do nothing
   }
 
-  void SfBoardPieceSelectedState::onMouseReleased(
+  void SfPieceSelectedState::onMouseReleased(
       sf::Vector2i const &mousePos) noexcept
   {
-    TileCoords tile = tileMap_->screenToTile(mousePos);
-    SfItemPlacementMap::iterator found = reachableTiles_.find(tile);
+    TileCoords targetedTile = tileMap_->screenToTile(mousePos);
+    SfItemPlacementMap::iterator found = reachableTiles_.find(targetedTile);
     if (found == reachableTiles_.end())
     {
-      gameBoard_->popState();
+      gameBoard_->popState(mousePos);
       return;
     }
 
     // choiceHighlighter_.getItem().setVisible(false);
 
-    std::shared_ptr<SfBoardState>
-        pieceDisabledState = std::make_shared<SfBoardPieceDisabledState>(
-            gameBoard_, gameRule_, tileMap_, itemStore_);
-    gameBoard_->changeState(pieceDisabledState);
+    gameBoard_->clearStates();
+    gameBoard_->commitAction(PieceMoveAction{selectedTile_, targetedTile});
   }
 
-  void SfBoardPieceSelectedState::addHighlighters(
+  void SfPieceSelectedState::addHighlighters(
       SfReachableTileInfo &reachableTileInfo) noexcept
   {
     SfItemStore::Entry &&selectedTileHighlighter = itemStore_->addItem(
@@ -204,23 +200,7 @@ namespace bgg
     //  So this class cannot be common to other types of board game.
     //  You need a refactor. You might delegate this to gameRule_?
     TileCoords const &specialMoveTile = reachableTileInfo.specialMoves[0];
-    std::optional<int> pieceAtSpecialTile = gameRule_->getItemIndex(specialMoveTile);
-    if (!pieceAtSpecialTile.has_value())
-    {
-      SfItemStore::Entry &&quietMoveHighlighter = itemStore_->addItem(
-          ChessTextureCell::QUIET_MOVE_HIGHLIGHTER,
-          ZOrder::THIRD_LAYER,
-          ChessTextureCell::toString(ChessTextureCell::QUIET_MOVE_HIGHLIGHTER).value());
-
-      tileMap_->fitItemToTile(quietMoveHighlighter.getItem(), specialMoveTile);
-      staticHighlighters_.emplace_back(quietMoveHighlighter);
-
-      auto [iter, inserted] = reachableTiles_.try_emplace(
-          specialMoveTile, std::move(quietMoveHighlighter));
-
-      BOOST_ASSERT_MSG(inserted, "There should be one item per tile");
-    }
-    else
+    if (auto pieceAtSpecialTile = gameRule_->getItemIndex(specialMoveTile))
     {
       SfItemStore::Entry &&captureMoveHighlighter = itemStore_->addItem(
           ChessTextureCell::CAPTURE_MOVE_HIGHLIGHTER,
@@ -232,6 +212,21 @@ namespace bgg
 
       auto [iter, inserted] = reachableTiles_.try_emplace(
           specialMoveTile, std::move(captureMoveHighlighter));
+
+      BOOST_ASSERT_MSG(inserted, "There should be one item per tile");
+    }
+    else
+    {
+      SfItemStore::Entry &&quietMoveHighlighter = itemStore_->addItem(
+          ChessTextureCell::QUIET_MOVE_HIGHLIGHTER,
+          ZOrder::THIRD_LAYER,
+          ChessTextureCell::toString(ChessTextureCell::QUIET_MOVE_HIGHLIGHTER).value());
+
+      tileMap_->fitItemToTile(quietMoveHighlighter.getItem(), specialMoveTile);
+      staticHighlighters_.emplace_back(quietMoveHighlighter);
+
+      auto [iter, inserted] = reachableTiles_.try_emplace(
+          specialMoveTile, std::move(quietMoveHighlighter));
 
       BOOST_ASSERT_MSG(inserted, "There should be one item per tile");
     }

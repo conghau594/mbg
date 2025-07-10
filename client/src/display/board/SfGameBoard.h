@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <SFML/Graphics/Drawable.hpp>
-#include "service/ClientEvent.h"
+#include "BoardAction.h"
 #include "SfItemStore.h"
 
 namespace sf
@@ -19,11 +19,12 @@ namespace bgg
   {
   public:
     virtual void onEvent(sf::Event const &event) = 0;
-    virtual void changeState(std::shared_ptr<SfBoardState> newState) = 0;
-    virtual void pushState(std::shared_ptr<SfBoardState> newState) = 0;
-    virtual void popState() = 0;
+    virtual void commitAction(BoardAction const &action) = 0;
+
+    virtual void changeState(std::shared_ptr<SfBoardState> newState, sf::Vector2i const &mousePos) = 0;
+    virtual void pushState(std::shared_ptr<SfBoardState> newState, sf::Vector2i const &mousePos) = 0;
+    virtual void popState(sf::Vector2i const &mousePos) = 0;
     virtual void clearStates() = 0;
 
-    virtual void send(ClientEvent const &request) = 0;
   };
 } // namespace bgg

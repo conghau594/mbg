@@ -125,14 +125,12 @@ namespace bgg
 
   void SfItemStore::Iter::operator++() noexcept
   {
-    if (std::holds_alternative<Container::iterator>(itemIter_))
-    {
-      ++(std::get<Container::iterator>(itemIter_));
-    }
-    else // if (std::holds_alternative<Container::const_iterator>(itemIter_))
-    {
-      ++(std::get<Container::const_iterator>(itemIter_));
-    }
+    ++(std::get<Container::iterator>(itemIter_));
+  }
+
+  void SfItemStore::Iter::operator++() const noexcept
+  {
+    ++(std::get<Container::const_iterator>(itemIter_));
   }
 
   auto SfItemStore::Iter::operator*() noexcept -> SfBoardItem &

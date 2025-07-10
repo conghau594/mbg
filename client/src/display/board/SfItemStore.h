@@ -67,7 +67,7 @@ namespace bgg
   {
     friend class SfItemStore;
 
-    std::variant<Container::iterator, Container::const_iterator> itemIter_;
+    mutable std::variant<Container::iterator, Container::const_iterator> itemIter_;
     Container const *const itemMapPtr_;
 
     Iter(
@@ -82,6 +82,7 @@ namespace bgg
     Iter(SfItemStore const &itemStore) noexcept;
 
     void operator++() noexcept;
+    void operator++() const noexcept;
     [[nodiscard]] auto operator*() noexcept -> SfBoardItem &;
     [[nodiscard]] auto operator*() const noexcept -> SfBoardItem const &;
     [[nodiscard]] auto operator==(Iter const &rhs) const noexcept -> bool;

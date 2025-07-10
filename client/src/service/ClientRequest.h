@@ -1,4 +1,4 @@
-// ClientEvent.h
+// ClientRequest.h
 #pragma once
 
 #include <string>
@@ -49,7 +49,7 @@ namespace bgg
     std::string gameId;
   };
 
-  using ClientEvent = peeb::Event<
+  using ClientRequest = peeb::Event<
       LoginRequest,
       FindGameRequest,
       CancelMatchmakingRequest,

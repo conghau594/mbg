@@ -17,12 +17,12 @@ namespace bgg
     {
       ([this]
        {
-         using RequestType = ClientEvent::Pack::At<I>;
-         auto subscriptionId = eventBus_->subscribe<ClientEvent, RequestType>(
+         using RequestType = ClientRequest::Pack::At<I>;
+         auto subscriptionId = eventBus_->subscribe<ClientRequest, RequestType>(
              [this](RequestType const &request)
              {
                sendRequest(request);
-               std::cout << "\nMockGameService has received ClientEvent of "
+               std::cout << "\nMockGameService has received ClientRequest of "
                          << typeid(RequestType).name();
              });
 
@@ -33,19 +33,19 @@ namespace bgg
          subscriptionIdList_.emplace_back(subscriptionId.value());
 
 #ifdef _DEBUG
-         std::clog << "\nMockGameService has subscribed to ClientEvent of "
+         std::clog << "\nMockGameService has subscribed to ClientRequest of "
                    << typeid(LoginRequest).name() << " successfully";
 #endif
        }(),
        ...);
-    }(std::make_index_sequence<ClientEvent::Pack::Count>{});
+    }(std::make_index_sequence<ClientRequest::Pack::Count>{});
   }
 
   MockGameService::~MockGameService()
   {
     for (auto &id : subscriptionIdList_)
     {
-      eventBus_->unsubscribe<ClientEvent>(id);
+      eventBus_->unsubscribe<ClientRequest>(id);
     }
   }
 
