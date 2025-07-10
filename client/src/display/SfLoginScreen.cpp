@@ -11,6 +11,8 @@
 #include "SfMessageScreen.h"
 #include "SfGameSelectionScreen.h"
 
+#include "base/Logger.h"
+
 #include "model/GameType.h"
 
 #include "service/GameService.h"
@@ -27,12 +29,6 @@ namespace bgg
         passwordBuffer_{0},
         pressedButtonIndex_(-1)
   {
-    getServerMsgHandler().setHandler<LoginResponse>(
-        [this](LoginResponse const &response) -> bool
-        {
-          onLoginResponse(response);
-          return true;
-        });
   }
 
   SfLoginScreen::~SfLoginScreen()
@@ -40,12 +36,21 @@ namespace bgg
     getServerMsgHandler().resetHandler<LoginResponse>();
   }
 
-  void SfLoginScreen::doExit() noexcept
-  {
-  }
-
   void SfLoginScreen::doEnter() noexcept
   {
+    getServerMsgHandler().setHandler<LoginResponse>(
+        [this](LoginResponse const &response) -> bool
+        {
+          onLoginResponse(response);
+          SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
+                      typeid(response).name(), typeid(*this).name());
+          return true;
+        });
+  }
+
+  void SfLoginScreen::doExit() noexcept
+  {
+    getServerMsgHandler().resetHandler<LoginResponse>();
   }
 
   void SfLoginScreen::update(sf::Time const &elapsed) noexcept

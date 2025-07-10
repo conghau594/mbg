@@ -44,8 +44,8 @@ namespace bgg
 
     void onWindowEventExceptClosed(std::optional<sf::Event> const &event) noexcept override;
 
-    void doExit() noexcept override;
-    void doEnter() noexcept override;
+    void doExit() override;
+    void doEnter() override;
 
     void layOutScreen() noexcept;
   };

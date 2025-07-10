@@ -4,6 +4,7 @@
 #include <memory>
 #include <map>
 #include <atomic>
+#include <functional>
 
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
@@ -13,6 +14,8 @@
 #include "SfBoardState.h"
 #include "SfItemStore.h"
 #include "ZOrder.h"
+
+#include "service/ClientRequest.h"
 
 namespace sf
 {
@@ -30,17 +33,21 @@ namespace bgg
     std::shared_ptr<SfTileMap> tileMap_;
     std::shared_ptr<SfItemStore> itemStore_;
 
+    std::function<void(ClientRequest const &)> requestSender_;
+    SfItemStore::Entry lastMoveHighlighters_[2];
+
   public:
     SfChessBoard(
         sf::IntRect const &boardRect,
         std::shared_ptr<SfGameRuleAdapter> gameRule,
         std::shared_ptr<SfTileMap> tileMap,
-        std::shared_ptr<SfItemStore> itemStore) noexcept;
+        std::shared_ptr<SfItemStore> itemStore,
+        std::function<void(ClientRequest const &)> requestSender) noexcept;
 
   private:
     void onEvent(sf::Event const &event) noexcept override;
     void commitAction(BoardAction const &action) noexcept override;
-    void handleServerMessage(ServerMessage const& msg) noexcept override;
+    void handleServerMessage(ServerMessage const &msg) noexcept override;
 
     void draw(
         sf::RenderTarget &target,

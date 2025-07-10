@@ -28,11 +28,11 @@ namespace bgg
                      "Number of button labels must be less than or equal to number of button callbacks");
   }
 
-  void SfMessageScreen::doEnter() noexcept
+  void SfMessageScreen::doEnter()
   {
   }
 
-  void SfMessageScreen::doExit() noexcept
+  void SfMessageScreen::doExit()
   {
     changeSubscreen(nullptr);
   }

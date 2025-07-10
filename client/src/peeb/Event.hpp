@@ -13,8 +13,8 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
   template <typename EVENT>
   concept EventConcept = requires(EVENT const &e) {
     typename EVENT::Pack;
-    //TODO: why this line not work?
-    // { e.visit([](auto &&) {}) };
+    // TODO: why this line not work?
+    //  { e.visit([](auto &&) {}) };
   };
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -43,6 +43,12 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
       requires(is_in_template_v<SUBDATA, Pack>)
     constexpr Event(SUBDATA const &data) : data_(data)
     {
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+    [[nodiscard]] constexpr auto getIndex() const noexcept -> std::size_t
+    {
+      return data_.index();
     }
 
     /////////////////////////////////////////////////////////////////////////////

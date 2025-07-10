@@ -7,6 +7,7 @@
 #include <imgui.h>      // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 
+#include "base/Logger.h"
 #include "model/PlayerType.h"
 #include "service/GameService.h"
 
@@ -27,20 +28,23 @@ namespace bgg
         pressedButtonIndex_(-1),
         gameType_(gameType)
   {
-    getServerMsgHandler().setHandler<FindGameAcceptedNotification>(
-        [this](FindGameAcceptedNotification const &response) -> bool
-        {
-          onFindGameAcceptedNotification(response);
-          return true;
-        });
   }
 
   void SfPlayerSelectionScreen::doExit() noexcept
   {
+    getServerMsgHandler().resetHandler<FindGameAcceptedNotification>();
   }
 
   void SfPlayerSelectionScreen::doEnter() noexcept
   {
+    getServerMsgHandler().setHandler<FindGameAcceptedNotification>(
+        [this](FindGameAcceptedNotification const &response) -> bool
+        {
+          onFindGameAcceptedNotification(response);
+          SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
+                      typeid(response).name(), typeid(*this).name());
+          return true;
+        });
   }
 
   void SfPlayerSelectionScreen::update(sf::Time const &elapsed) noexcept

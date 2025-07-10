@@ -26,7 +26,7 @@ namespace utils
 
       // change log pattern
       // spdlog::set_pattern("[%H:%M:%S] [%t] [%s:%# %!()]\n%^ - [%l] %v%$");
-      spdlog::set_pattern("[%H:%M:%S] [%t] [%s:%#]\n%^ - [%l] %v%$");
+      spdlog::set_pattern("%^[%l] %v%$ [%H:%M:%S] [%t] [%s:%#]");
 
       // spdlog usage
       SPDLOG_INFO("Welcome to spdlog!");

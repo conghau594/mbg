@@ -24,7 +24,7 @@ namespace bgg
         auto createGameApp() noexcept -> GameApp override
         {
             int constexpr RESIGN_REGION_HEIGHT = 40;
-            int constexpr BOARD_SIDE_LENGTH = 200;
+            int constexpr BOARD_SIDE_LENGTH = 1200;
             int constexpr BOARD_MIN_SIDE_LENGTH = 80;
 
             sf::Vector2u constexpr WINDOW_SIZE(
@@ -57,11 +57,10 @@ namespace bgg
                 gameDisplay = std::make_shared<SfGameDisplay>(window, eventBus);
 
             //==============
-            int side = ChessColor::WHITE; // test value
             FindGameResponse findGameResponse{
                 {0, "", "Mock"}, // error code
-                "TestingUser", // user id
-                "TestingGame", // game id
+                "TestingUser",   // user id
+                "TestingGame",   // game id
                 gameType_,
                 0, // playerType -> empty
 
@@ -71,9 +70,19 @@ namespace bgg
                 0                                // currentTurn
             };
             //==============
-            sf::IntRect boardRect({0, RESIGN_REGION_HEIGHT}, {BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH});
+
+            sf::IntRect boardRect(
+                {0, RESIGN_REGION_HEIGHT},
+                {BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH});
+
+            auto requestSender = [gameDisplay](ClientRequest const &request) noexcept
+            {
+                gameDisplay->send(request);
+            };
+
             std::shared_ptr<SfGameBoard>
-                chessBoard = SfGameBoardFactory().create(findGameResponse, boardRect);
+                chessBoard = SfGameBoardFactory().create(
+                    findGameResponse, boardRect, std::move(requestSender));
 
             std::shared_ptr<GameScreen>
                 chessScreen = std::make_shared<SfGamePlayScreen>(

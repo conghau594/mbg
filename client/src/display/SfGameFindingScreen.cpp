@@ -33,10 +33,23 @@ namespace bgg
         playerType_(playerType),
         isCancelButtonPressed_(false)
   {
+  }
+
+  void SfGameFindingScreen::update(sf::Time const &elapsed) noexcept
+  {
+    SfMessageScreen::update(elapsed);
+  }
+
+  void SfGameFindingScreen::doEnter()
+  {
+    SfMessageScreen::doEnter();
+
     getServerMsgHandler().setHandler<FindGameResponse>(
         [this](FindGameResponse const &response) -> bool
         {
           onFindGameResponse(response);
+          SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
+                      typeid(response).name(), typeid(*this).name());
           return true;
         });
 
@@ -44,13 +57,17 @@ namespace bgg
         [this](CancelMatchmakingResponse const &response) -> bool
         {
           onCancelMatchmakingResponse(response);
+          SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
+                      typeid(response).name(), typeid(*this).name());
           return true;
         });
   }
 
-  void SfGameFindingScreen::update(sf::Time const &elapsed) noexcept
+  void SfGameFindingScreen::doExit()
   {
-    SfMessageScreen::update(elapsed);
+    SfMessageScreen::doExit();
+    getServerMsgHandler().resetHandler<FindGameResponse>();
+    getServerMsgHandler().resetHandler<CancelMatchmakingResponse>();
   }
 
   void SfGameFindingScreen::goToGamePlayScreen()

@@ -26,6 +26,8 @@ namespace bgg
         gameRule_(std::move(gameRule)),
         tileMap_(std::move(tileMap)),
         itemStore_(std::move(itemStore)),
+        reachableTiles_(),
+        staticHighlighters_(),
         choiceHighlighter_(*itemStore_),
         selectedItemEntry_(*itemStore_),
         originalSelectedItemZOrder_(-1),
@@ -64,11 +66,9 @@ namespace bgg
       //==========
     }
 
-    //==========
     BOOST_ASSERT_MSG(!somethingWrong,
                      "Something wrong: there is no reachable tile from "
                      "or no item at the selectedTile_");
-    //==========
   }
 
   SfPieceSelectedState::~SfPieceSelectedState()
@@ -85,7 +85,7 @@ namespace bgg
     onMouseMoved(mousePos);
 
     //==========
-    SPDLOG_INFO("Entered {}", typeid(*this).name());
+    SPDLOG_INFO("Entered '{}'", typeid(*this).name());
     //==========
   }
 
@@ -138,6 +138,7 @@ namespace bgg
     SfItemPlacementMap::iterator found = reachableTiles_.find(targetedTile);
     if (found == reachableTiles_.end())
     {
+      tileMap_->fitItemToTile(selectedItemEntry_.getItem(), selectedTile_);
       gameBoard_->popState(mousePos);
       return;
     }

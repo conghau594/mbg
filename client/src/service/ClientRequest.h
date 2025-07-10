@@ -33,7 +33,7 @@ namespace bgg
     std::string userId;
     std::string gameId;
 
-    int pieceType;
+    // int pieceType;
     int side;
 
     struct

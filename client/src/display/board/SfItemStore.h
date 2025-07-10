@@ -17,9 +17,8 @@ namespace bgg
   {
     using Container = std::map<std::size_t, SfBoardItem>;
 
-    std::shared_ptr<const SfTextureAtlas> const itemTextureAtlas_;
-
     Container boardItems_;
+    std::shared_ptr<const SfTextureAtlas> const itemTextureAtlas_;
     std::atomic<std::size_t> nextBaseItemId_; ///< Id generator for the boardItems_ (std::map )
 
     constexpr static int Z_ORDER_BIT_COUNT = 8;

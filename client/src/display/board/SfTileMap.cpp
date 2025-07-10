@@ -14,7 +14,10 @@ namespace bgg
                        sf::Vector2i mapSizeInTiles,
                        std::vector<int> const &tileLayout)
       : mapTextureAtlas_(std::move(mapTextureAtlas)),
-        mapSizeInTiles_(std::move(mapSizeInTiles))
+        vertices_(),
+        mapSizeInTiles_(std::move(mapSizeInTiles)),
+        transformer_(),
+        isVisible_(true)
   {
     // check if the tile levels are valid
     BOOST_ASSERT_MSG(0 < tileLayout.size() &&

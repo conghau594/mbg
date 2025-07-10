@@ -62,20 +62,20 @@ namespace bgg
           std::lock_guard lock(messageMutex_);
           serverMessages_.push_back(d);
 
-          SPDLOG_INFO("{} has received the server message of {}",
+          SPDLOG_INFO("'{}' has received the server message of '{}'",
                       typeid(*this).name(), typeid(DATA).name());
         });
 
     if (!id)
     {
       std::string msg = std::format(
-          "Cannot subscribe to `{}` from SfGameDisplay",
-          typeid(DATA).name());
+          "Cannot subscribe to '{}' from '{}'",
+          typeid(DATA).name(), typeid(*this).name());
       throw(std::runtime_error(msg));
     }
     subscriptionIDs_.emplace_back(id.value());
 
-    SPDLOG_INFO("{} has subscribed to the server message of {}",
+    SPDLOG_INFO("'{}' has subscribed to the server message of '{}'",
                 typeid(*this).name(), typeid(DATA).name());
   }
 } // namespace bgg

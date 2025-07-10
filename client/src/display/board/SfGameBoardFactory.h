@@ -21,13 +21,16 @@ namespace bgg
   {
   public:
     [[nodiscard]]
-    auto create(FindGameResponse const &findGameResponse, sf::IntRect const &boardRect) const
+    auto create(
+        FindGameResponse const &findGameResponse,
+        sf::IntRect const &boardRect,
+        std::function<void(ClientRequest const &)> requestSender) const
         -> std::shared_ptr<SfGameBoard>
     {
       switch (findGameResponse.gameType)
       {
       case GameType::CHESS:
-        return createChessBoard(findGameResponse, boardRect);
+        return createChessBoard(findGameResponse, boardRect, std::move(requestSender));
       case GameType::GOMOKU:
       default:
         return nullptr;
@@ -38,7 +41,8 @@ namespace bgg
     [[nodiscard]]
     auto createChessBoard(
         FindGameResponse const &findGameResponse,
-        sf::IntRect const &boardRect) const
+        sf::IntRect const &boardRect,
+        std::function<void(ClientRequest const &)> &&requestSender) const
         -> std::shared_ptr<SfGameBoard>
     {
       sf::Vector2i constexpr mapSizeInTiles{8, 8};
@@ -134,7 +138,7 @@ namespace bgg
       // create chessBoard with the loaded texture atlas
       std::shared_ptr<SfGameBoard>
           chessBoard = std::make_shared<SfChessBoard>(
-              boardRect, gameRule, tileMap, itemStore);
+              boardRect, gameRule, tileMap, itemStore, requestSender);
 
       // assign the initial state of the board
       std::shared_ptr<SfBoardState> initialBoardState;

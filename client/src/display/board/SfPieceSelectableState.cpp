@@ -46,7 +46,7 @@ namespace bgg
     onMouseMoved(mousePos);
 
     //==========
-    SPDLOG_INFO("Entered {}", typeid(*this).name());
+    SPDLOG_INFO("Entered '{}'", typeid(*this).name());
     //==========
   }
 
@@ -86,8 +86,6 @@ namespace bgg
     {
       return;
     }
-
-    // choiceHighlighter_.getItem().setVisible(false);
 
     std::shared_ptr<SfBoardState>
         pieceSelectedState = std::make_shared<SfPieceSelectedState>(

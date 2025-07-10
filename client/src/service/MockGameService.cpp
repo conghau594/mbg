@@ -1,8 +1,9 @@
 // MockGameService.cpp
-#include <iostream>
 #include <numeric>
+#include <format>
 #include <boost/uuid.hpp>
 
+#include "base/Logger.h"
 #include "base/RandomUtils.h"
 #include "MockGameService.h"
 
@@ -17,26 +18,28 @@ namespace bgg
     {
       ([this]
        {
-         using RequestType = ClientRequest::Pack::At<I>;
-         auto subscriptionId = eventBus_->subscribe<ClientRequest, RequestType>(
+          using RequestType = ClientRequest::Pack::At<I>;
+          auto subscriptionId = eventBus_->subscribe<ClientRequest, RequestType>(
              [this](RequestType const &request)
              {
                sendRequest(request);
-               std::cout << "\nMockGameService has received ClientRequest of "
-                         << typeid(RequestType).name();
+               SPDLOG_INFO("'{}' has received the client request of '{}'",
+                           typeid(*this).name(), typeid(RequestType).name());
              });
 
-         if (!subscriptionId)
-         {
-           throw(std::runtime_error("Cannot subscribe LoginRequest from MockGameService"));
-         }
-         subscriptionIdList_.emplace_back(subscriptionId.value());
+          if (!subscriptionId)
+          {
+            std::string msg = std::format(
+              "Cannot subscribe the client request of '{}' from '{}'", 
+                typeid(RequestType).name(), 
+                typeid(*this).name());
+            throw(std::runtime_error(msg));
+          }
+          subscriptionIdList_.emplace_back(subscriptionId.value());
 
-#ifdef _DEBUG
-         std::clog << "\nMockGameService has subscribed to ClientRequest of "
-                   << typeid(LoginRequest).name() << " successfully";
-#endif
-       }(),
+          SPDLOG_INFO("'{}' has subscribed to the client request of '{}'",
+                     typeid(*this).name(), 
+                     typeid(RequestType).name()); }(),
        ...);
     }(std::make_index_sequence<ClientRequest::Pack::Count>{});
   }

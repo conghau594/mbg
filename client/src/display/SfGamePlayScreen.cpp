@@ -23,29 +23,9 @@ namespace bgg
         resignRegionHeight_(resignRegionHeight),
         pressedButtonIndex_(-1)
   {
-    getServerMsgHandler().setHandler<GameUpdatedNotification>(
-        [this](GameUpdatedNotification const &notif) -> bool
-        {
-          gameBoard_->handleServerMessage(notif);
-          return true;
-        });
-
-    getServerMsgHandler().setHandler<GameFinishedNotification>(
-        [this](GameFinishedNotification const &notif) -> bool
-        {
-          gameBoard_->handleServerMessage(notif);
-          return true;
-        });
-
-    getServerMsgHandler().setHandler<CommitMoveResponse>(
-        [this](CommitMoveResponse const &response) -> bool
-        {
-          gameBoard_->handleServerMessage(response);
-          return true;
-        });
   }
 
-  void SfGamePlayScreen::update(sf::Time const &elapsed)
+  void SfGamePlayScreen::update(sf::Time const &elapsed) noexcept
   {
     // update the window display
     ImGui::SFML::Update(*getWindow(), elapsed);
@@ -85,7 +65,8 @@ namespace bgg
     pressedButtonIndex_ = -1;
   }
 
-  void SfGamePlayScreen::onWindowEventExceptClosed(std::optional<sf::Event> const &event)
+  void SfGamePlayScreen::onWindowEventExceptClosed(
+      std::optional<sf::Event> const &event) noexcept
   {
     if (!event.has_value())
     {
@@ -123,14 +104,35 @@ namespace bgg
     }
   }
 
-  void SfGamePlayScreen::doEnter()
+  void SfGamePlayScreen::doEnter() noexcept
   {
-    // do nothing
+    getServerMsgHandler().setHandler<GameUpdatedNotification>(
+        [this](GameUpdatedNotification const &notif) -> bool
+        {
+          gameBoard_->handleServerMessage(notif);
+          return true;
+        });
+
+    getServerMsgHandler().setHandler<GameFinishedNotification>(
+        [this](GameFinishedNotification const &notif) -> bool
+        {
+          gameBoard_->handleServerMessage(notif);
+          return true;
+        });
+
+    getServerMsgHandler().setHandler<CommitMoveResponse>(
+        [this](CommitMoveResponse const &response) -> bool
+        {
+          gameBoard_->handleServerMessage(response);
+          return true;
+        });
   }
 
-  void SfGamePlayScreen::doExit()
+  void SfGamePlayScreen::doExit() noexcept
   {
-    // do nothing
+    getServerMsgHandler().resetHandler<GameUpdatedNotification>();
+    getServerMsgHandler().resetHandler<GameFinishedNotification>();
+    getServerMsgHandler().resetHandler<CommitMoveResponse>();
   }
 
   void SfGamePlayScreen::layOutScreen() noexcept
