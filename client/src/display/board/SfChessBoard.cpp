@@ -122,7 +122,7 @@ namespace bgg
       requestSender_(CommitMoveRequest{
           "",
           "",
-          gameRule_->getSide(),
+          // gameRule_->getSide(),
           {pieceMove->fromSquare.x, pieceMove->fromSquare.y},
           {pieceMove->toSquare.x, pieceMove->toSquare.y}});
 
@@ -147,9 +147,8 @@ namespace bgg
     }
     else
     {
-      SPDLOG_WARN("Something wrong: "
-                  "A message of the type {} in '{}' hasn't been handled by '{}'",
-                  msg.getIndex(), typeid(msg).name(), typeid(*this).name());
+      BOOST_ASSERT_MSG(
+          false, "This function is not for this kind of message");
     }
   }
 

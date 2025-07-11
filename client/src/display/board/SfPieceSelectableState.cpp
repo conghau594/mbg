@@ -9,6 +9,7 @@
 
 #include "ChessTextureCell.h"
 #include "ZOrder.h"
+#include "model/ChessPiece.h"
 
 namespace bgg
 {
@@ -32,7 +33,9 @@ namespace bgg
 
     selectableTiles_ = gameRule_->getSelectableTiles();
     //==========
-    SPDLOG_DEBUG("There are {} selectable tiles", selectableTiles_.size());
+    SPDLOG_DEBUG("There are {} selectable tiles from '{}' side",
+                 selectableTiles_.size(),
+                 ChessColor::toString(gameRule_->getSide()).value());
     //==========
   }
 

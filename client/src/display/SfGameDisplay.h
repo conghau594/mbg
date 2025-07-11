@@ -62,7 +62,7 @@ namespace bgg
           std::lock_guard lock(messageMutex_);
           serverMessages_.push_back(d);
 
-          SPDLOG_INFO("'{}' has received the server message of '{}'",
+          SPDLOG_INFO("A server message of type '{}' has come to '{}'",
                       typeid(*this).name(), typeid(DATA).name());
         });
 
@@ -75,7 +75,7 @@ namespace bgg
     }
     subscriptionIDs_.emplace_back(id.value());
 
-    SPDLOG_INFO("'{}' has subscribed to the server message of '{}'",
+    SPDLOG_INFO("'{}' has subscribed to server messages of type '{}'",
                 typeid(*this).name(), typeid(DATA).name());
   }
 } // namespace bgg

@@ -20,14 +20,11 @@ namespace bgg
   {
   public:
     ErrorCode errcode;
-    std::string userId;
-    int gameType;
-    int playerType;
   };
 
   struct Position
   {
-    int x, y, z;
+    int x, y;
   };
 
   using ItemIndex = int;
@@ -36,12 +33,7 @@ namespace bgg
   {
   public:
     ErrorCode errcode;
-    std::string userId;
-    std::string gameId;
-
-    // TODO: consider how to use these variables
     int gameType;
-    int playerType;
 
     std::map<ItemIndex, Position> initialBoard;
     int yourSide;
@@ -58,8 +50,6 @@ namespace bgg
   class GameUpdatedNotification final
   {
   public:
-    std::string userId;
-    std::string gameId;
     std::map<ItemIndex, Position> currentBoard;
     int yourTurn;
     int currentTurn;
@@ -68,8 +58,6 @@ namespace bgg
   class GameFinishedNotification final
   {
   public:
-    std::string userId;
-    std::string gameId;
     std::map<ItemIndex, Position> currentBoard;
     int yourRank;
     int playerCount;
@@ -79,6 +67,13 @@ namespace bgg
   {
   public:
     ErrorCode errcode;
+
+    std::map<std::string, std::string> specialMove; // e.g. promotion: "Queen"
+    struct
+    {
+      int x, y;
+    } fromPosition, toPosition;
+
     std::optional<GameUpdatedNotification> currentGameState;
   };
 
@@ -86,8 +81,6 @@ namespace bgg
   {
   public:
     ErrorCode errcode;
-    std::string userId;
-    std::string gameId;
   };
 
   using ServerMessage = peeb::Event<

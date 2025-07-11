@@ -23,8 +23,8 @@ namespace bgg
              [this](RequestType const &request)
              {
                sendRequest(request);
-               SPDLOG_INFO("'{}' has received the client request of '{}'",
-                           typeid(*this).name(), typeid(RequestType).name());
+               SPDLOG_INFO("A client request of type '{}' has come to '{}'",
+                           typeid(RequestType).name(), typeid(*this).name());
              });
 
           if (!subscriptionId)
@@ -37,7 +37,7 @@ namespace bgg
           }
           subscriptionIdList_.emplace_back(subscriptionId.value());
 
-          SPDLOG_INFO("'{}' has subscribed to the client request of '{}'",
+          SPDLOG_INFO("'{}' has subscribed to client requests of type '{}'",
                      typeid(*this).name(), 
                      typeid(RequestType).name()); }(),
        ...);
@@ -126,7 +126,7 @@ namespace bgg
 
           std::string gameId = "@Test123";
           int side = 0; // 0: WHITE, 1: BLACK
-          emit(FindGameResponse{ErrorCode{errCodeValue, "Mock", msg}, std::move(gameId)});
+          emit(FindGameResponse{ErrorCode{errCodeValue, "Mock", msg}});
         });
   }
   // void MockGameService::sendRequest(FindGameRequest const & /*findGameRqt*/) noexcept

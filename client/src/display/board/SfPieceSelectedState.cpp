@@ -59,10 +59,11 @@ namespace bgg
       somethingWrong = false;
 
       //==========
-      SPDLOG_DEBUG("There are {} reachable tiles",
-                   reachableTileInfo.value().quietMoves.size() +
-                       reachableTileInfo.value().captureMoves.size() +
-                       reachableTileInfo.value().specialMoves.size());
+      SPDLOG_DEBUG("There are {} reachable tiles from tile ({}, {}) obtained by '{}'",
+                   reachableTileInfo.value().quietMoves.size() + reachableTileInfo.value().captureMoves.size() + reachableTileInfo.value().specialMoves.size(),
+                   selectedTile_.x,
+                   selectedTile_.y,
+                   ChessPiece::toString(gameRule_->getItemIndex(selectedTile_).value()).value());
       //==========
     }
 
