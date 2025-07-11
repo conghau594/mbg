@@ -58,7 +58,7 @@ namespace bgg
     void fitItemToTile(
         SfBoardItem &item,
         sf::Vector2i const &tile,
-        sf::Vector2i const &tileArea = {1, 1}) const noexcept;
+        sf::Vector2f const &tileArea = {1.0f, 1.0f}) const noexcept;
 
   private:
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

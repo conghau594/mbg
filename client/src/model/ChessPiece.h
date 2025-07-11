@@ -1,87 +1,82 @@
 // ChessPiece.h
 #pragma once
 
-#include "base/EnumUtils.h"
+#include <string>
+
+#include <boost/assert.hpp>
 
 namespace bgg
 {
-#define CHESS_COLOR_ENTRIES(E) \
-  E(WHITE)                     \
-  E(BLACK)
+  class ChessPiece final
+  {
+  public:
+    enum class Type
+    {
+      KING,
+      QUEEN,
+      ROOK,
+      BISHOP,
+      KNIGHT,
+      PAWN
+    } type;
 
-#define CHESS_COLOR_NAMES(E) \
-  E(White)                   \
-  E(Black)
+    enum class Color
+    {
+      WHITE,
+      BLACK
+    } color;
 
-  DEFINE_ENUM(ChessColor, CHESS_COLOR_ENTRIES, CHESS_COLOR_NAMES);
+    [[nodiscard]]
+    auto toString() noexcept -> std::string
+    {
+      return toString(color) + toString(type);
+    }
 
-#define CHESS_PIECE_ENTRIES(E) \
-  E(WHITE_KING)                \
-  E(WHITE_QUEEN)               \
-  E(WHITE_ROOK_A)              \
-  E(WHITE_ROOK_H)              \
-  E(WHITE_BISHOP_C)            \
-  E(WHITE_BISHOP_F)            \
-  E(WHITE_KNIGHT_B)            \
-  E(WHITE_KNIGHT_G)            \
-  E(WHITE_PAWN_A)              \
-  E(WHITE_PAWN_B)              \
-  E(WHITE_PAWN_C)              \
-  E(WHITE_PAWN_D)              \
-  E(WHITE_PAWN_E)              \
-  E(WHITE_PAWN_F)              \
-  E(WHITE_PAWN_G)              \
-  E(WHITE_PAWN_H)              \
-  E(BLACK_KING)                \
-  E(BLACK_QUEEN)               \
-  E(BLACK_ROOK_A)              \
-  E(BLACK_ROOK_H)              \
-  E(BLACK_BISHOP_C)            \
-  E(BLACK_BISHOP_F)            \
-  E(BLACK_KNIGHT_B)            \
-  E(BLACK_KNIGHT_G)            \
-  E(BLACK_PAWN_A)              \
-  E(BLACK_PAWN_B)              \
-  E(BLACK_PAWN_C)              \
-  E(BLACK_PAWN_D)              \
-  E(BLACK_PAWN_E)              \
-  E(BLACK_PAWN_F)              \
-  E(BLACK_PAWN_G)              \
-  E(BLACK_PAWN_H)
+    [[nodiscard]]
+    static auto toString(Type type) noexcept -> std::string
+    {
+      switch (type)
+      {
+      case Type::KING:
+        return "White";
 
-#define CHESS_PIECE_NAMES(E) \
-  E(WhiteKing)               \
-  E(WhiteQueen)              \
-  E(WhiteRookA)              \
-  E(WhiteRookH)              \
-  E(WhiteBishopC)            \
-  E(WhiteBishopF)            \
-  E(WhiteKnightB)            \
-  E(WhiteKnightG)            \
-  E(WhitePawnA)              \
-  E(WhitePawnB)              \
-  E(WhitePawnC)              \
-  E(WhitePawnD)              \
-  E(WhitePawnE)              \
-  E(WhitePawnF)              \
-  E(WhitePawnG)              \
-  E(WhitePawnH)              \
-  E(BlackKing)               \
-  E(BlackQueen)              \
-  E(BlackRookA)              \
-  E(BlackRookH)              \
-  E(BlackBishopC)            \
-  E(BlackBishopF)            \
-  E(BlackKnightB)            \
-  E(BlackKnightG)            \
-  E(BlackPawnA)              \
-  E(BlackPawnB)              \
-  E(BlackPawnC)              \
-  E(BlackPawnD)              \
-  E(BlackPawnE)              \
-  E(BlackPawnF)              \
-  E(BlackPawnG)              \
-  E(BlackPawnH)
+      case Type::QUEEN:
+        return "Queen";
 
-  DEFINE_ENUM(ChessPiece, CHESS_PIECE_ENTRIES, CHESS_PIECE_NAMES);
+      case Type::ROOK:
+        return "Rook";
+
+      case Type::BISHOP:
+        return "Bishop";
+
+      case Type::KNIGHT:
+        return "Knight";
+
+      case Type::PAWN:
+        return "Pawn";
+
+      default:
+        BOOST_ASSERT_MSG(
+            false, "Cannot convert this piece type to string");
+      }
+    }
+
+    [[nodiscard]]
+    static auto toString(Color color) noexcept -> std::string
+    {
+      switch (color)
+      {
+      case Color::WHITE:
+        return "White";
+
+      case Color::BLACK:
+        return "Black";
+
+      default:
+        BOOST_ASSERT_MSG(
+            false,
+            "Cannot convert this piece color to string");
+      }
+    }
+  };
 }

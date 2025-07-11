@@ -147,7 +147,7 @@ namespace bgg
     // choiceHighlighter_.getItem().setVisible(false);
 
     gameBoard_->clearStates();
-    gameBoard_->commitAction(PieceMoveAction{selectedTile_, targetedTile});
+    gameBoard_->commitAction(MoveChessPiece{selectedTile_, targetedTile, std::nullopt});
   }
 
   void SfPieceSelectedState::addHighlighters(

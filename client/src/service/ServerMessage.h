@@ -16,6 +16,7 @@ namespace bgg
     ErrorCode errcode;
     std::string userId;
   };
+  
   class FindGameAcceptedNotification final
   {
   public:
@@ -68,7 +69,7 @@ namespace bgg
   public:
     ErrorCode errcode;
 
-    std::map<std::string, std::string> specialMove; // e.g. promotion: "Queen"
+    std::map<std::string, std::string> specialMove; // e.g. promotion: "Queen", "check"
     struct
     {
       int x, y;

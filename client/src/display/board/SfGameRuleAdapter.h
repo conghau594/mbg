@@ -34,7 +34,6 @@ namespace bgg
   {
   public:
     SfItemStore::Entry entry;
-    TileCoords tile;
 
     std::list<TileCoords> quietMoves;
     std::list<TileCoords> captureMoves;
@@ -53,7 +52,7 @@ namespace bgg
     virtual auto getSide() const -> int = 0;
 
     [[nodiscard]]
-    virtual auto getItemPlacements() const -> SfItemPlacementMap = 0;
+    virtual auto getItemPlacements() -> SfItemPlacementMap& = 0;
 
     [[nodiscard]]
     virtual auto getSelectableTiles() const -> SfItemPlacementMap = 0;
@@ -62,16 +61,13 @@ namespace bgg
     virtual auto getReachableTiles(TileCoords const &tile) const
         -> std::optional<SfReachableTileInfo> = 0;
 
-    [[nodiscard]]
-    virtual auto getItemIndex(TileCoords const &tile) const -> std::optional<int> = 0;
+    // /**
+    //  * \return type of piece at the `tile`
+    //  */
+    // [[nodiscard]]
+    // virtual auto getItemType(TileCoords const &tile) const -> std::optional<int> = 0;
 
     [[nodiscard]]
-    virtual auto getItemEntry(int itemIndex) const -> std::optional<SfItemStore::Entry> = 0;
-
-    /**
-     * \return {-1, -1} if the item with itemIndex is not existing
-     */
-    [[nodiscard]]
-    virtual auto getItemTile(int itemIndex) const -> std::optional<TileCoords> = 0;
-  };
+    virtual auto getItemEntry(TileCoords const &tile) const -> std::optional<SfItemStore::Entry> = 0;
+    };
 } // namespace bgg

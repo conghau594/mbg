@@ -17,38 +17,30 @@ namespace bgg
 
     class SfChessRuleAdapter final : public SfGameRuleAdapter
     {
-        std::vector<SfItemStore::Entry> itemEntries_; ///< Usage: itemEntries_[ChessPiece::<ENUM>]
+        SfItemPlacementMap itemPlacements_; ///< Usage: itemEntries_[ChessPiece::<ENUM>]
         ChessRule rule_;
-        TileCoords (*const squareToTileConverter_)(ChessRule::Square const &square);
-        ChessRule::Square (*const tileToSquareConverter_)(TileCoords const &square);
+        TileCoords (*const squareToTileConverter_)(ChessRule::Square const &);
+        std::functional<ChessRule::Square(TileCoords const &)> const tileToSquareConverter_;
 
     public:
-        SfChessRuleAdapter(
-            std::vector<SfItemStore::Entry> itemEntries, int side) noexcept;
+        SfChessRuleAdapter(ChessRule rule) noexcept;
+
+        static constexpr auto getSquareToTileConverter(ChessPiece::Color color) noexcept
+            -> std::functional<TileCoords(ChessRule::Square const &)>;
+        static constexpr auto getTileToSquareConverter(ChessPiece::Color color) noexcept
+            -> std::functional<ChessRule::Square(TileCoords const &)>;
 
     private:
         auto getSide() const -> int override;
 
-        auto getItemPlacements() const -> SfItemPlacementMap override;
+        auto getItemPlacements() -> SfItemPlacementMap & override;
         auto getSelectableTiles() const noexcept -> SfItemPlacementMap override;
         auto getReachableTiles(TileCoords const &tile) const noexcept
             -> std::optional<SfReachableTileInfo> override;
 
-        auto getItemIndex(TileCoords const &tile) const noexcept
-            -> std::optional<int> override;
-        auto getItemTile(int itemIndex) const noexcept
-            -> std::optional<TileCoords> override;
-        auto getItemEntry(int itemIndex) const noexcept
+        // auto getItemType(TileCoords const &tile) const noexcept
+        //     -> std::optional<int> override;
+        auto getItemEntry(TileCoords const &tile) const noexcept
             -> std::optional<SfItemStore::Entry> override;
-
-        static constexpr auto squareToTileAtWhite(
-            ChessRule::Square const &square) noexcept -> TileCoords;
-        static constexpr auto squareToTileAtBlack(
-            ChessRule::Square const &square) noexcept -> TileCoords;
-
-        static constexpr auto tileToSquareAtWhite(
-            TileCoords const &tile) noexcept -> ChessRule::Square;
-        static constexpr auto tileToSquareAtBlack(
-            TileCoords const &tile) noexcept -> ChessRule::Square;
     };
 } // namespace bgg

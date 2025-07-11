@@ -7,51 +7,41 @@
 
 namespace bgg
 {
-  SfChessRuleAdapter::SfChessRuleAdapter(
-      std::vector<SfItemStore::Entry> itemEntries, int side) noexcept
-      : itemEntries_(std::move(itemEntries)),
-        rule_(side),
-        squareToTileConverter_(side == ChessColor::WHITE
-                                   ? squareToTileAtWhite
-                                   : squareToTileAtBlack),
-        tileToSquareConverter_(side == ChessColor::WHITE
-                                   ? tileToSquareAtWhite
-                                   : tileToSquareAtBlack)
+  SfChessRuleAdapter::SfChessRuleAdapter(ChessRule rule) noexcept
+      : rule_(std::move(rule)),
+        squareToTileConverter_(getSquareToTileConverter(rule_.getColor())),
+        tileToSquareConverter_(getTileToSquareConverter(rule_.getColor()))
   {
+  }
+
+  constexpr auto SfChessRuleAdapter::squareToTile(
+      ChessRule::Square const &square,
+      ChessPiece::Color color) noexcept -> TileCoords
+  {
+    return TileCoords();
   }
 
   auto SfChessRuleAdapter::getSide() const -> int
   {
-    return rule_.getColor();
+    return int(rule_.getColor());
   }
 
-  auto SfChessRuleAdapter::getItemPlacements() const -> SfItemPlacementMap
+  auto SfChessRuleAdapter::getItemPlacements() -> SfItemPlacementMap &
   {
-    std::map<ChessRule::Piece, ChessRule::Square>
-        piecePlacements = rule_.getPiecePlacements();
-
-    SfItemPlacementMap itemPlacements;
-    for (auto &[piece, square] : piecePlacements)
-    {
-      auto [iter, inserted] = itemPlacements.try_emplace(
-          squareToTileConverter_(square), itemEntries_[std::size_t(piece)]);
-
-      BOOST_ASSERT_MSG(inserted, "There should be one item per tile");
-    }
-
-    return itemPlacements;
+    return itemPlacements_;
   }
 
   auto SfChessRuleAdapter::getSelectableTiles() const noexcept -> SfItemPlacementMap
   {
-    std::map<ChessRule::Piece, ChessRule::Square>
+    std::map<ChessRule::Square, ChessPiece>
         piecePlacements = rule_.getSelectablePieces();
 
     SfItemPlacementMap itemPlacements;
-    for (auto &[piece, square] : piecePlacements)
+    for (auto &[square, piece] : piecePlacements)
     {
+      TileCoords tile = squareToTileConverter_(square);
       auto [iter, inserted] = itemPlacements.try_emplace(
-          squareToTileConverter_(square), itemEntries_[std::size_t(piece)]);
+          tile, itemPlacements_.at(tile));
 
       BOOST_ASSERT_MSG(inserted, "There should be one item per tile");
     }
@@ -62,13 +52,19 @@ namespace bgg
   auto SfChessRuleAdapter::getReachableTiles(TileCoords const &tile) const noexcept
       -> std::optional<SfReachableTileInfo>
   {
+    auto itemEntry = getItemEntry(tile);
+    if (!itemEntry)
+    {
+      return std::nullopt;
+    }
+
     ChessRule::Square originSquare = tileToSquareConverter_(tile);
 
     std::optional<ChessRule::CandidateMoveInfo>
         candidateMovesOpt = rule_.getCandidateMoves(originSquare);
-    if (!candidateMovesOpt.has_value())
+    if (!candidateMovesOpt)
     {
-      return std::optional<SfReachableTileInfo>(std::nullopt);
+      return std::nullopt;
     }
 
     ChessRule::CandidateMoveInfo const &candidateMoveInfo = candidateMovesOpt.value();
@@ -93,64 +89,76 @@ namespace bgg
     }
 
     return SfReachableTileInfo{
-        itemEntries_[std::size_t(candidateMoveInfo.piece)],
-        squareToTileConverter_(originSquare),
+        itemEntry.value(),
         std::move(quietMoves),
         std::move(captureMoves),
         std::move(specialMoves)};
   }
 
-  auto SfChessRuleAdapter::getItemIndex(TileCoords const &tile) const noexcept
-      -> std::optional<int>
-  {
-    ChessRule::Square square = tileToSquareConverter_(tile);
-    return rule_.getPiece(square);
-  }
+  // auto SfChessRuleAdapter::getItemType(TileCoords const &tile) const noexcept
+  //     -> std::optional<int>
+  // {
+  //   ChessRule::Square square = tileToSquareConverter_(tile);
+  //   auto piece = rule_.getPiece(square);
+  //   if(!piece)
+  //   {
+  //     return std::nullopt;
+  //   }
+  //   return int(piece.value().type);
+  // }
 
-  auto SfChessRuleAdapter::getItemTile(int itemIndex) const noexcept
-      -> std::optional<TileCoords>
+  auto SfChessRuleAdapter::getItemEntry(TileCoords const &tile) const noexcept
+      -> std::optional<SfItemStore::Entry>
   {
-    std::optional<ChessRule::Square> square = rule_.getSquare(itemIndex);
-    if (square.has_value())
-    {
-      return squareToTileConverter_(square.value());
-    }
-    else
+    auto found = itemPlacements_.find(tile);
+    if (found == itemPlacements_.cend())
     {
       return std::nullopt;
     }
+
+    return found->second;
   }
 
-  auto SfChessRuleAdapter::getItemEntry(int itemIndex) const noexcept
-      -> std::optional<SfItemStore::Entry>
+  static constexpr auto SfChessRuleAdapter::getSquareToTileConverter(ChessPiece::Color color) noexcept
+      -> std::functional<TileCoords(ChessRule::Square const &)>
   {
-    return itemEntries_[std::size_t(itemIndex)];
+    std::functional<TileCoords(ChessRule::Square const &)> squareToTileAtWhite =
+        [](ChessRule::Square const &square) noexcept -> TileCoords
+    {
+      BGG_VALIDATE_SQUARE(square);
+
+      int const row = int(square[1]);
+      int const col = int(square[0]);
+
+      return TileCoords{
+          col - ChessRule::FIRST_COL,
+          ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_ROW - row};
+    };
+
+    std::functional<TileCoords(ChessRule::Square const &)> squareToTileAtBlack =
+        [](ChessRule::Square const &square) noexcept -> TileCoords
+    {
+      BGG_VALIDATE_SQUARE(square);
+
+      int const row = int(square[1]);
+      int const col = int(square[0]);
+
+      return TileCoords{
+          ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_COL - col,
+          row - ChessRule::FIRST_ROW};
+    };
+
+    return color == ChessPiece::Color::WHITE
+               ? squareToTileAtWhite
+               : squareToTileAtBlack;
   }
 
-  constexpr auto SfChessRuleAdapter::squareToTileAtWhite(
-      ChessRule::Square const &square) noexcept -> TileCoords
+  static constexpr auto SfChessRuleAdapter::getTileToSquareConverter(ChessPiece::Color color) noexcept
+      -> std::functional<ChessRule::Square(TileCoords const &)>
   {
-    BGG_VALIDATE_SQUARE(square);
-
-    int const row = int(square[1]);
-    int const col = int(square[0]);
-
-    return TileCoords{
-        col - ChessRule::Board::FIRST_COL,
-        ChessRule::Board::SIDE_LENGTH - 1 + ChessRule::Board::FIRST_ROW - row};
-  }
-
-  constexpr auto SfChessRuleAdapter::squareToTileAtBlack(
-      ChessRule::Square const &square) noexcept -> TileCoords
-  {
-    BGG_VALIDATE_SQUARE(square);
-
-    int const row = int(square[1]);
-    int const col = int(square[0]);
-
-    return TileCoords{
-        ChessRule::Board::SIDE_LENGTH - 1 + ChessRule::Board::FIRST_COL - col,
-        row - ChessRule::Board::FIRST_ROW};
+    return color == ChessPiece::Color::WHITE
+               ? tileToSquareAtWhite
+               : tileToSquareAtBlack;
   }
 
   constexpr auto SfChessRuleAdapter::tileToSquareAtWhite(
@@ -159,8 +167,8 @@ namespace bgg
     BGG_VALIDATE_TILE(tile);
 
     return ChessRule::Square{
-        char(tile.x + ChessRule::Board::FIRST_COL),
-        char(ChessRule::Board::SIDE_LENGTH - 1 + ChessRule::Board::FIRST_ROW - tile.y),
+        char(tile.x + ChessRule::FIRST_COL),
+        char(ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_ROW - tile.y),
         '\0'};
   }
 
@@ -170,8 +178,8 @@ namespace bgg
     BGG_VALIDATE_TILE(tile);
 
     return ChessRule::Square{
-        char(ChessRule::Board::SIDE_LENGTH - 1 + ChessRule::Board::FIRST_COL - tile.x),
-        char(tile.y + ChessRule::Board::FIRST_ROW),
+        char(ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_COL - tile.x),
+        char(tile.y + ChessRule::FIRST_ROW),
         '\0'};
   }
 

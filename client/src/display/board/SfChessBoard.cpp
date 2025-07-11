@@ -96,7 +96,7 @@ namespace bgg
 
   void SfChessBoard::commitAction(BoardAction const &action) noexcept
   {
-    if (auto const &pieceMove = action.getIf<PieceMoveAction>())
+    if (auto const &pieceMove = action.getIf<MoveChessPiece>())
     {
       tileMap_->fitItemToTile(
           lastMoveHighlighters_[0].getItem(), pieceMove->fromSquare);

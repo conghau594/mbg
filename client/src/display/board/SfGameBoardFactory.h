@@ -66,74 +66,94 @@ namespace bgg
 
       auto itemStore = std::make_shared<SfItemStore>(chessTextureAtlas);
 
-      // this vector obj maps each ChessPiece enum to a item entry
-      std::vector<SfItemStore::Entry> itemEntries(
-          std::size_t(ChessPiece::COUNT), *itemStore);
-
       // this vector obj maps each ChessPiece enum to a coresponding texture index
-      std::vector<int> textureIndexes{
-          ChessTextureCell::WHITE_KING,
-          ChessTextureCell::WHITE_QUEEN,
-          ChessTextureCell::WHITE_ROOK,
-          ChessTextureCell::WHITE_ROOK,
-          ChessTextureCell::WHITE_BISHOP,
-          ChessTextureCell::WHITE_BISHOP,
-          ChessTextureCell::WHITE_KNIGHT,
-          ChessTextureCell::WHITE_KNIGHT,
-          ChessTextureCell::WHITE_PAWN,
-          ChessTextureCell::WHITE_PAWN,
-          ChessTextureCell::WHITE_PAWN,
-          ChessTextureCell::WHITE_PAWN,
-          ChessTextureCell::WHITE_PAWN,
-          ChessTextureCell::WHITE_PAWN,
-          ChessTextureCell::WHITE_PAWN,
-          ChessTextureCell::WHITE_PAWN,
-
-          ChessTextureCell::BLACK_KING,
-          ChessTextureCell::BLACK_QUEEN,
-          ChessTextureCell::BLACK_ROOK,
-          ChessTextureCell::BLACK_ROOK,
-          ChessTextureCell::BLACK_BISHOP,
-          ChessTextureCell::BLACK_BISHOP,
-          ChessTextureCell::BLACK_KNIGHT,
-          ChessTextureCell::BLACK_KNIGHT,
-          ChessTextureCell::BLACK_PAWN,
-          ChessTextureCell::BLACK_PAWN,
-          ChessTextureCell::BLACK_PAWN,
-          ChessTextureCell::BLACK_PAWN,
-          ChessTextureCell::BLACK_PAWN,
-          ChessTextureCell::BLACK_PAWN,
-          ChessTextureCell::BLACK_PAWN,
-          ChessTextureCell::BLACK_PAWN};
-
-      // add piece items to itemStore, also assign the returned entry
-      for (int i = 0; i < ChessPiece::COUNT; ++i)
+      auto getTextureIndex = [](ChessPiece const &piece)
       {
-        std::optional<std::string> itemName = ChessPiece::toString(i);
-        BOOST_ASSERT_MSG(
-            itemName,
-            std::format("Enum ChessPiece with value {} should have a associated string", i)
-                .c_str());
+        if (piece.color == ChessPiece::Color::WHITE)
+        {
+          switch (piece.type)
+          {
+          case ChessPiece::Type::KING:
+            return ChessTextureCell::WHITE_KING;
 
-        itemEntries[std::size_t(i)] = itemStore->addItem(
-            textureIndexes[std::size_t(i)], ZOrder::SECOND_LAYER, itemName.value());
-      }
+          case ChessPiece::Type::QUEEN:
+            return ChessTextureCell::WHITE_QUEEN;
 
-      // assert valid item entries before creating chess board
-      BOOST_ASSERT_MSG(int(itemEntries.size()) == ChessPiece::COUNT,
-                       "itemEntries_ size must be equal to"
-                       " the number of chess pieces (32)");
-      for (int i = 0; i < ChessPiece::COUNT; ++i)
-      {
-        BOOST_ASSERT_MSG(!itemEntries[std::size_t(i)].isNull(),
-                         "itemEntries_ should not contain null item entry");
-      }
+          case ChessPiece::Type::ROOK:
+            return ChessTextureCell::WHITE_ROOK;
 
+          case ChessPiece::Type::BISHOP:
+            return ChessTextureCell::WHITE_BISHOP;
+
+          case ChessPiece::Type::KNIGHT:
+            return ChessTextureCell::WHITE_KNIGHT;
+
+          case ChessPiece::Type::PAWN:
+            return ChessTextureCell::WHITE_PAWN;
+
+          default:
+            break;
+          }
+        }
+        else if (piece.color == ChessPiece::Color::BLACK)
+        {
+          switch (piece.type)
+          {
+          case ChessPiece::Type::KING:
+            return ChessTextureCell::BLACK_KING;
+
+          case ChessPiece::Type::QUEEN:
+            return ChessTextureCell::BLACK_QUEEN;
+
+          case ChessPiece::Type::ROOK:
+            return ChessTextureCell::BLACK_ROOK;
+
+          case ChessPiece::Type::BISHOP:
+            return ChessTextureCell::BLACK_BISHOP;
+
+          case ChessPiece::Type::KNIGHT:
+            return ChessTextureCell::BLACK_KNIGHT;
+
+          case ChessPiece::Type::PAWN:
+            return ChessTextureCell::BLACK_PAWN;
+
+          default:
+            break;
+          }
+        }
+
+        BOOST_ASSERT_MSG(false, "Invalid chess piece");
+      };
+
+      ChessRule chessRule(ChessPiece::Color(findGameResponse.yourSide));
       // TODO: need to consider how to initiate the GameRuleAdapter with
       //       findGameResponse.initialBoard
       std::shared_ptr<SfGameRuleAdapter>
-          gameRule = std::make_shared<SfChessRuleAdapter>(
-              std::move(itemEntries), findGameResponse.yourSide);
+          gameRule = std::make_shared<SfChessRuleAdapter>(std::move(gameRule));
+
+      // this vector obj maps each ChessPiece enum to a item entry
+      SfItemPlacementMap& itemPlacements = gameRule->getItemPlacements();
+
+      // add piece items to itemStore, also assign the returned entry
+      for (auto& [square, piece] : chessRule.getPiecePlacements())
+      {
+        SfItemStore::Entry itemEntry = itemStore->addItem(
+            getTextureIndex(piece), ZOrder::SECOND_LAYER, piece.toString());
+        
+        TileCoords tile = 
+        auto [iter, inserted] = itemPlacements.try_emplace()
+      }
+
+      // // assert valid item entries before creating chess board
+      // BOOST_ASSERT_MSG(int(itemEntries.size()) == ChessPiece::COUNT,
+      //                  "itemEntries_ size must be equal to"
+      //                  " the number of chess pieces (32)");
+      // for (int i = 0; i < ChessPiece::COUNT; ++i)
+      // {
+      //   BOOST_ASSERT_MSG(!itemEntries[std::size_t(i)].isNull(),
+      //                    "itemEntries_ should not contain null item entry");
+      // }
+
 
       // create chessBoard with the loaded texture atlas
       std::shared_ptr<SfGameBoard>
