@@ -11,7 +11,7 @@
 #include "SfPieceSelectableState.h"
 #include "SfChessRuleAdapter.h"
 
-#include "model/ChessPiece.h"
+#include "model/Piece.h"
 
 namespace bgg
 {
@@ -67,98 +67,103 @@ namespace bgg
       auto itemStore = std::make_shared<SfItemStore>(chessTextureAtlas);
 
       // this vector obj maps each ChessPiece enum to a coresponding texture index
-      auto getTextureIndex = [](ChessPiece const &piece)
+      auto getTextureIndex = [](Piece const &piece)
       {
-        if (piece.color == ChessPiece::Color::WHITE)
+        if (Color::WHITE == piece.color)
         {
-          switch (piece.type)
+          if (ChessRule::PieceType::KING == piece.type)
           {
-          case ChessPiece::Type::KING:
             return ChessTextureCell::WHITE_KING;
+          }
 
-          case ChessPiece::Type::QUEEN:
+          if (ChessRule::PieceType::QUEEN == piece.type)
+          {
             return ChessTextureCell::WHITE_QUEEN;
+          }
 
-          case ChessPiece::Type::ROOK:
+          if (ChessRule::PieceType::ROOK == piece.type)
+          {
             return ChessTextureCell::WHITE_ROOK;
+          }
 
-          case ChessPiece::Type::BISHOP:
+          if (ChessRule::PieceType::BISHOP == piece.type)
+          {
             return ChessTextureCell::WHITE_BISHOP;
+          }
 
-          case ChessPiece::Type::KNIGHT:
+          if (ChessRule::PieceType::KNIGHT == piece.type)
+          {
             return ChessTextureCell::WHITE_KNIGHT;
+          }
 
-          case ChessPiece::Type::PAWN:
+          if (ChessRule::PieceType::PAWN == piece.type)
+          {
             return ChessTextureCell::WHITE_PAWN;
-
-          default:
-            break;
           }
         }
-        else if (piece.color == ChessPiece::Color::BLACK)
+        else if (Color::BLACK == piece.color)
         {
-          switch (piece.type)
+          if (ChessRule::PieceType::KING == piece.type)
           {
-          case ChessPiece::Type::KING:
             return ChessTextureCell::BLACK_KING;
+          }
 
-          case ChessPiece::Type::QUEEN:
+          if (ChessRule::PieceType::QUEEN == piece.type)
+          {
             return ChessTextureCell::BLACK_QUEEN;
+          }
 
-          case ChessPiece::Type::ROOK:
+          if (ChessRule::PieceType::ROOK == piece.type)
+          {
             return ChessTextureCell::BLACK_ROOK;
+          }
 
-          case ChessPiece::Type::BISHOP:
+          if (ChessRule::PieceType::BISHOP == piece.type)
+          {
             return ChessTextureCell::BLACK_BISHOP;
+          }
 
-          case ChessPiece::Type::KNIGHT:
+          if (ChessRule::PieceType::KNIGHT == piece.type)
+          {
             return ChessTextureCell::BLACK_KNIGHT;
+          }
 
-          case ChessPiece::Type::PAWN:
+          if (ChessRule::PieceType::PAWN == piece.type)
+          {
             return ChessTextureCell::BLACK_PAWN;
-
-          default:
-            break;
           }
         }
 
         BOOST_ASSERT_MSG(false, "Invalid chess piece");
       };
 
-      ChessRule chessRule(ChessPiece::Color(findGameResponse.yourSide));
+      ChessRule chessRule(findGameResponse.yourSide);
       // TODO: need to consider how to initiate the GameRuleAdapter with
       //       findGameResponse.initialBoard
       std::shared_ptr<SfGameRuleAdapter>
-          gameRule = std::make_shared<SfChessRuleAdapter>(std::move(gameRule));
+          gameRuleAdapter = std::make_shared<SfChessRuleAdapter>(chessRule);
 
       // this vector obj maps each ChessPiece enum to a item entry
-      SfItemPlacementMap& itemPlacements = gameRule->getItemPlacements();
+      SfItemPlacementMap &itemPlacements = gameRuleAdapter->getItemPlacements();
+      auto squareToTileConverter = SfChessRuleAdapter::getSquareToTileConverter(
+          findGameResponse.yourSide);
 
       // add piece items to itemStore, also assign the returned entry
-      for (auto& [square, piece] : chessRule.getPiecePlacements())
+      for (auto &[square, piece] : chessRule.getPiecePlacements())
       {
         SfItemStore::Entry itemEntry = itemStore->addItem(
             getTextureIndex(piece), ZOrder::SECOND_LAYER, piece.toString());
-        
-        TileCoords tile = 
-        auto [iter, inserted] = itemPlacements.try_emplace()
+
+        TileCoords tile = squareToTileConverter(square);
+        auto [iter, inserted] = itemPlacements.try_emplace(tile, itemEntry);
+
+        BOOST_ASSERT_MSG(inserted, "There is no reason to fail this insertion");
       }
-
-      // // assert valid item entries before creating chess board
-      // BOOST_ASSERT_MSG(int(itemEntries.size()) == ChessPiece::COUNT,
-      //                  "itemEntries_ size must be equal to"
-      //                  " the number of chess pieces (32)");
-      // for (int i = 0; i < ChessPiece::COUNT; ++i)
-      // {
-      //   BOOST_ASSERT_MSG(!itemEntries[std::size_t(i)].isNull(),
-      //                    "itemEntries_ should not contain null item entry");
-      // }
-
 
       // create chessBoard with the loaded texture atlas
       std::shared_ptr<SfGameBoard>
           chessBoard = std::make_shared<SfChessBoard>(
-              boardRect, gameRule, tileMap, itemStore, requestSender);
+              boardRect, gameRuleAdapter, tileMap, itemStore, requestSender);
 
       // assign the initial state of the board
       std::shared_ptr<SfBoardState> initialBoardState;
@@ -166,8 +171,12 @@ namespace bgg
       if (findGameResponse.yourTurn == findGameResponse.currentTurn)
       {
         initialBoardState = std::make_shared<SfPieceSelectableState>(
-            chessBoard, std::move(gameRule), std::move(tileMap), std::move(itemStore));
-        chessBoard->pushState(initialBoardState, {0, 0});
+            chessBoard,
+            std::move(gameRuleAdapter),
+            std::move(tileMap),
+            std::move(itemStore));
+
+        chessBoard->pushState(std::move(initialBoardState), {-1000, -1000}); ///< to make it far away from window
       }
 
       return chessBoard;

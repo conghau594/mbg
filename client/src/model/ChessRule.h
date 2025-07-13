@@ -8,11 +8,16 @@
 
 #include <boost/assert.hpp>
 
-#include "ChessPiece.h"
+#include "Piece.h"
 
-#define BGG_VALIDATE_COLOR(color) BOOST_ASSERT_MSG(                             \
-    (color == ChessPiece::Color::WHITE) || (color == ChessPiece::Color::BLACK), \
-    "Player side must be ChessPiece::Color::WHITE or ChessPiece::Color::BLACK")
+#define BGG_VALIDATE_CHESS_PIECE(type) BOOST_ASSERT_MSG(        \
+    (type == KING) || (type == QUEEN) || (type == ROOK) ||      \
+        (type == BISHOP) || (type == KNIGHT) || (type == PAWN), \
+    "Type of chess piece must be one of 'King', 'Queen', 'Rook', 'Bishop', 'Knight', 'Pawn'")
+
+#define BGG_VALIDATE_COLOR(color) BOOST_ASSERT_MSG(     \
+    (color == Color::WHITE) || (color == Color::BLACK), \
+    "Player side must be Color::WHITE or Color::BLACK")
 
 #define BGG_VALIDATE_SQUARE(square) BOOST_ASSERT_MSG(                             \
     square[0] >= 'a' && square[0] <= 'h' && square[1] >= '1' && square[1] <= '8', \
@@ -27,7 +32,7 @@ namespace bgg
   class ChessRule final
   {
   public:
-    using Square = std::array<char, 3>;
+    using Square = Position;
     static int constexpr PIECE_COUNT = 32;
     static int constexpr BOARD_SIDE = 8;
     // static int constexpr AREA = BOARD_SIDE * BOARD_SIDE;
@@ -35,46 +40,57 @@ namespace bgg
     static int constexpr FIRST_COL = int('a');
     static int constexpr FIRST_ROW = int('1');
 
-    static std::pair<Square, ChessPiece> constexpr INITIAL_PLACEMENTS[PIECE_COUNT]{
-        {Square{"e1"}, {ChessPiece::Type::KING, ChessPiece::Color::WHITE}},
-        {Square{"d1"}, {ChessPiece::Type::QUEEN, ChessPiece::Color::WHITE}},
-        {Square{"a1"}, {ChessPiece::Type::ROOK, ChessPiece::Color::WHITE}},
-        {Square{"h1"}, {ChessPiece::Type::ROOK, ChessPiece::Color::WHITE}},
-        {Square{"b1"}, {ChessPiece::Type::KNIGHT, ChessPiece::Color::WHITE}},
-        {Square{"g1"}, {ChessPiece::Type::KNIGHT, ChessPiece::Color::WHITE}},
-        {Square{"c1"}, {ChessPiece::Type::BISHOP, ChessPiece::Color::WHITE}},
-        {Square{"f1"}, {ChessPiece::Type::BISHOP, ChessPiece::Color::WHITE}},
-        {Square{"a2"}, {ChessPiece::Type::PAWN, ChessPiece::Color::WHITE}},
-        {Square{"b2"}, {ChessPiece::Type::PAWN, ChessPiece::Color::WHITE}},
-        {Square{"c2"}, {ChessPiece::Type::PAWN, ChessPiece::Color::WHITE}},
-        {Square{"d2"}, {ChessPiece::Type::PAWN, ChessPiece::Color::WHITE}},
-        {Square{"e2"}, {ChessPiece::Type::PAWN, ChessPiece::Color::WHITE}},
-        {Square{"f2"}, {ChessPiece::Type::PAWN, ChessPiece::Color::WHITE}},
-        {Square{"g2"}, {ChessPiece::Type::PAWN, ChessPiece::Color::WHITE}},
-        {Square{"h2"}, {ChessPiece::Type::PAWN, ChessPiece::Color::WHITE}},
+    class PieceType
+    {
+    public:
+      static constexpr const char KING[] = "King";
+      static constexpr const char QUEEN[] = "Queen";
+      static constexpr const char ROOK[] = "Rook";
+      static constexpr const char BISHOP[] = "Bishop";
+      static constexpr const char KNIGHT[] = "Knight";
+      static constexpr const char PAWN[] = "Pawn";
+    };
 
-        {Square{"e8"}, {ChessPiece::Type::KING, ChessPiece::Color::BLACK}},
-        {Square{"d8"}, {ChessPiece::Type::QUEEN, ChessPiece::Color::BLACK}},
-        {Square{"a8"}, {ChessPiece::Type::ROOK, ChessPiece::Color::BLACK}},
-        {Square{"h8"}, {ChessPiece::Type::ROOK, ChessPiece::Color::BLACK}},
-        {Square{"b8"}, {ChessPiece::Type::KNIGHT, ChessPiece::Color::BLACK}},
-        {Square{"g8"}, {ChessPiece::Type::KNIGHT, ChessPiece::Color::BLACK}},
-        {Square{"c8"}, {ChessPiece::Type::BISHOP, ChessPiece::Color::BLACK}},
-        {Square{"f8"}, {ChessPiece::Type::BISHOP, ChessPiece::Color::BLACK}},
-        {Square{"a7"}, {ChessPiece::Type::PAWN, ChessPiece::Color::BLACK}},
-        {Square{"b7"}, {ChessPiece::Type::PAWN, ChessPiece::Color::BLACK}},
-        {Square{"c7"}, {ChessPiece::Type::PAWN, ChessPiece::Color::BLACK}},
-        {Square{"d7"}, {ChessPiece::Type::PAWN, ChessPiece::Color::BLACK}},
-        {Square{"e7"}, {ChessPiece::Type::PAWN, ChessPiece::Color::BLACK}},
-        {Square{"f7"}, {ChessPiece::Type::PAWN, ChessPiece::Color::BLACK}},
-        {Square{"g7"}, {ChessPiece::Type::PAWN, ChessPiece::Color::BLACK}},
-        {Square{"h7"}, {ChessPiece::Type::PAWN, ChessPiece::Color::BLACK}},
+    static inline std::pair<Square, Piece> INITIAL_PLACEMENTS[PIECE_COUNT] = {
+        {Square{"e1"}, Piece{PieceType::KING, Color::WHITE}},
+        {Square{"d1"}, Piece{PieceType::QUEEN, Color::WHITE}},
+        {Square{"a1"}, Piece{PieceType::ROOK, Color::WHITE}},
+        {Square{"h1"}, Piece{PieceType::ROOK, Color::WHITE}},
+        {Square{"b1"}, Piece{PieceType::KNIGHT, Color::WHITE}},
+        {Square{"g1"}, Piece{PieceType::KNIGHT, Color::WHITE}},
+        {Square{"c1"}, Piece{PieceType::BISHOP, Color::WHITE}},
+        {Square{"f1"}, Piece{PieceType::BISHOP, Color::WHITE}},
+        {Square{"a2"}, Piece{PieceType::PAWN, Color::WHITE}},
+        {Square{"b2"}, Piece{PieceType::PAWN, Color::WHITE}},
+        {Square{"c2"}, Piece{PieceType::PAWN, Color::WHITE}},
+        {Square{"d2"}, Piece{PieceType::PAWN, Color::WHITE}},
+        {Square{"e2"}, Piece{PieceType::PAWN, Color::WHITE}},
+        {Square{"f2"}, Piece{PieceType::PAWN, Color::WHITE}},
+        {Square{"g2"}, Piece{PieceType::PAWN, Color::WHITE}},
+        {Square{"h2"}, Piece{PieceType::PAWN, Color::WHITE}},
+
+        {Square{"e8"}, Piece{PieceType::KING, Color::BLACK}},
+        {Square{"d8"}, Piece{PieceType::QUEEN, Color::BLACK}},
+        {Square{"a8"}, Piece{PieceType::ROOK, Color::BLACK}},
+        {Square{"h8"}, Piece{PieceType::ROOK, Color::BLACK}},
+        {Square{"b8"}, Piece{PieceType::KNIGHT, Color::BLACK}},
+        {Square{"g8"}, Piece{PieceType::KNIGHT, Color::BLACK}},
+        {Square{"c8"}, Piece{PieceType::BISHOP, Color::BLACK}},
+        {Square{"f8"}, Piece{PieceType::BISHOP, Color::BLACK}},
+        {Square{"a7"}, Piece{PieceType::PAWN, Color::BLACK}},
+        {Square{"b7"}, Piece{PieceType::PAWN, Color::BLACK}},
+        {Square{"c7"}, Piece{PieceType::PAWN, Color::BLACK}},
+        {Square{"d7"}, Piece{PieceType::PAWN, Color::BLACK}},
+        {Square{"e7"}, Piece{PieceType::PAWN, Color::BLACK}},
+        {Square{"f7"}, Piece{PieceType::PAWN, Color::BLACK}},
+        {Square{"g7"}, Piece{PieceType::PAWN, Color::BLACK}},
+        {Square{"h7"}, Piece{PieceType::PAWN, Color::BLACK}},
     };
 
     class CandidateMoveInfo final
     {
     public:
-      ChessPiece piece;
+      Piece piece;
 
       std::list<Square> quietMoves;
       std::list<Square> captureMoves;
@@ -82,27 +98,27 @@ namespace bgg
     };
 
   private:
-    std::map<Square, ChessPiece> piecePlacements_;
-    ChessPiece::Color color_;
+    std::map<Square, Piece> piecePlacements_;
+    std::string color_;
 
   public:
-    ChessRule(ChessPiece::Color color) noexcept;
-    ChessRule(std::map<Square, ChessPiece> piecePlacements,
-              ChessPiece::Color color) noexcept;
+    ChessRule(std::string color) noexcept;
+    ChessRule(std::map<Square, Piece> piecePlacements,
+              std::string color) noexcept;
 
     [[nodiscard]]
-    auto getColor() const noexcept -> ChessPiece::Color;
+    auto getColor() const noexcept -> std::string const &;
     [[nodiscard]]
-    auto getPiecePlacements() noexcept -> std::map<Square, ChessPiece> &;
+    auto getPiecePlacements() noexcept -> std::map<Square, Piece> &;
 
     [[nodiscard]]
-    auto getSelectablePieces() const noexcept -> std::map<Square, ChessPiece>;
+    auto getSelectablePieces() const noexcept -> std::map<Square, Piece>;
     [[nodiscard]]
     auto getCandidateMoves(Square const &square) const noexcept
         -> std::optional<CandidateMoveInfo>;
 
     [[nodiscard]]
-    auto getPiece(Square const &square) const noexcept -> std::optional<ChessPiece>;
+    auto getPiece(Square const &square) const noexcept -> std::optional<Piece>;
 
   private:
     // static constexpr auto indexToSquare(int index) -> Square;

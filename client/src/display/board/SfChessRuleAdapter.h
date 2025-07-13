@@ -2,6 +2,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 
 #include "SfGameRuleAdapter.h"
 #include "SfItemStore.h"
@@ -13,34 +14,34 @@
 
 namespace bgg
 {
-    class SfBoardItem;
+  class SfBoardItem;
 
-    class SfChessRuleAdapter final : public SfGameRuleAdapter
-    {
-        SfItemPlacementMap itemPlacements_; ///< Usage: itemEntries_[ChessPiece::<ENUM>]
-        ChessRule rule_;
-        TileCoords (*const squareToTileConverter_)(ChessRule::Square const &);
-        std::functional<ChessRule::Square(TileCoords const &)> const tileToSquareConverter_;
+  class SfChessRuleAdapter final : public SfGameRuleAdapter
+  {
+    SfItemPlacementMap itemPlacements_; ///< Usage: itemEntries_[ChessPiece::<ENUM>]
+    ChessRule rule_;
+    std::function<TileCoords(ChessRule::Square const &)> const squareToTileConverter_;
+    std::function<ChessRule::Square(TileCoords const &)> const tileToSquareConverter_;
 
-    public:
-        SfChessRuleAdapter(ChessRule rule) noexcept;
+  public:
+    SfChessRuleAdapter(ChessRule rule) noexcept;
 
-        static constexpr auto getSquareToTileConverter(ChessPiece::Color color) noexcept
-            -> std::functional<TileCoords(ChessRule::Square const &)>;
-        static constexpr auto getTileToSquareConverter(ChessPiece::Color color) noexcept
-            -> std::functional<ChessRule::Square(TileCoords const &)>;
+    static auto getSquareToTileConverter(std::string color) noexcept
+        -> std::function<TileCoords(ChessRule::Square const &)>;
+    static auto getTileToSquareConverter(std::string color) noexcept
+        -> std::function<ChessRule::Square(TileCoords const &)>;
 
-    private:
-        auto getSide() const -> int override;
+  private:
+    auto getSide() const -> std::string const & override;
 
-        auto getItemPlacements() -> SfItemPlacementMap & override;
-        auto getSelectableTiles() const noexcept -> SfItemPlacementMap override;
-        auto getReachableTiles(TileCoords const &tile) const noexcept
-            -> std::optional<SfReachableTileInfo> override;
+    auto getItemPlacements() -> SfItemPlacementMap & override;
+    auto getSelectableTiles() const noexcept -> SfItemPlacementMap override;
+    auto getReachableTiles(TileCoords const &tile) const noexcept
+        -> std::optional<SfReachableTileInfo> override;
 
-        // auto getItemType(TileCoords const &tile) const noexcept
-        //     -> std::optional<int> override;
-        auto getItemEntry(TileCoords const &tile) const noexcept
-            -> std::optional<SfItemStore::Entry> override;
-    };
+    // auto getItemType(TileCoords const &tile) const noexcept
+    //     -> std::optional<int> override;
+    auto getItemEntry(TileCoords const &tile) const noexcept
+        -> std::optional<SfItemStore::Entry> override;
+  };
 } // namespace bgg

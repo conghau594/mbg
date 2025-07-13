@@ -7,6 +7,7 @@
 
 #include "peeb/Event.hpp"
 #include "base/ErrorCode.h"
+#include "model/Piece.h"
 
 namespace bgg
 {
@@ -16,19 +17,12 @@ namespace bgg
     ErrorCode errcode;
     std::string userId;
   };
-  
+
   class FindGameAcceptedNotification final
   {
   public:
     ErrorCode errcode;
   };
-
-  struct Position
-  {
-    int x, y;
-  };
-
-  using ItemIndex = int;
 
   class FindGameResponse final
   {
@@ -36,8 +30,8 @@ namespace bgg
     ErrorCode errcode;
     int gameType;
 
-    std::map<ItemIndex, Position> initialBoard;
-    int yourSide;
+    std::map<Position, Piece> initialBoard;
+    std::string yourSide;
     int yourTurn;
     int currentTurn;
   };
@@ -51,7 +45,7 @@ namespace bgg
   class GameUpdatedNotification final
   {
   public:
-    std::map<ItemIndex, Position> currentBoard;
+    std::map<Position, Piece> currentBoard;
     int yourTurn;
     int currentTurn;
   };
@@ -59,7 +53,7 @@ namespace bgg
   class GameFinishedNotification final
   {
   public:
-    std::map<ItemIndex, Position> currentBoard;
+    std::map<Position, Piece> currentBoard;
     int yourRank;
     int playerCount;
   };
@@ -69,7 +63,7 @@ namespace bgg
   public:
     ErrorCode errcode;
 
-    std::map<std::string, std::string> specialMove; // e.g. promotion: "Queen", "check"
+    std::map<Position, Piece> specialMove; // e.g. promotion: "Queen", "check"
     struct
     {
       int x, y;

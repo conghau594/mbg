@@ -105,15 +105,12 @@ namespace bgg
           lastMoveHighlighters_[1].getItem(), pieceMove->toSquare);
 
       bool somethingWrong = true;
-      if (auto selectedItemIndex = gameRule_->getItemIndex(pieceMove->fromSquare))
+      if (auto selectedItemEntry = gameRule_->getItemEntry(pieceMove->fromSquare))
       {
-        if (auto selectedItemEntry = gameRule_->getItemEntry(selectedItemIndex.value()))
-        {
-          tileMap_->fitItemToTile(
-              selectedItemEntry.value().getItem(), pieceMove->toSquare);
+        tileMap_->fitItemToTile(
+            selectedItemEntry.value().getItem(), pieceMove->toSquare);
 
-          somethingWrong = false;
-        }
+        somethingWrong = false;
       }
 
       BOOST_ASSERT_MSG(

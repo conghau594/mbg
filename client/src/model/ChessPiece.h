@@ -9,7 +9,6 @@ namespace bgg
 {
   class ChessPiece final
   {
-  public:
     enum class Type
     {
       KING,
@@ -18,18 +17,21 @@ namespace bgg
       BISHOP,
       KNIGHT,
       PAWN
-    } type;
+    } type_;
 
     enum class Color
     {
       WHITE,
       BLACK
-    } color;
+    } color_;
 
-    [[nodiscard]]
-    auto toString() noexcept -> std::string
+  public:
+    [[nodiscard]] auto type() noexcept -> Type & { return type_; }
+    [[nodiscard]] auto color() noexcept -> Color & { return color_; }
+
+    [[nodiscard]] auto toString() const noexcept -> std::string
     {
-      return toString(color) + toString(type);
+      return toString(color_) + toString(type_);
     }
 
     [[nodiscard]]
@@ -38,7 +40,7 @@ namespace bgg
       switch (type)
       {
       case Type::KING:
-        return "White";
+        return "King";
 
       case Type::QUEEN:
         return "Queen";
@@ -57,7 +59,7 @@ namespace bgg
 
       default:
         BOOST_ASSERT_MSG(
-            false, "Cannot convert this piece type to string");
+            false, "Cannot convert this chess piece type to string");
       }
     }
 
@@ -74,9 +76,62 @@ namespace bgg
 
       default:
         BOOST_ASSERT_MSG(
-            false,
-            "Cannot convert this piece color to string");
+            false, "Cannot convert this chess piece color to string");
       }
     }
+
+    [[nodiscard]]
+    static auto toColor(std::string const &color) noexcept -> Color
+    {
+      if ("White" == color)
+      {
+        return Color::WHITE;
+      }
+
+      if ("Black" == color)
+      {
+        return Color::BLACK;
+      }
+
+      BOOST_ASSERT_MSG(
+          false, "Cannot convert this string to chess piece color");
+    }
+
+    [[nodiscard]]
+    static auto toType(std::string const &type) noexcept -> Type
+    {
+      if ("King" == type)
+      {
+        return Type::KING;
+      }
+
+      if ("Queen" == type)
+      {
+        return Type::QUEEN;
+      }
+
+      if ("Rook" == type)
+      {
+        return Type::ROOK;
+      }
+
+      if ("Bishop" == type)
+      {
+        return Type::BISHOP;
+      }
+
+      if ("Knight" == type)
+      {
+        return Type::KNIGHT;
+      }
+
+      if ("Pawn" == type)
+      {
+        return Type::PAWN;
+      }
+
+      BOOST_ASSERT_MSG(
+          false, "Cannot convert this string to chess piece type");
+    }
   };
-}
+} // namespace bgg

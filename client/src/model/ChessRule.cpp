@@ -4,34 +4,34 @@
 
 namespace bgg
 {
-  ChessRule::ChessRule(ChessPiece::Color color) noexcept
+  ChessRule::ChessRule(std::string color) noexcept
       : piecePlacements_(INITIAL_PLACEMENTS, INITIAL_PLACEMENTS + PIECE_COUNT),
-        color_(color)
+        color_(std::move(color))
   {
-    BGG_VALIDATE_SIDE(color);
+    BGG_VALIDATE_COLOR(color_);
   }
 
   ChessRule::ChessRule(
-      std::map<Square, ChessPiece> piecePlacements,
-      ChessPiece::Color color) noexcept
-      : piecePlacements_(piecePlacements), color_(color)
+      std::map<Square, Piece> piecePlacements,
+      std::string color) noexcept
+      : piecePlacements_(std::move(piecePlacements)), color_(std::move(color))
   {
-    BGG_VALIDATE_SIDE(color);
+    BGG_VALIDATE_COLOR(color_);
   }
 
-  auto ChessRule::getColor() const noexcept -> ChessPiece::Color
+  auto ChessRule::getColor() const noexcept -> std::string const &
   {
     return color_;
   }
 
   auto ChessRule::getPiecePlacements() noexcept
-      -> std::map<Square, ChessPiece> &
+      -> std::map<Square, Piece> &
   {
     return piecePlacements_;
   }
 
   auto ChessRule::getSelectablePieces() const noexcept
-      -> std::map<Square, ChessPiece>
+      -> std::map<Square, Piece>
   {
     // TODO: getSelectablePieces()
     return piecePlacements_;
@@ -43,7 +43,7 @@ namespace bgg
     BGG_VALIDATE_SQUARE(square);
     // TODO: getCandidateMoves(Square const &square)
 
-    std::optional<ChessPiece> piece = getPiece(square);
+    std::optional<Piece> piece = getPiece(square);
     if (!piece)
     {
       return std::nullopt;
@@ -59,7 +59,7 @@ namespace bgg
   }
 
   auto ChessRule::getPiece(Square const &square) const noexcept
-      -> std::optional<ChessPiece>
+      -> std::optional<Piece>
   {
     BGG_VALIDATE_SQUARE(square);
     auto found = piecePlacements_.find(square);

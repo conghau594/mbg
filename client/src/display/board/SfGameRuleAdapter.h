@@ -49,10 +49,10 @@ namespace bgg
     virtual ~SfGameRuleAdapter() = default;
 
     [[nodiscard]]
-    virtual auto getSide() const -> int = 0;
+    virtual auto getSide() const -> std::string const & = 0;
 
     [[nodiscard]]
-    virtual auto getItemPlacements() -> SfItemPlacementMap& = 0;
+    virtual auto getItemPlacements() -> SfItemPlacementMap & = 0;
 
     [[nodiscard]]
     virtual auto getSelectableTiles() const -> SfItemPlacementMap = 0;
@@ -69,5 +69,5 @@ namespace bgg
 
     [[nodiscard]]
     virtual auto getItemEntry(TileCoords const &tile) const -> std::optional<SfItemStore::Entry> = 0;
-    };
+  };
 } // namespace bgg

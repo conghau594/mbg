@@ -41,16 +41,13 @@ namespace bgg
         false);
 
     bool somethingWrong = true;
-    if (auto itemIndex = gameRule_->getItemIndex(selectedTile_))
+    if (auto itemEntryOpt = gameRule_->getItemEntry(selectedTile_))
     {
-      if (auto itemEntryOpt = gameRule_->getItemEntry(itemIndex.value()))
-      {
-        selectedItemEntry_ = itemEntryOpt.value();
-        originalSelectedItemZOrder_ = itemStore_->getZOrder(selectedItemEntry_);
-        itemStore_->changeZOrder(selectedItemEntry_, ZOrder::FOURTH_LAYER);
+      selectedItemEntry_ = itemEntryOpt.value();
+      originalSelectedItemZOrder_ = itemStore_->getZOrder(selectedItemEntry_);
+      itemStore_->changeZOrder(selectedItemEntry_, ZOrder::FOURTH_LAYER);
 
-        somethingWrong = false;
-      }
+      somethingWrong = false;
     }
 
     if (auto reachableTileInfo = gameRule_->getReachableTiles(selectedTile_))
@@ -59,11 +56,13 @@ namespace bgg
       somethingWrong = false;
 
       //==========
-      SPDLOG_DEBUG("There are {} reachable tiles from tile ({}, {}) obtained by '{}'",
-                   reachableTileInfo.value().quietMoves.size() + reachableTileInfo.value().captureMoves.size() + reachableTileInfo.value().specialMoves.size(),
-                   selectedTile_.x,
-                   selectedTile_.y,
-                   ChessPiece::toString(gameRule_->getItemIndex(selectedTile_).value()).value());
+      SPDLOG_DEBUG(
+          "There are {} reachable tiles from tile ({}, {}) obtained by '{}'",
+          reachableTileInfo.value().quietMoves.size() +
+              reachableTileInfo.value().captureMoves.size() +
+              reachableTileInfo.value().specialMoves.size(),
+          selectedTile_.x, selectedTile_.y,
+          "?" /*ChessPiece::toString(gameRule_->getItemT Entry(selectedTile_).value())*/);
       //==========
     }
 
@@ -202,7 +201,7 @@ namespace bgg
     //  So this class cannot be common to other types of board game.
     //  You need a refactor. You might delegate this to gameRule_?
     TileCoords const &specialMoveTile = reachableTileInfo.specialMoves[0];
-    if (auto pieceAtSpecialTile = gameRule_->getItemIndex(specialMoveTile))
+    if (auto itemAtSpecialTile = gameRule_->getItemEntry(specialMoveTile))
     {
       SfItemStore::Entry &&captureMoveHighlighter = itemStore_->addItem(
           ChessTextureCell::CAPTURE_MOVE_HIGHLIGHTER,

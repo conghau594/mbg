@@ -14,16 +14,9 @@ namespace bgg
   {
   }
 
-  constexpr auto SfChessRuleAdapter::squareToTile(
-      ChessRule::Square const &square,
-      ChessPiece::Color color) noexcept -> TileCoords
+  auto SfChessRuleAdapter::getSide() const -> std::string const &
   {
-    return TileCoords();
-  }
-
-  auto SfChessRuleAdapter::getSide() const -> int
-  {
-    return int(rule_.getColor());
+    return rule_.getColor();
   }
 
   auto SfChessRuleAdapter::getItemPlacements() -> SfItemPlacementMap &
@@ -33,15 +26,16 @@ namespace bgg
 
   auto SfChessRuleAdapter::getSelectableTiles() const noexcept -> SfItemPlacementMap
   {
-    std::map<ChessRule::Square, ChessPiece>
+    std::map<ChessRule::Square, Piece>
         piecePlacements = rule_.getSelectablePieces();
 
     SfItemPlacementMap itemPlacements;
     for (auto &[square, piece] : piecePlacements)
     {
       TileCoords tile = squareToTileConverter_(square);
+      SfItemStore::Entry entry = itemPlacements_.at(tile);
       auto [iter, inserted] = itemPlacements.try_emplace(
-          tile, itemPlacements_.at(tile));
+          std::move(tile), std::move(entry));
 
       BOOST_ASSERT_MSG(inserted, "There should be one item per tile");
     }
@@ -119,10 +113,11 @@ namespace bgg
     return found->second;
   }
 
-  static constexpr auto SfChessRuleAdapter::getSquareToTileConverter(ChessPiece::Color color) noexcept
-      -> std::functional<TileCoords(ChessRule::Square const &)>
+  auto SfChessRuleAdapter::getSquareToTileConverter(
+      std::string color) noexcept
+      -> std::function<TileCoords(ChessRule::Square const &)>
   {
-    std::functional<TileCoords(ChessRule::Square const &)> squareToTileAtWhite =
+    auto squareToTileAtWhite =
         [](ChessRule::Square const &square) noexcept -> TileCoords
     {
       BGG_VALIDATE_SQUARE(square);
@@ -135,7 +130,7 @@ namespace bgg
           ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_ROW - row};
     };
 
-    std::functional<TileCoords(ChessRule::Square const &)> squareToTileAtBlack =
+    auto squareToTileAtBlack =
         [](ChessRule::Square const &square) noexcept -> TileCoords
     {
       BGG_VALIDATE_SQUARE(square);
@@ -148,39 +143,39 @@ namespace bgg
           row - ChessRule::FIRST_ROW};
     };
 
-    return color == ChessPiece::Color::WHITE
+    return Color::WHITE == color
                ? squareToTileAtWhite
                : squareToTileAtBlack;
   }
 
-  static constexpr auto SfChessRuleAdapter::getTileToSquareConverter(ChessPiece::Color color) noexcept
-      -> std::functional<ChessRule::Square(TileCoords const &)>
+  auto SfChessRuleAdapter::getTileToSquareConverter(
+      std::string color) noexcept
+      -> std::function<ChessRule::Square(TileCoords const &)>
   {
-    return color == ChessPiece::Color::WHITE
+    auto tileToSquareAtWhite =
+        [](TileCoords const &tile) noexcept -> ChessRule::Square
+    {
+      BGG_VALIDATE_TILE(tile);
+
+      return ChessRule::Square{
+          char(tile.x + ChessRule::FIRST_COL),
+          char(ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_ROW - tile.y),
+          '\0'};
+    };
+
+    auto tileToSquareAtBlack =
+        [](TileCoords const &tile) noexcept -> ChessRule::Square
+    {
+      BGG_VALIDATE_TILE(tile);
+
+      return ChessRule::Square{
+          char(ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_COL - tile.x),
+          char(tile.y + ChessRule::FIRST_ROW),
+          '\0'};
+    };
+
+    return Color::WHITE == color
                ? tileToSquareAtWhite
                : tileToSquareAtBlack;
   }
-
-  constexpr auto SfChessRuleAdapter::tileToSquareAtWhite(
-      TileCoords const &tile) noexcept -> ChessRule::Square
-  {
-    BGG_VALIDATE_TILE(tile);
-
-    return ChessRule::Square{
-        char(tile.x + ChessRule::FIRST_COL),
-        char(ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_ROW - tile.y),
-        '\0'};
-  }
-
-  constexpr auto SfChessRuleAdapter::tileToSquareAtBlack(
-      TileCoords const &tile) noexcept -> ChessRule::Square
-  {
-    BGG_VALIDATE_TILE(tile);
-
-    return ChessRule::Square{
-        char(ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_COL - tile.x),
-        char(tile.y + ChessRule::FIRST_ROW),
-        '\0'};
-  }
-
 } // namespace bgg
