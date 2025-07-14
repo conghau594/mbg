@@ -109,7 +109,7 @@ namespace bgg
     [[nodiscard]]
     auto getColor() const noexcept -> std::string const &;
     [[nodiscard]]
-    auto getPiecePlacements() noexcept -> std::map<Square, Piece> &;
+    auto getPiecePlacements() noexcept -> std::map<Square, Piece> const &;
 
     [[nodiscard]]
     auto getSelectablePieces() const noexcept -> std::map<Square, Piece>;

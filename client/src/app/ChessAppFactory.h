@@ -6,8 +6,8 @@
 #include "GameApp.h"
 
 #include "service/MockGameService.h"
-#include "display/SfGameDisplay.h"
-#include "display/SfLoginScreen.h"
+#include "display/GameDisplay.h"
+#include "display/screen/LoginScreen.h"
 
 #include "peeb/EventBus.hpp"
 namespace bgg
@@ -37,11 +37,11 @@ namespace bgg
       // create GameService object
       std::shared_ptr<GameService> gameService = std::make_shared<MockGameService>(eventBus);
 
-      // create GameDisplay object
-      std::shared_ptr<GameDisplay> gameDisplay = std::make_shared<SfGameDisplay>(
+      // create IDisplay object
+      std::shared_ptr<IDisplay> gameDisplay = std::make_shared<GameDisplay>(
           window, eventBus);
 
-      std::shared_ptr<GameScreen> initialScreen = std::make_shared<SfLoginScreen>(
+      std::shared_ptr<IScreen> initialScreen = std::make_shared<LoginScreen>(
           window, gameDisplay);
 
       gameDisplay->pushScreen(initialScreen);

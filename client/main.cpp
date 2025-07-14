@@ -30,7 +30,7 @@ int main()
   catch (std::exception const &e)
   {
     // TODO: Log failure with `e`
-    spdlog::critical("Failure at running app: {}", e.what());
+    SPDLOG_CRITICAL("Failure at running the app: {}", e.what());
   }
   return 0;
 }

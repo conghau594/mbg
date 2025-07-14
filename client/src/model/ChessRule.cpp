@@ -25,7 +25,7 @@ namespace bgg
   }
 
   auto ChessRule::getPiecePlacements() noexcept
-      -> std::map<Square, Piece> &
+      -> std::map<Square, Piece> const&
   {
     return piecePlacements_;
   }

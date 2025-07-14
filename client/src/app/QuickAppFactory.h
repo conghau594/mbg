@@ -7,9 +7,9 @@
 #include "GameApp.h"
 
 #include "service/MockGameService.h"
-#include "display/SfGameDisplay.h"
-#include "display/SfGamePlayScreen.h"
-#include "display/board/SfGameBoardFactory.h"
+#include "display/GameDisplay.h"
+#include "display/screen/GamePlayScreen.h"
+#include "display/board/GameBoardFactory.h"
 
 #include "peeb/EventBus.hpp"
 #include "model/ChessRule.h"
@@ -54,8 +54,8 @@ namespace bgg
                 eventBus = std::make_shared<ClientEventBus>();
             std::shared_ptr<GameService>
                 gameService = std::make_shared<MockGameService>(eventBus);
-            std::shared_ptr<GameDisplay>
-                gameDisplay = std::make_shared<SfGameDisplay>(window, eventBus);
+            std::shared_ptr<IDisplay>
+                gameDisplay = std::make_shared<GameDisplay>(window, eventBus);
 
             //==============
             std::map<Position, Piece> initialPlacements(
@@ -81,12 +81,12 @@ namespace bgg
                 gameDisplay->send(request);
             };
 
-            std::shared_ptr<SfGameBoard>
-                chessBoard = SfGameBoardFactory().create(
+            std::shared_ptr<IGameBoard>
+                chessBoard = GameBoardFactory().create(
                     findGameResponse, boardRect, std::move(requestSender));
 
-            std::shared_ptr<GameScreen>
-                chessScreen = std::make_shared<SfGamePlayScreen>(
+            std::shared_ptr<IScreen>
+                chessScreen = std::make_shared<GamePlayScreen>(
                     window, gameDisplay, chessBoard, RESIGN_REGION_HEIGHT);
 
             gameDisplay->pushScreen(chessScreen);
