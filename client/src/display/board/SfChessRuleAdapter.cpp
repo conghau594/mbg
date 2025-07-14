@@ -14,6 +14,18 @@ namespace bgg
   {
   }
 
+  auto SfChessRuleAdapter::positionToTile(
+      Position const &position) const noexcept -> TileCoords
+  {
+    return squareToTileConverter_(position);
+  }
+
+  auto SfChessRuleAdapter::tileToPosition(
+      TileCoords const &tile) const noexcept -> Position
+  {
+    return tileToSquareConverter_(tile);
+  }
+
   auto SfChessRuleAdapter::getSide() const -> std::string const &
   {
     return rule_.getColor();

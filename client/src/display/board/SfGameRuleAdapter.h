@@ -9,6 +9,7 @@
 #include <SFML/System/Vector2.hpp>
 
 #include "SfItemStore.h"
+#include "model/Piece.h"
 
 namespace bgg
 {
@@ -68,6 +69,12 @@ namespace bgg
     // virtual auto getItemType(TileCoords const &tile) const -> std::optional<int> = 0;
 
     [[nodiscard]]
-    virtual auto getItemEntry(TileCoords const &tile) const -> std::optional<SfItemStore::Entry> = 0;
+    virtual auto getItemEntry(TileCoords const &tile) const
+        -> std::optional<SfItemStore::Entry> = 0;
+
+    [[nodiscard]]
+    virtual auto positionToTile(Position const &position) const -> TileCoords = 0;
+    [[nodiscard]]
+    virtual auto tileToPosition(TileCoords const &tile) const -> Position = 0;
   };
 } // namespace bgg

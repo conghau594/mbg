@@ -11,9 +11,9 @@ namespace bgg
   class MoveChessPiece final
   {
   public:
-    sf::Vector2i fromSquare;
-    sf::Vector2i toSquare;
-    std::optional<int> promotedPiece;
+    sf::Vector2i fromTile;
+    sf::Vector2i toTile;
+    std::optional<std::string> promote;
   };
 
   class DrawCard final

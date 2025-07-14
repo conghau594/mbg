@@ -196,7 +196,7 @@ namespace bgg
           int errCodeValue = 0;
           try
           {
-            simulateNetworkLatencyAndFailure(30);
+            simulateNetworkLatencyAndFailure();
           }
           catch (std::runtime_error const &e)
           {
@@ -204,6 +204,27 @@ namespace bgg
           }
 
           emit(CommitMoveResponse{ErrorCode{errCodeValue, "Mock", msg}});
+
+          msg = "";
+          errCodeValue = 0;
+
+          try
+          {
+            simulateNetworkLatencyAndFailure(0, 1000, 2000);
+          }
+          catch (std::runtime_error const &e)
+          {
+            msg = e.what();
+            errCodeValue = -1;
+          }
+
+          std::string gameId = "@Test123";
+          int side = 0; // 0: WHITE, 1: BLACK
+          emit(GameUpdatedNotification{
+              Position("a7"),
+              Position("a5"),
+
+          });
         });
   }
 

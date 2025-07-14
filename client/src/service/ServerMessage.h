@@ -45,7 +45,9 @@ namespace bgg
   class GameUpdatedNotification final
   {
   public:
-    std::map<Position, Piece> currentBoard;
+    // enemy move
+    Position fromPosition, toPosition;
+    std::optional<std::string> promote; // e.g. promote to: "Queen"
     int yourTurn;
     int currentTurn;
   };
@@ -62,13 +64,6 @@ namespace bgg
   {
   public:
     ErrorCode errcode;
-
-    std::map<Position, Piece> specialMove; // e.g. promotion: "Queen", "check"
-    struct
-    {
-      int x, y;
-    } fromPosition, toPosition;
-
     std::optional<GameUpdatedNotification> currentGameState;
   };
 

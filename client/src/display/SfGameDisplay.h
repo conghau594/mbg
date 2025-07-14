@@ -63,7 +63,7 @@ namespace bgg
           serverMessages_.push_back(d);
 
           SPDLOG_INFO("A server message of type '{}' has come to '{}'",
-                      typeid(*this).name(), typeid(DATA).name());
+                      typeid(DATA).name(), typeid(*this).name());
         });
 
     if (!id)

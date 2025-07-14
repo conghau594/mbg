@@ -67,7 +67,7 @@ namespace bgg
       auto itemStore = std::make_shared<SfItemStore>(chessTextureAtlas);
 
       // this vector obj maps each ChessPiece enum to a coresponding texture index
-      auto getTextureIndex = [](Piece const &piece)
+      auto getTextureIndex = [](Piece const &piece) -> int
       {
         if (Color::WHITE == piece.color)
         {
@@ -135,26 +135,25 @@ namespace bgg
         }
 
         BOOST_ASSERT_MSG(false, "Invalid chess piece");
+        return -1;
       };
 
-      ChessRule chessRule(findGameResponse.yourSide);
+      ChessRule chessRule(findGameResponse.initialBoard, findGameResponse.yourSide);
       // TODO: need to consider how to initiate the GameRuleAdapter with
       //       findGameResponse.initialBoard
       std::shared_ptr<SfGameRuleAdapter>
-          gameRuleAdapter = std::make_shared<SfChessRuleAdapter>(chessRule);
+          gameRuleAdapter = std::make_shared<SfChessRuleAdapter>(std::move(chessRule));
 
       // this vector obj maps each ChessPiece enum to a item entry
       SfItemPlacementMap &itemPlacements = gameRuleAdapter->getItemPlacements();
-      auto squareToTileConverter = SfChessRuleAdapter::getSquareToTileConverter(
-          findGameResponse.yourSide);
 
       // add piece items to itemStore, also assign the returned entry
-      for (auto &[square, piece] : chessRule.getPiecePlacements())
+      for (auto &[square, piece] : findGameResponse.initialBoard)
       {
         SfItemStore::Entry itemEntry = itemStore->addItem(
             getTextureIndex(piece), ZOrder::SECOND_LAYER, piece.toString());
 
-        TileCoords tile = squareToTileConverter(square);
+        TileCoords tile = gameRuleAdapter->positionToTile(square);
         auto [iter, inserted] = itemPlacements.try_emplace(tile, itemEntry);
 
         BOOST_ASSERT_MSG(inserted, "There is no reason to fail this insertion");

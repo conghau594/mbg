@@ -32,6 +32,11 @@ namespace bgg
         -> std::function<ChessRule::Square(TileCoords const &)>;
 
   private:
+    auto positionToTile(
+        Position const &position) const noexcept -> TileCoords override;
+    auto tileToPosition(
+        TileCoords const &tile) const noexcept -> Position override;
+
     auto getSide() const -> std::string const & override;
 
     auto getItemPlacements() -> SfItemPlacementMap & override;

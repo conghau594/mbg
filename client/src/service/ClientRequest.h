@@ -2,8 +2,10 @@
 #pragma once
 
 #include <string>
+#include <optional>
 #include <map>
 
+#include "model/Piece.h"
 #include "peeb/Event.hpp"
 
 namespace bgg
@@ -35,13 +37,8 @@ namespace bgg
     std::string userId;
     std::string gameId;
 
-    struct
-    {
-      int x, y;
-    } fromPosition, toPosition;
-
-    // TODO: should refactor this
-    std::map<std::string, std::string> specialMove; // e.g. promotion: "Queen"
+    Position fromPosition, toPosition;
+    std::optional<std::string> promote; // e.g. promote to: "Queen", "check"
   };
 
   class ResignGameRequest final

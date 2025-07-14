@@ -99,29 +99,28 @@ namespace bgg
     if (auto const &pieceMove = action.getIf<MoveChessPiece>())
     {
       tileMap_->fitItemToTile(
-          lastMoveHighlighters_[0].getItem(), pieceMove->fromSquare);
+          lastMoveHighlighters_[0].getItem(), pieceMove->fromTile);
 
       tileMap_->fitItemToTile(
-          lastMoveHighlighters_[1].getItem(), pieceMove->toSquare);
+          lastMoveHighlighters_[1].getItem(), pieceMove->toTile);
 
-      bool somethingWrong = true;
-      if (auto selectedItemEntry = gameRule_->getItemEntry(pieceMove->fromSquare))
+      if (auto selectedItemEntry = gameRule_->getItemEntry(pieceMove->fromTile))
       {
         tileMap_->fitItemToTile(
-            selectedItemEntry.value().getItem(), pieceMove->toSquare);
-
-        somethingWrong = false;
+            selectedItemEntry.value().getItem(), pieceMove->toTile);
       }
-
-      BOOST_ASSERT_MSG(
-          !somethingWrong, "Something wrong: there is no item at the selectedTile_");
+      else
+      {
+        BOOST_ASSERT_MSG(
+            false, "Something wrong: there is no item at the selectedTile_");
+      }
 
       requestSender_(CommitMoveRequest{
           "",
           "",
-          // gameRule_->getSide(),
-          {pieceMove->fromSquare.x, pieceMove->fromSquare.y},
-          {pieceMove->toSquare.x, pieceMove->toSquare.y}});
+          gameRule_->tileToPosition(pieceMove->fromTile),
+          gameRule_->tileToPosition(pieceMove->toTile),
+          pieceMove->promote});
 
       // SfBoardItem &selectedItem = selectedItemEntry_.getItem();
     }
