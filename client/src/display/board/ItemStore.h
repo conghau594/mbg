@@ -97,16 +97,15 @@ namespace bgg
     std::shared_ptr<Container::iterator> itemIter_;
     Container const *itemMapPtr_;
 
-    Entry(
-        std::shared_ptr<Container::iterator> itemIter,
-        Container const *itemMapPtr) noexcept;
+    Entry(std::shared_ptr<Container::iterator> itemIter,
+          Container const *itemMapPtr) noexcept;
 
   public:
     /**
      * Construct an null Entry object associated with an ItemStore
      *
      */
-    Entry(ItemStore const &itemStore) noexcept;
+    Entry() noexcept;
 
     /**
      * \return True if two entries are copies of each other. Otherwise false.
@@ -125,6 +124,6 @@ namespace bgg
      * An assertion raises if the Entry object is null
      *
      */
-    [[nodiscard]] auto getItem() noexcept -> BoardItem &;
+    [[nodiscard]] auto getItem() const noexcept -> BoardItem &;
   };
 } // namespace bgg

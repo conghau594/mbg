@@ -18,13 +18,16 @@ namespace bgg
 
   class ChessRuleAdapter final : public IChessRuleAdapter
   {
-    ItemPlacementMap itemPlacements_; ///< Usage: itemEntries_[ChessPiece::<ENUM>]
+    std::shared_ptr<ItemStore> itemStore_;
     ChessRule rule_;
+
+    ItemPlacementMap itemPlacements_; ///< Usage: itemEntries_[ChessPiece::<ENUM>]
     std::function<TileCoords(Position const &)> const positionToTileConverter_;
     std::function<Position(TileCoords const &)> const tileToPositionConverter_;
 
   public:
-    ChessRuleAdapter(ChessRule rule) noexcept;
+    ChessRuleAdapter(
+        std::shared_ptr<ItemStore> itemStore, ChessRule rule) noexcept;
 
     static auto getPositionToTileConverter(std::string color) noexcept
         -> std::function<TileCoords(Position const &)>;
@@ -36,14 +39,14 @@ namespace bgg
         Position const &position) const noexcept -> TileCoords override;
     auto tileToPosition(
         TileCoords const &tile) const noexcept -> Position override;
-    void updateMove(
-        sf::Vector2i fromTile,
-        sf::Vector2i toTile,
-        std::optional<std::string> promote) noexcept override;
+    void commitMove(ChessPieceMove const &move) noexcept override;
 
-    auto getSide() const -> std::string const & override;
+    auto getYourColor() const -> std::string const & override;
 
-    auto getItemPlacements() -> ItemPlacementMap & override;
+    auto getColor(TileCoords const &tile) const noexcept
+        -> std::optional<std::string> override;
+
+    auto getItemPlacements() -> ItemPlacementMap const & override;
     auto getSelectableTiles() const noexcept -> ItemPlacementMap override;
     auto getReachableTiles(TileCoords const &tile) const noexcept
         -> std::optional<ReachableTileInfo> override;
@@ -51,6 +54,8 @@ namespace bgg
     // auto getItemType(TileCoords const &tile) const noexcept
     //     -> std::optional<int> override;
     auto getItemEntry(TileCoords const &tile) const noexcept
-        -> std::optional<ItemStore::Entry> override;
+        -> ItemStore::Entry override;
+
+    // auto addItemEntry(TileCoords tile, ItemStore::Entry entry) noexcept -> bool override;
   };
 } // namespace bgg

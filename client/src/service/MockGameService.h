@@ -37,7 +37,7 @@ namespace bgg
 
     void sendRequest(CancelMatchmakingRequest const &cancelMatchmakingRqt) noexcept;
 
-    void sendRequest(CommitMoveRequest const &commitMoveRqt) noexcept;
+    void sendRequest(MoveRequest const &commitMoveRqt) noexcept;
 
     void sendRequest(ResignGameRequest const &resignGameRqt) noexcept;
 

@@ -16,6 +16,7 @@
 #include "display/board/ZOrder.h"
 
 #include "service/ClientRequest.h"
+#include "IChessRuleAdapter.h"
 
 namespace sf
 {
@@ -23,7 +24,6 @@ namespace sf
 }
 namespace bgg
 {
-  class IChessRuleAdapter;
   class ChessBoard final
       : public IChessBoard,
         public std::enable_shared_from_this<IChessBoard>
@@ -35,8 +35,14 @@ namespace bgg
     std::shared_ptr<TileMap> tileMap_;
     std::shared_ptr<ItemStore> itemStore_;
 
-    std::function<void(ClientRequest const &)> requestSender_;
+    std::optional<TileCoords> lastMoveTiles_[2];
+
+    ChessPieceMove pendingMove_;
+
+    ItemStore::Entry promotionItem_;
     ItemStore::Entry lastMoveHighlighters_[2];
+
+    std::function<void(ClientRequest const &)> requestSender_;
 
   public:
     ChessBoard(
@@ -48,10 +54,7 @@ namespace bgg
 
   private:
     void onWindowEvent(sf::Event const &event) noexcept override;
-    void requestMove(
-        sf::Vector2i fromTile,
-        sf::Vector2i toTile,
-        std::optional<std::string> promote) noexcept override;
+    void requestMove(ChessPieceMove const &move) noexcept override;
     void handleServerMessage(ServerMessage const &msg) noexcept override;
 
     void draw(
@@ -67,11 +70,12 @@ namespace bgg
     void clearStates() noexcept override;
 
     void fitRectangle(sf::IntRect const &boardRect) noexcept;
-
+    void moveItemEntry(ChessPieceMove const &move) noexcept;
+    // void restoreItemEntryMove(ChessPieceMove const &move) noexcept;
     //
     void onGameUpdatedNotification(GameUpdatedNotification const &notif) noexcept;
     void onGameFinishedNotification(GameFinishedNotification const &notif) noexcept;
-    void onCommitMoveResponse(CommitMoveResponse const &response) noexcept;
+    void onMoveResponse(MoveResponse const &response) noexcept;
   };
 
 } // namespace bgg

@@ -30,7 +30,10 @@ namespace bgg
         tileMap_(std::move(tileMap)),
         itemStore_(std::move(itemStore)),
         requestSender_(std::move(requestSender)),
-        lastMoveHighlighters_{{*itemStore_}, {*itemStore_}}
+        lastMoveTiles_{std::nullopt, std::nullopt},
+        pendingMove_{{-1, -1}, {-1, -1}, std::nullopt},
+        promotionItem_{},
+        lastMoveHighlighters_{{}, {}}
   {
     BOOST_ASSERT_MSG(gameRule_, "gameRule_ of ChessBoard cannot be null.");
     BOOST_ASSERT_MSG(tileMap_, "tileMap_ of ChessBoard cannot be null.");
@@ -40,7 +43,7 @@ namespace bgg
     fitRectangle(boardRect);
 
     ItemPlacementMap itemPlacements = gameRule_->getItemPlacements();
-    for (auto &[tile, entry] : itemPlacements)
+    for (auto const &[tile, entry] : itemPlacements)
     {
       tileMap_->fitItemToTile(entry.getItem(), tile);
     }
@@ -48,13 +51,13 @@ namespace bgg
     lastMoveHighlighters_[0] = itemStore_->addItem(
         ChessTextureCell::LAST_MOVE_HIGHLIGHTER,
         ZOrder::FIRST_LAYER,
-        ChessTextureCell::toString(ChessTextureCell::LAST_MOVE_HIGHLIGHTER).value(),
+        ChessTextureCell::toString(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
         false);
 
     lastMoveHighlighters_[1] = itemStore_->addItem(
         ChessTextureCell::LAST_MOVE_HIGHLIGHTER,
         ZOrder::FIRST_LAYER,
-        ChessTextureCell::toString(ChessTextureCell::LAST_MOVE_HIGHLIGHTER).value(),
+        ChessTextureCell::toString(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
         false);
   }
 
@@ -92,50 +95,6 @@ namespace bgg
     }
   }
 
-  void ChessBoard::requestMove(
-      sf::Vector2i fromTile,
-      sf::Vector2i toTile,
-      std::optional<std::string> promote) noexcept
-  {
-    tileMap_->fitItemToTile(lastMoveHighlighters_[0].getItem(), fromTile);
-    tileMap_->fitItemToTile(lastMoveHighlighters_[1].getItem(), toTile);
-
-    ItemPlacementMap& itemPlacements = gameRule_->getItemPlacements();
-    auto selectedItemIter = itemPlacements.find(fromTile);
-    if (selectedItemIter != itemPlacements.end())
-    {
-      tileMap_->fitItemToTile(selectedItemIter->second.getItem(), toTile);
-    }
-    else
-    {
-      BOOST_ASSERT_MSG(false, "There must be one item at the 'fromTile'");
-    }
-
-    auto targetedItemIter = itemPlacements.find(toTile);
-    if (targetedItemIter == itemPlacements.end()) ///< if 'toSquare' is empty...
-    {
-      itemPlacements.try_emplace(toTile, selectedItemIter->second);
-    }
-    else
-    {
-      targetedItemIter->second = selectedItemIter->second;
-    }
-
-    itemPlacements.erase(selectedItemIter);
-
-
-    
-
-    requestSender_(CommitMoveRequest{
-        "",
-        "",
-        gameRule_->tileToPosition(fromTile),
-        gameRule_->tileToPosition(toTile),
-        promote});
-
-    // BoardItem &selectedItem = selectedItemEntry_.getItem();
-  }
-
   void ChessBoard::handleServerMessage(ServerMessage const &msg) noexcept
   {
     if (auto gameUpdatedNotif = msg.getIf<GameUpdatedNotification>())
@@ -146,9 +105,9 @@ namespace bgg
     {
       onGameFinishedNotification(*gameFinishedNotif);
     }
-    else if (auto commitMoveResponse = msg.getIf<CommitMoveResponse>())
+    else if (auto commitMoveResponse = msg.getIf<MoveResponse>())
     {
-      onCommitMoveResponse(*commitMoveResponse);
+      onMoveResponse(*commitMoveResponse);
     }
     else
     {
@@ -225,6 +184,24 @@ namespace bgg
     stateStack_.clear();
   }
 
+  void ChessBoard::requestMove(ChessPieceMove const &move) noexcept
+  {
+    tileMap_->fitItemToTile(lastMoveHighlighters_[0].getItem(), move.fromTile);
+    tileMap_->fitItemToTile(lastMoveHighlighters_[1].getItem(), move.toTile);
+
+    moveItemEntry(move);
+    pendingMove_ = move;
+
+    requestSender_(MoveRequest{
+        "",
+        "",
+        gameRule_->tileToPosition(move.fromTile),
+        gameRule_->tileToPosition(move.toTile),
+        move.promote});
+
+    // BoardItem &selectedItem = selectedItemEntry_.getItem();
+  }
+
   void ChessBoard::fitRectangle(sf::IntRect const &boardRect) noexcept
   {
     sf::Vector2i const &maxBoardSize = boardRect.size;
@@ -259,33 +236,62 @@ namespace bgg
     tileMap_->scale(sf::Vector2f{scaleFactor, scaleFactor});
   }
 
+  void ChessBoard::moveItemEntry(ChessPieceMove const &move) noexcept
+  {
+    tileMap_->fitItemToTile(lastMoveHighlighters_[0].getItem(), move.fromTile);
+    tileMap_->fitItemToTile(lastMoveHighlighters_[1].getItem(), move.toTile);
+
+    auto movedItemEntry = gameRule_->getItemEntry(move.fromTile);
+    BOOST_ASSERT_MSG(!movedItemEntry.isNull(), "There must be an item at the 'fromTile'");
+
+    if (move.promote)
+    {
+      auto itemColor = gameRule_->getColor(move.fromTile);
+      Piece promotedPiece{move.promote.value(), itemColor.value()};
+
+      promotionItem_ = itemStore_->addItem(
+          ChessTextureCell::getIndex(promotedPiece),
+          ZOrder::SECOND_LAYER,
+          promotedPiece.toString());
+
+      tileMap_->fitItemToTile(promotionItem_.getItem(), move.toTile);
+
+      movedItemEntry.getItem().setVisible(false);
+    }
+    else
+    {
+      tileMap_->fitItemToTile(movedItemEntry.getItem(), move.toTile);
+    }
+
+    auto capturedItemEntry = gameRule_->getItemEntry(move.toTile);
+    if (!capturedItemEntry.isNull())
+    {
+      capturedItemEntry.getItem().setVisible(false);
+    }
+  }
+
   void ChessBoard::onGameUpdatedNotification(
       GameUpdatedNotification const &notif) noexcept
   {
     TileCoords fromTile = gameRule_->positionToTile(notif.fromPosition);
     TileCoords toTile = gameRule_->positionToTile(notif.toPosition);
 
-    tileMap_->fitItemToTile(lastMoveHighlighters_[0].getItem(), fromTile);
-    tileMap_->fitItemToTile(lastMoveHighlighters_[1].getItem(), toTile);
+    ChessPieceMove move{fromTile, toTile, notif.promote};
+    moveItemEntry(move);
 
-    if (auto movedPieceEntry = gameRule_->getItemEntry(fromTile))
-    {
-      tileMap_->fitItemToTile(movedPieceEntry.value().getItem(), toTile);
-    }
-    else
-    {
-      BOOST_ASSERT_MSG(
-          false, "Something wrong: there is no item at the 'fromTile'");
-    }
+    lastMoveTiles_[0] = fromTile;
+    lastMoveTiles_[1] = toTile;
 
-    gameRule_->updateMove(fromTile, toTile, notif.promote);
+    gameRule_->commitMove(move);
+    // TODO: remove capturedItem from itemStore_
+
     if (notif.yourTurn == notif.currentTurn)
     {
       std::shared_ptr<IBoardState>
           nextBoardState = std::make_shared<ChessPieceSelectableState>(
               shared_from_this(), gameRule_, tileMap_, itemStore_);
 
-      pushState(std::move(nextBoardState), {-1000, -1000});
+      pushState(std::move(nextBoardState), {-1000, -1000}); /// mousePos is far away from the window
     }
 
     SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
@@ -301,17 +307,56 @@ namespace bgg
                 typeid(notif).name(), typeid(*this).name());
   }
 
-  void ChessBoard::onCommitMoveResponse(
-      CommitMoveResponse const &response) noexcept
+  void ChessBoard::onMoveResponse(MoveResponse const &response) noexcept
   {
     if (response.errcode.failed())
     {
-      // TODO: revert to the previous state
+      // revert to the previous state
+      if (lastMoveTiles_[0] && lastMoveTiles_[1])
+      {
+        TileCoords fromTile = lastMoveTiles_[0].value();
+        TileCoords toTile = lastMoveTiles_[1].value();
+        tileMap_->fitItemToTile(lastMoveHighlighters_[0].getItem(), fromTile);
+        tileMap_->fitItemToTile(lastMoveHighlighters_[1].getItem(), toTile);
+      }
+      else
+      {
+        lastMoveHighlighters_[0].getItem().setVisible(false);
+        lastMoveHighlighters_[1].getItem().setVisible(false);
+      }
+
+      auto selectedItemEntry = gameRule_->getItemEntry(pendingMove_.fromTile);
+      BOOST_ASSERT_MSG(
+          !selectedItemEntry.isNull(),
+          "There must be an item at the 'pendingMoveTiles_[0]'");
+
+      tileMap_->fitItemToTile(selectedItemEntry.getItem(), pendingMove_.toTile);
+
+      auto capturedItemEntry = gameRule_->getItemEntry(pendingMove_.toTile);
+      if (!capturedItemEntry.isNull())
+      {
+        capturedItemEntry.getItem().setVisible(true);
+      }
+
+      if (!promotionItem_.isNull())
+      {
+        itemStore_->removeItem(promotionItem_);
+      }
+
+      std::shared_ptr<IBoardState>
+          nextBoardState = std::make_shared<ChessPieceSelectableState>(
+              shared_from_this(), gameRule_, tileMap_, itemStore_);
+
+      pushState(std::move(nextBoardState), {-1000, -1000});
     }
     else
     {
-      // TODO: gameRule_->updateMove(response.)
+      // update the pending move to game rule
+      gameRule_->commitMove(pendingMove_);
+
+      // TODO: remove capturedItem from itemStore_
     }
+
     SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
                 typeid(response).name(), typeid(*this).name());
   }

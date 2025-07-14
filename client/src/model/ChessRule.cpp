@@ -6,22 +6,33 @@ namespace bgg
 {
   ChessRule::ChessRule(std::string color) noexcept
       : piecePlacements_(INITIAL_PLACEMENTS, INITIAL_PLACEMENTS + PIECE_COUNT),
-        color_(std::move(color))
+        yourColor_(std::move(color))
   {
-    BGG_VALIDATE_COLOR(color_);
+    BGG_VALIDATE_COLOR(yourColor_);
   }
 
   ChessRule::ChessRule(
       std::map<Square, Piece> piecePlacements,
       std::string color) noexcept
-      : piecePlacements_(std::move(piecePlacements)), color_(std::move(color))
+      : piecePlacements_(std::move(piecePlacements)), yourColor_(std::move(color))
   {
-    BGG_VALIDATE_COLOR(color_);
+    BGG_VALIDATE_COLOR(yourColor_);
   }
 
-  auto ChessRule::getColor() const noexcept -> std::string const &
+  auto ChessRule::getYourColor() const noexcept -> std::string const &
   {
-    return color_;
+    return yourColor_;
+  }
+
+  auto ChessRule::getColor(Square const &square) const noexcept
+      -> std::optional<std::string>
+  {
+    std::optional<Piece> piece = getPiece(square);
+    if (!piece)
+    {
+      return std::nullopt;
+    }
+    return piece->color;
   }
 
   auto ChessRule::getPiecePlacements() noexcept

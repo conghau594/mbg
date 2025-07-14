@@ -159,8 +159,8 @@ namespace bgg
   {
   }
 
-  ItemStore::Entry::Entry(ItemStore const &itemStore) noexcept
-      : Entry(nullptr, &itemStore.boardItems_)
+  ItemStore::Entry::Entry() noexcept
+      : Entry(nullptr, nullptr)
   {
   }
 
@@ -181,7 +181,7 @@ namespace bgg
   //   return itemIter_->first;
   // }
 
-  auto ItemStore::Entry::getItem() noexcept -> BoardItem &
+  auto ItemStore::Entry::getItem() const noexcept -> BoardItem &
   {
     BOOST_ASSERT_MSG(!isNull(), "Invalid entry. It may be removed from its map.");
 

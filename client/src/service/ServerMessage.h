@@ -60,7 +60,7 @@ namespace bgg
     int playerCount;
   };
 
-  class CommitMoveResponse final
+  class MoveResponse final
   {
   public:
     ErrorCode errcode;
@@ -78,7 +78,7 @@ namespace bgg
       FindGameAcceptedNotification,
       FindGameResponse,
       CancelMatchmakingResponse,
-      CommitMoveResponse,
+      MoveResponse,
       ResignGameResponse,
       GameUpdatedNotification,
       GameFinishedNotification>;

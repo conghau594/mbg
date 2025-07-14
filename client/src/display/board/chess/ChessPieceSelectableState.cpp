@@ -23,19 +23,19 @@ namespace bgg
         gameRule_(std::move(gameRule)),
         tileMap_(std::move(tileMap)),
         itemStore_(std::move(itemStore)),
-        choiceHighlighter_(*itemStore_),
+        choiceHighlighter_(),
         lastHoveredTile_{-1, -1}
   {
     choiceHighlighter_ = itemStore_->addItem(
         ChessTextureCell::CHOICE_HIGHLIGHTER,
         ZOrder::THIRD_LAYER,
-        ChessTextureCell::toString(ChessTextureCell::CHOICE_HIGHLIGHTER).value(),
+        ChessTextureCell::toString(ChessTextureCell::CHOICE_HIGHLIGHTER),
         false);
 
     selectableTiles_ = gameRule_->getSelectableTiles();
     //==========
-    SPDLOG_DEBUG("There are {} selectable tiles from '{}' side",
-                 selectableTiles_.size(), gameRule_->getSide());
+    SPDLOG_DEBUG("There are {} selectable tiles from '{}'",
+                 selectableTiles_.size(), gameRule_->getYourColor());
     //==========
   }
 

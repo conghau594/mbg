@@ -31,7 +31,7 @@ namespace bgg
     std::string userId;
   };
 
-  class CommitMoveRequest final
+  class MoveRequest final
   {
   public:
     std::string userId;
@@ -52,7 +52,7 @@ namespace bgg
       LoginRequest,
       FindGameRequest,
       CancelMatchmakingRequest,
-      CommitMoveRequest,
+      MoveRequest,
       ResignGameRequest>;
 
 }

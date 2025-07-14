@@ -4,14 +4,32 @@
 
 #include "ChessRuleAdapter.h"
 #include "model/ChessPiece.h"
+#include "display/board/ZOrder.h"
+#include "display/board/chess/ChessTextureCell.h"
 
 namespace bgg
 {
-  ChessRuleAdapter::ChessRuleAdapter(ChessRule rule) noexcept
-      : rule_(std::move(rule)),
-        positionToTileConverter_(getPositionToTileConverter(rule_.getColor())),
-        tileToPositionConverter_(getTileToPositionConverter(rule_.getColor()))
+  ChessRuleAdapter::ChessRuleAdapter(
+      std::shared_ptr<ItemStore> itemStore, ChessRule rule) noexcept
+      : itemStore_(std::move(itemStore)),
+        rule_(std::move(rule)),
+        positionToTileConverter_(getPositionToTileConverter(rule_.getYourColor())),
+        tileToPositionConverter_(getTileToPositionConverter(rule_.getYourColor()))
   {
+    // add piece items to itemStore, also assign the returned entry
+    std::map<Position, Piece> const &initialBoard = rule_.getPiecePlacements();
+    for (auto &[square, piece] : initialBoard)
+    {
+      ItemStore::Entry itemEntry = itemStore_->addItem(
+          ChessTextureCell::getIndex(piece),
+          ZOrder::SECOND_LAYER,
+          piece.toString());
+
+      TileCoords tile = positionToTile(square);
+      auto [iter, inserted] = itemPlacements_.try_emplace(tile, itemEntry);
+
+      BOOST_ASSERT_MSG(inserted, "There must be one tile for each itemEntry");
+    }
   }
 
   auto ChessRuleAdapter::positionToTile(
@@ -26,22 +44,44 @@ namespace bgg
     return tileToPositionConverter_(tile);
   }
 
-  void ChessRuleAdapter::updateMove(
-      sf::Vector2i fromTile,
-      sf::Vector2i toTile,
-      std::optional<std::string> promote) noexcept
+  void ChessRuleAdapter::commitMove(ChessPieceMove const &move) noexcept
   {
-    Position fromSquare = tileToPosition(fromTile);
-    Position toSquare = tileToPosition(toTile);
-    rule_.movePiece(fromSquare, toSquare, promote);
+    auto selectedItemIter = itemPlacements_.find(move.fromTile);
+    if (selectedItemIter == itemPlacements_.end())
+    {
+      BOOST_ASSERT_MSG(false, "There must be one item at the 'fromTile'");
+    }
+
+    auto capturedItemEntry = itemPlacements_.find(move.toTile);
+    if (capturedItemEntry == itemPlacements_.end()) ///< if 'toSquare' is empty...
+    {
+      itemPlacements_.emplace(move.toTile, selectedItemIter->second);
+    }
+    else
+    {
+      capturedItemEntry->second = selectedItemIter->second;
+    }
+
+    itemPlacements_.erase(selectedItemIter);
+
+    // change chess rule
+    Position fromSquare = tileToPosition(move.fromTile);
+    Position toSquare = tileToPosition(move.toTile);
+    rule_.movePiece(fromSquare, toSquare, move.promote);
   }
 
-  auto ChessRuleAdapter::getSide() const -> std::string const &
+  auto ChessRuleAdapter::getYourColor() const -> std::string const &
   {
-    return rule_.getColor();
+    return rule_.getYourColor();
   }
 
-  auto ChessRuleAdapter::getItemPlacements() -> ItemPlacementMap &
+  auto ChessRuleAdapter::getColor(TileCoords const &tile) const noexcept
+      -> std::optional<std::string>
+  {
+    return rule_.getColor(tileToPosition(tile));
+  }
+
+  auto ChessRuleAdapter::getItemPlacements() -> ItemPlacementMap const &
   {
     return itemPlacements_;
   }
@@ -69,7 +109,7 @@ namespace bgg
       -> std::optional<ReachableTileInfo>
   {
     auto itemEntry = getItemEntry(tile);
-    if (!itemEntry)
+    if (itemEntry.isNull())
     {
       return std::nullopt;
     }
@@ -105,7 +145,7 @@ namespace bgg
     }
 
     return ReachableTileInfo{
-        itemEntry.value(),
+        itemEntry,
         std::move(quietMoves),
         std::move(captureMoves),
         std::move(specialMoves)};
@@ -120,23 +160,31 @@ namespace bgg
   //   {
   //     return std::nullopt;
   //   }
-  //   return int(piece.value().type);
+  //   return int(piece->type);
   // }
 
   auto ChessRuleAdapter::getItemEntry(TileCoords const &tile) const noexcept
-      -> std::optional<ItemStore::Entry>
+      -> ItemStore::Entry
   {
     auto found = itemPlacements_.find(tile);
     if (found == itemPlacements_.cend())
     {
-      return std::nullopt;
+      return ItemStore::Entry();
     }
 
     return found->second;
   }
 
-  auto ChessRuleAdapter::getPositionToTileConverter(
-      std::string color) noexcept
+  // auto ChessRuleAdapter::addItemEntry(
+  //     TileCoords tile, ItemStore::Entry entry) noexcept -> bool
+  // {
+  //   auto [iter, inserted] = itemPlacements_.try_emplace(
+  //       std::move(tile), std::move(entry));
+
+  //   return inserted;
+  // }
+
+  auto ChessRuleAdapter::getPositionToTileConverter(std::string color) noexcept
       -> std::function<TileCoords(Position const &)>
   {
     auto squareToTileAtWhite =
@@ -170,8 +218,7 @@ namespace bgg
                : squareToTileAtBlack;
   }
 
-  auto ChessRuleAdapter::getTileToPositionConverter(
-      std::string color) noexcept
+  auto ChessRuleAdapter::getTileToPositionConverter(std::string color) noexcept
       -> std::function<Position(TileCoords const &)>
   {
     auto tileToSquareAtWhite =

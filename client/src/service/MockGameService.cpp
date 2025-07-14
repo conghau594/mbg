@@ -187,7 +187,7 @@ namespace bgg
         });
   }
 
-  void MockGameService::sendRequest(CommitMoveRequest const & /*commitMoveRqt*/) noexcept
+  void MockGameService::sendRequest(MoveRequest const & /*commitMoveRqt*/) noexcept
   {
     threadPool_.push(
         [this]()
@@ -196,14 +196,17 @@ namespace bgg
           int errCodeValue = 0;
           try
           {
-            simulateNetworkLatencyAndFailure();
+            simulateNetworkLatencyAndFailure(0);
           }
           catch (std::runtime_error const &e)
           {
             msg = e.what();
+            errCodeValue = -1;
+            emit(MoveResponse{ErrorCode{errCodeValue, "Mock", msg}});
+            return;
           }
 
-          emit(CommitMoveResponse{ErrorCode{errCodeValue, "Mock", msg}});
+          emit(MoveResponse{ErrorCode{errCodeValue, "Mock", msg}});
 
           msg = "";
           errCodeValue = 0;
@@ -223,8 +226,9 @@ namespace bgg
           emit(GameUpdatedNotification{
               Position("a7"),
               Position("a5"),
-
-          });
+              "Queen",
+              0,
+              0});
         });
   }
 

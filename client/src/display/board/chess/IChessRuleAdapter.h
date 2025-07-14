@@ -14,6 +14,15 @@
 namespace bgg
 {
   using TileCoords = sf::Vector2i;
+
+  class ChessPieceMove
+  {
+  public:
+    TileCoords fromTile;
+    TileCoords toTile;
+    std::optional<std::string> promote;
+  };
+
   class TileComparator
   {
   public:
@@ -50,10 +59,14 @@ namespace bgg
     virtual ~IChessRuleAdapter() = default;
 
     [[nodiscard]]
-    virtual auto getSide() const -> std::string const & = 0;
+    virtual auto getYourColor() const -> std::string const & = 0;
 
     [[nodiscard]]
-    virtual auto getItemPlacements() -> ItemPlacementMap & = 0;
+    virtual auto getColor(TileCoords const &tile) const
+        -> std::optional<std::string> = 0;
+
+    [[nodiscard]]
+    virtual auto getItemPlacements() -> ItemPlacementMap const & = 0;
 
     [[nodiscard]]
     virtual auto getSelectableTiles() const -> ItemPlacementMap = 0;
@@ -70,16 +83,15 @@ namespace bgg
 
     [[nodiscard]]
     virtual auto getItemEntry(TileCoords const &tile) const
-        -> std::optional<ItemStore::Entry> = 0;
+        -> ItemStore::Entry = 0;
 
     [[nodiscard]]
     virtual auto positionToTile(Position const &position) const -> TileCoords = 0;
     [[nodiscard]]
     virtual auto tileToPosition(TileCoords const &tile) const -> Position = 0;
 
-    virtual void updateMove(
-        sf::Vector2i fromTile,
-        sf::Vector2i toTile,
-        std::optional<std::string> promote) = 0;
+    virtual void commitMove(ChessPieceMove const &move) = 0;
+
+    // virtual auto addItemEntry(TileCoords tile, ItemStore::Entry entry) -> bool = 0;
   };
 } // namespace bgg

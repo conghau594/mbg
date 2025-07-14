@@ -15,84 +15,82 @@
 #include "model/ChessRule.h"
 namespace bgg
 {
-    class QuickAppFactory final : public GameAppFactory
+  class QuickAppFactory final : public GameAppFactory
+  {
+    int gameType_;
+
+  public:
+    QuickAppFactory(int gameType) : gameType_(gameType) {}
+
+    auto createGameApp() noexcept -> GameApp override
     {
-        int gameType_;
+      int constexpr RESIGN_REGION_HEIGHT = 40;
+      int constexpr BOARD_SIDE_LENGTH = 1200;
+      int constexpr BOARD_MIN_SIDE_LENGTH = 80;
 
-    public:
-        QuickAppFactory(int gameType) : gameType_(gameType) {}
+      sf::Vector2u constexpr WINDOW_SIZE(
+          BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH + RESIGN_REGION_HEIGHT);
+      sf::Vector2u constexpr WINDOW_MIN_SIZE(
+          BOARD_MIN_SIDE_LENGTH, BOARD_MIN_SIDE_LENGTH + RESIGN_REGION_HEIGHT);
+      constexpr char WINDOW_TITLE[] = "BGG - Board Games Galore";
 
-        auto createGameApp() noexcept -> GameApp override
-        {
-            int constexpr RESIGN_REGION_HEIGHT = 40;
-            int constexpr BOARD_SIDE_LENGTH = 200;
-            int constexpr BOARD_MIN_SIDE_LENGTH = 80;
+      std::shared_ptr<sf::RenderWindow>
+          window = std::make_shared<sf::RenderWindow>(
+              sf::VideoMode(WINDOW_SIZE),
+              WINDOW_TITLE,
+              sf::Style::Titlebar | sf::Style::Close);
 
-            sf::Vector2u constexpr WINDOW_SIZE(
-                BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH + RESIGN_REGION_HEIGHT);
-            sf::Vector2u constexpr WINDOW_MIN_SIZE(
-                BOARD_MIN_SIDE_LENGTH, BOARD_MIN_SIDE_LENGTH + RESIGN_REGION_HEIGHT);
-            constexpr char WINDOW_TITLE[] = "BGG - Board Games Galore";
+      sf::View view(sf::FloatRect(
+          {0.0f, 0.0f},
+          {float(BOARD_SIDE_LENGTH), float(BOARD_SIDE_LENGTH + RESIGN_REGION_HEIGHT)}));
 
-            std::shared_ptr<sf::RenderWindow>
-                window = std::make_shared<sf::RenderWindow>(
-                    sf::VideoMode(WINDOW_SIZE),
-                    WINDOW_TITLE,
-                    sf::Style::Titlebar | sf::Style::Close);
+      // activate it
+      window->setView(view);
 
-            sf::View view(sf::FloatRect(
-                {0.0f, 0.0f},
-                {float(BOARD_SIDE_LENGTH), float(BOARD_SIDE_LENGTH + RESIGN_REGION_HEIGHT)}));
+      window->setMinimumSize(WINDOW_MIN_SIZE);
+      window->setVerticalSyncEnabled(true);
 
-            // activate it
-            window->setView(view);
+      std::shared_ptr<ClientEventBus>
+          eventBus = std::make_shared<ClientEventBus>();
+      std::shared_ptr<GameService>
+          gameService = std::make_shared<MockGameService>(eventBus);
+      std::shared_ptr<IDisplay>
+          gameDisplay = std::make_shared<GameDisplay>(window, eventBus);
 
-            window->setMinimumSize(WINDOW_MIN_SIZE);
-            window->setVerticalSyncEnabled(true);
+      //==============
+      std::map<Position, Piece> initialPlacements(
+          ChessRule::INITIAL_PLACEMENTS, ChessRule::INITIAL_PLACEMENTS + ChessRule::PIECE_COUNT);
+      FindGameResponse findGameResponse{
+          {0, "", "Mock"}, // error code
+          gameType_,
+          // 0, // playerType -> empty
 
-            std::shared_ptr<ClientEventBus>
-                eventBus = std::make_shared<ClientEventBus>();
-            std::shared_ptr<GameService>
-                gameService = std::make_shared<MockGameService>(eventBus);
-            std::shared_ptr<IDisplay>
-                gameDisplay = std::make_shared<GameDisplay>(window, eventBus);
+          std::move(initialPlacements), // initialBoard -> empty. TODO: should make this work
+          Color::WHITE,                 // yourSide
+          0,                            // yourTurn
+          0                             // currentTurn
+      };
+      //==============
 
-            //==============
-            std::map<Position, Piece> initialPlacements(
-                ChessRule::INITIAL_PLACEMENTS, ChessRule::INITIAL_PLACEMENTS + ChessRule::PIECE_COUNT);
-            FindGameResponse findGameResponse{
-                {0, "", "Mock"}, // error code
-                gameType_,
-                // 0, // playerType -> empty
+      sf::IntRect boardRect(
+          {0, RESIGN_REGION_HEIGHT},
+          {BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH});
 
-                std::move(initialPlacements), // initialBoard -> empty. TODO: should make this work
-                Color::WHITE,                 // yourSide
-                0,                            // yourTurn
-                0                             // currentTurn
-            };
-            //==============
+      auto requestSender = [gameDisplay](ClientRequest const &request) noexcept
+      {
+        gameDisplay->send(request);
+      };
 
-            sf::IntRect boardRect(
-                {0, RESIGN_REGION_HEIGHT},
-                {BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH});
+      std::shared_ptr<IGameBoard> chessBoard = GameBoardFactory().create(
+          findGameResponse, boardRect, std::move(requestSender));
 
-            auto requestSender = [gameDisplay](ClientRequest const &request) noexcept
-            {
-                gameDisplay->send(request);
-            };
+      std::shared_ptr<IScreen> chessScreen = std::make_shared<GamePlayScreen>(
+          window, gameDisplay, chessBoard, RESIGN_REGION_HEIGHT);
 
-            std::shared_ptr<IGameBoard>
-                chessBoard = GameBoardFactory().create(
-                    findGameResponse, boardRect, std::move(requestSender));
+      gameDisplay->pushScreen(chessScreen);
 
-            std::shared_ptr<IScreen>
-                chessScreen = std::make_shared<GamePlayScreen>(
-                    window, gameDisplay, chessBoard, RESIGN_REGION_HEIGHT);
-
-            gameDisplay->pushScreen(chessScreen);
-
-            // return GameApp object
-            return GameApp(gameDisplay, gameService);
-        }
-    };
+      // return GameApp object
+      return GameApp(gameDisplay, gameService);
+    }
+  };
 } // namespace bgg

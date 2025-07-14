@@ -66,98 +66,11 @@ namespace bgg
 
       auto itemStore = std::make_shared<ItemStore>(chessTextureAtlas);
 
-      // this vector obj maps each ChessPiece enum to a coresponding texture index
-      auto getTextureIndex = [](Piece const &piece) -> int
-      {
-        if (Color::WHITE == piece.color)
-        {
-          if (ChessRule::PieceType::KING == piece.type)
-          {
-            return ChessTextureCell::WHITE_KING;
-          }
-
-          if (ChessRule::PieceType::QUEEN == piece.type)
-          {
-            return ChessTextureCell::WHITE_QUEEN;
-          }
-
-          if (ChessRule::PieceType::ROOK == piece.type)
-          {
-            return ChessTextureCell::WHITE_ROOK;
-          }
-
-          if (ChessRule::PieceType::BISHOP == piece.type)
-          {
-            return ChessTextureCell::WHITE_BISHOP;
-          }
-
-          if (ChessRule::PieceType::KNIGHT == piece.type)
-          {
-            return ChessTextureCell::WHITE_KNIGHT;
-          }
-
-          if (ChessRule::PieceType::PAWN == piece.type)
-          {
-            return ChessTextureCell::WHITE_PAWN;
-          }
-        }
-        else if (Color::BLACK == piece.color)
-        {
-          if (ChessRule::PieceType::KING == piece.type)
-          {
-            return ChessTextureCell::BLACK_KING;
-          }
-
-          if (ChessRule::PieceType::QUEEN == piece.type)
-          {
-            return ChessTextureCell::BLACK_QUEEN;
-          }
-
-          if (ChessRule::PieceType::ROOK == piece.type)
-          {
-            return ChessTextureCell::BLACK_ROOK;
-          }
-
-          if (ChessRule::PieceType::BISHOP == piece.type)
-          {
-            return ChessTextureCell::BLACK_BISHOP;
-          }
-
-          if (ChessRule::PieceType::KNIGHT == piece.type)
-          {
-            return ChessTextureCell::BLACK_KNIGHT;
-          }
-
-          if (ChessRule::PieceType::PAWN == piece.type)
-          {
-            return ChessTextureCell::BLACK_PAWN;
-          }
-        }
-
-        BOOST_ASSERT_MSG(false, "Invalid chess piece");
-        return -1;
-      };
-
       ChessRule chessRule(findGameResponse.initialBoard, findGameResponse.yourSide);
       // TODO: need to consider how to initiate the IChessRuleAdapter with
       //       findGameResponse.initialBoard
       std::shared_ptr<IChessRuleAdapter>
-          gameRuleAdapter = std::make_shared<ChessRuleAdapter>(std::move(chessRule));
-
-      // this vector obj maps each ChessPiece enum to a item entry
-      ItemPlacementMap &itemPlacements = gameRuleAdapter->getItemPlacements();
-
-      // add piece items to itemStore, also assign the returned entry
-      for (auto &[square, piece] : findGameResponse.initialBoard)
-      {
-        ItemStore::Entry itemEntry = itemStore->addItem(
-            getTextureIndex(piece), ZOrder::SECOND_LAYER, piece.toString());
-
-        TileCoords tile = gameRuleAdapter->positionToTile(square);
-        auto [iter, inserted] = itemPlacements.try_emplace(tile, itemEntry);
-
-        BOOST_ASSERT_MSG(inserted, "There is no reason to fail this insertion");
-      }
+          gameRuleAdapter = std::make_shared<ChessRuleAdapter>(itemStore, std::move(chessRule));
 
       // create chessBoard with the loaded texture atlas
       std::shared_ptr<IChessBoard>
@@ -175,8 +88,8 @@ namespace bgg
             std::move(tileMap),
             std::move(itemStore));
 
-        chessBoard->pushState(std::move(initialBoardState), {-1000, -1000});  ///< to make initial mouse pos far away from window
-                                                                              ///< => make choice highlighter not appear wrong 
+        chessBoard->pushState(std::move(initialBoardState), {-1000, -1000}); ///< to make initial mouse pos far away from window
+                                                                             ///< => make choice highlighter not appear wrong
       }
 
       return chessBoard;

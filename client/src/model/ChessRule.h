@@ -99,7 +99,7 @@ namespace bgg
 
   private:
     std::map<Square, Piece> piecePlacements_;
-    std::string color_;
+    std::string yourColor_;
 
   public:
     ChessRule(std::string color) noexcept;
@@ -107,7 +107,9 @@ namespace bgg
               std::string color) noexcept;
 
     [[nodiscard]]
-    auto getColor() const noexcept -> std::string const &;
+    auto getYourColor() const noexcept -> std::string const &;
+    [[nodiscard]]
+    auto getColor(Square const &square) const noexcept -> std::optional<std::string>;
     [[nodiscard]]
     auto getPiecePlacements() noexcept -> std::map<Square, Piece> const &;
 

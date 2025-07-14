@@ -30,7 +30,7 @@ namespace bgg
       else if (ChessTextureCell::WHITE_KING <= regionIndex &&
                regionIndex <= ChessTextureCell::BLACK_PAWN)
       {
-        scalePercents = {105, 105};
+        scalePercents = {100, 100};
       }
 
       sf::Vector2i cellSize = scalePercents.componentWiseMul(atlasCellSize_) / 100;

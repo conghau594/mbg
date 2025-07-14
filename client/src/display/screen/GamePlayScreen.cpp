@@ -120,8 +120,8 @@ namespace bgg
           return true;
         });
 
-    getServerMsgHandler().setHandler<CommitMoveResponse>(
-        [this](CommitMoveResponse const &response) -> bool
+    getServerMsgHandler().setHandler<MoveResponse>(
+        [this](MoveResponse const &response) -> bool
         {
           gameBoard_->handleServerMessage(response);
           return true;
@@ -132,7 +132,7 @@ namespace bgg
   {
     getServerMsgHandler().resetHandler<GameUpdatedNotification>();
     getServerMsgHandler().resetHandler<GameFinishedNotification>();
-    getServerMsgHandler().resetHandler<CommitMoveResponse>();
+    getServerMsgHandler().resetHandler<MoveResponse>();
   }
 
   void GamePlayScreen::layOutScreen() noexcept
