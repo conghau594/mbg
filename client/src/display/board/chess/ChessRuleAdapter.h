@@ -4,7 +4,7 @@
 #include <vector>
 #include <functional>
 
-#include "display/board/IGameRuleAdapter.h"
+#include "IChessRuleAdapter.h"
 #include "display/board/ItemStore.h"
 #include "model/ChessRule.h"
 
@@ -16,26 +16,30 @@ namespace bgg
 {
   class BoardItem;
 
-  class ChessRuleAdapter final : public IGameRuleAdapter
+  class ChessRuleAdapter final : public IChessRuleAdapter
   {
     ItemPlacementMap itemPlacements_; ///< Usage: itemEntries_[ChessPiece::<ENUM>]
     ChessRule rule_;
-    std::function<TileCoords(ChessRule::Square const &)> const squareToTileConverter_;
-    std::function<ChessRule::Square(TileCoords const &)> const tileToSquareConverter_;
+    std::function<TileCoords(Position const &)> const positionToTileConverter_;
+    std::function<Position(TileCoords const &)> const tileToPositionConverter_;
 
   public:
     ChessRuleAdapter(ChessRule rule) noexcept;
 
-    static auto getSquareToTileConverter(std::string color) noexcept
-        -> std::function<TileCoords(ChessRule::Square const &)>;
-    static auto getTileToSquareConverter(std::string color) noexcept
-        -> std::function<ChessRule::Square(TileCoords const &)>;
+    static auto getPositionToTileConverter(std::string color) noexcept
+        -> std::function<TileCoords(Position const &)>;
+    static auto getTileToPositionConverter(std::string color) noexcept
+        -> std::function<Position(TileCoords const &)>;
 
   private:
     auto positionToTile(
         Position const &position) const noexcept -> TileCoords override;
     auto tileToPosition(
         TileCoords const &tile) const noexcept -> Position override;
+    void updateMove(
+        sf::Vector2i fromTile,
+        sf::Vector2i toTile,
+        std::optional<std::string> promote) noexcept override;
 
     auto getSide() const -> std::string const & override;
 

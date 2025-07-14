@@ -1,4 +1,4 @@
-// IGameRuleAdapter.h
+// IChessRuleAdapter.h
 #pragma once
 
 #include <map>
@@ -8,7 +8,7 @@
 
 #include <SFML/System/Vector2.hpp>
 
-#include "ItemStore.h"
+#include "display/board/ItemStore.h"
 #include "model/Piece.h"
 
 namespace bgg
@@ -44,10 +44,10 @@ namespace bgg
     // bool isCheckmate;
   };
 
-  class IGameRuleAdapter
+  class IChessRuleAdapter
   {
   public:
-    virtual ~IGameRuleAdapter() = default;
+    virtual ~IChessRuleAdapter() = default;
 
     [[nodiscard]]
     virtual auto getSide() const -> std::string const & = 0;
@@ -76,5 +76,10 @@ namespace bgg
     virtual auto positionToTile(Position const &position) const -> TileCoords = 0;
     [[nodiscard]]
     virtual auto tileToPosition(TileCoords const &tile) const -> Position = 0;
+
+    virtual void updateMove(
+        sf::Vector2i fromTile,
+        sf::Vector2i toTile,
+        std::optional<std::string> promote) = 0;
   };
 } // namespace bgg

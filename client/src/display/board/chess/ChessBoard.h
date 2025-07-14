@@ -23,7 +23,7 @@ namespace sf
 }
 namespace bgg
 {
-  class IGameRuleAdapter;
+  class IChessRuleAdapter;
   class ChessBoard final
       : public IChessBoard,
         public std::enable_shared_from_this<IChessBoard>
@@ -31,7 +31,7 @@ namespace bgg
     std::list<std::shared_ptr<IBoardState>> stateStack_;
     std::shared_ptr<IBoardState> lastBoardState_;
 
-    std::shared_ptr<IGameRuleAdapter> gameRule_;
+    std::shared_ptr<IChessRuleAdapter> gameRule_;
     std::shared_ptr<TileMap> tileMap_;
     std::shared_ptr<ItemStore> itemStore_;
 
@@ -41,19 +41,23 @@ namespace bgg
   public:
     ChessBoard(
         sf::IntRect const &boardRect,
-        std::shared_ptr<IGameRuleAdapter> gameRule,
+        std::shared_ptr<IChessRuleAdapter> gameRule,
         std::shared_ptr<TileMap> tileMap,
         std::shared_ptr<ItemStore> itemStore,
         std::function<void(ClientRequest const &)> requestSender) noexcept;
 
   private:
     void onWindowEvent(sf::Event const &event) noexcept override;
-    void requestMove(MoveChessPiece const &move) noexcept override;
+    void requestMove(
+        sf::Vector2i fromTile,
+        sf::Vector2i toTile,
+        std::optional<std::string> promote) noexcept override;
     void handleServerMessage(ServerMessage const &msg) noexcept override;
 
     void draw(
         sf::RenderTarget &target,
         sf::RenderStates states) const noexcept override;
+
     void changeState(std::shared_ptr<IBoardState> newState,
                      sf::Vector2i const &mousePos) noexcept override;
 

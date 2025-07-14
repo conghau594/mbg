@@ -9,7 +9,7 @@
 
 #include "ChessBoard.h"
 #include "display/board/IBoardState.h"
-#include "display/board/IGameRuleAdapter.h"
+#include "IChessRuleAdapter.h"
 #include "ChessPieceSelectableState.h"
 
 #include "ChessTextureCell.h"
@@ -20,7 +20,7 @@ namespace bgg
 {
   ChessBoard::ChessBoard(
       sf::IntRect const &boardRect,
-      std::shared_ptr<IGameRuleAdapter> gameRule,
+      std::shared_ptr<IChessRuleAdapter> gameRule,
       std::shared_ptr<TileMap> tileMap,
       std::shared_ptr<ItemStore> itemStore,
       std::function<void(ClientRequest const &)> requestSender) noexcept
@@ -92,31 +92,46 @@ namespace bgg
     }
   }
 
-  void ChessBoard::requestMove(MoveChessPiece const &move) noexcept
+  void ChessBoard::requestMove(
+      sf::Vector2i fromTile,
+      sf::Vector2i toTile,
+      std::optional<std::string> promote) noexcept
   {
-    tileMap_->fitItemToTile(
-        lastMoveHighlighters_[0].getItem(), move.fromTile);
+    tileMap_->fitItemToTile(lastMoveHighlighters_[0].getItem(), fromTile);
+    tileMap_->fitItemToTile(lastMoveHighlighters_[1].getItem(), toTile);
 
-    tileMap_->fitItemToTile(
-        lastMoveHighlighters_[1].getItem(), move.toTile);
-
-    if (auto selectedItemEntry = gameRule_->getItemEntry(move.fromTile))
+    ItemPlacementMap& itemPlacements = gameRule_->getItemPlacements();
+    auto selectedItemIter = itemPlacements.find(fromTile);
+    if (selectedItemIter != itemPlacements.end())
     {
-      tileMap_->fitItemToTile(
-          selectedItemEntry.value().getItem(), move.toTile);
+      tileMap_->fitItemToTile(selectedItemIter->second.getItem(), toTile);
     }
     else
     {
-      BOOST_ASSERT_MSG(
-          false, "Something wrong: there is no item at the 'selectedTile_'");
+      BOOST_ASSERT_MSG(false, "There must be one item at the 'fromTile'");
     }
+
+    auto targetedItemIter = itemPlacements.find(toTile);
+    if (targetedItemIter == itemPlacements.end()) ///< if 'toSquare' is empty...
+    {
+      itemPlacements.try_emplace(toTile, selectedItemIter->second);
+    }
+    else
+    {
+      targetedItemIter->second = selectedItemIter->second;
+    }
+
+    itemPlacements.erase(selectedItemIter);
+
+
+    
 
     requestSender_(CommitMoveRequest{
         "",
         "",
-        gameRule_->tileToPosition(move.fromTile),
-        gameRule_->tileToPosition(move.toTile),
-        move.promote});
+        gameRule_->tileToPosition(fromTile),
+        gameRule_->tileToPosition(toTile),
+        promote});
 
     // BoardItem &selectedItem = selectedItemEntry_.getItem();
   }
@@ -263,6 +278,7 @@ namespace bgg
           false, "Something wrong: there is no item at the 'fromTile'");
     }
 
+    gameRule_->updateMove(fromTile, toTile, notif.promote);
     if (notif.yourTurn == notif.currentTurn)
     {
       std::shared_ptr<IBoardState>
@@ -271,8 +287,6 @@ namespace bgg
 
       pushState(std::move(nextBoardState), {-1000, -1000});
     }
-
-    // TODO: update gameRule_
 
     SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
                 typeid(notif).name(), typeid(*this).name());
@@ -296,7 +310,7 @@ namespace bgg
     }
     else
     {
-      // TODO: update gameRule_
+      // TODO: gameRule_->updateMove(response.)
     }
     SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
                 typeid(response).name(), typeid(*this).name());

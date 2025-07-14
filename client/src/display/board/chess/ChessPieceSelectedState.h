@@ -5,7 +5,7 @@
 
 #include "display/board/IBoardState.h"
 #include "display/board/ItemStore.h"
-#include "display/board/IGameRuleAdapter.h"
+#include "IChessRuleAdapter.h"
 
 namespace bgg
 {
@@ -16,7 +16,7 @@ namespace bgg
   {
     std::shared_ptr<IChessBoard> gameBoard_;
 
-    std::shared_ptr<IGameRuleAdapter> gameRule_;
+    std::shared_ptr<IChessRuleAdapter> gameRule_;
     std::shared_ptr<TileMap> tileMap_;
     std::shared_ptr<ItemStore> itemStore_;
 
@@ -34,7 +34,7 @@ namespace bgg
   public:
     ChessPieceSelectedState(
         std::shared_ptr<IChessBoard> gameBoard,
-        std::shared_ptr<IGameRuleAdapter> gameRule,
+        std::shared_ptr<IChessRuleAdapter> gameRule,
         std::shared_ptr<TileMap> tileMap,
         std::shared_ptr<ItemStore> itemStore,
         TileCoords selectedTile) noexcept;

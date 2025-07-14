@@ -9,21 +9,31 @@ namespace bgg
 {
   ChessRuleAdapter::ChessRuleAdapter(ChessRule rule) noexcept
       : rule_(std::move(rule)),
-        squareToTileConverter_(getSquareToTileConverter(rule_.getColor())),
-        tileToSquareConverter_(getTileToSquareConverter(rule_.getColor()))
+        positionToTileConverter_(getPositionToTileConverter(rule_.getColor())),
+        tileToPositionConverter_(getTileToPositionConverter(rule_.getColor()))
   {
   }
 
   auto ChessRuleAdapter::positionToTile(
       Position const &position) const noexcept -> TileCoords
   {
-    return squareToTileConverter_(position);
+    return positionToTileConverter_(position);
   }
 
   auto ChessRuleAdapter::tileToPosition(
       TileCoords const &tile) const noexcept -> Position
   {
-    return tileToSquareConverter_(tile);
+    return tileToPositionConverter_(tile);
+  }
+
+  void ChessRuleAdapter::updateMove(
+      sf::Vector2i fromTile,
+      sf::Vector2i toTile,
+      std::optional<std::string> promote) noexcept
+  {
+    Position fromSquare = tileToPosition(fromTile);
+    Position toSquare = tileToPosition(toTile);
+    rule_.movePiece(fromSquare, toSquare, promote);
   }
 
   auto ChessRuleAdapter::getSide() const -> std::string const &
@@ -38,13 +48,13 @@ namespace bgg
 
   auto ChessRuleAdapter::getSelectableTiles() const noexcept -> ItemPlacementMap
   {
-    std::map<ChessRule::Square, Piece>
+    std::map<Position, Piece>
         piecePlacements = rule_.getSelectablePieces();
 
     ItemPlacementMap itemPlacements;
     for (auto &[square, piece] : piecePlacements)
     {
-      TileCoords tile = squareToTileConverter_(square);
+      TileCoords tile = positionToTile(square);
       ItemStore::Entry entry = itemPlacements_.at(tile);
       auto [iter, inserted] = itemPlacements.try_emplace(
           std::move(tile), std::move(entry));
@@ -64,7 +74,7 @@ namespace bgg
       return std::nullopt;
     }
 
-    ChessRule::Square originSquare = tileToSquareConverter_(tile);
+    Position originSquare = tileToPosition(tile);
 
     std::optional<ChessRule::CandidateMoveInfo>
         candidateMovesOpt = rule_.getCandidateMoves(originSquare);
@@ -78,20 +88,20 @@ namespace bgg
     std::list<TileCoords> quietMoves;
     for (auto &square : candidateMoveInfo.quietMoves)
     {
-      quietMoves.emplace_back(squareToTileConverter_(square));
+      quietMoves.emplace_back(positionToTile(square));
     }
 
     std::list<TileCoords> captureMoves;
     for (auto &square : candidateMoveInfo.captureMoves)
     {
-      captureMoves.emplace_back(squareToTileConverter_(square));
+      captureMoves.emplace_back(positionToTile(square));
     }
 
     std::vector<TileCoords> specialMoves;
     if (candidateMoveInfo.specialMove.has_value())
     {
-      ChessRule::Square square = candidateMoveInfo.specialMove.value();
-      specialMoves.emplace_back(squareToTileConverter_(square));
+      Position square = candidateMoveInfo.specialMove.value();
+      specialMoves.emplace_back(positionToTile(square));
     }
 
     return ReachableTileInfo{
@@ -104,7 +114,7 @@ namespace bgg
   // auto ChessRuleAdapter::getItemType(TileCoords const &tile) const noexcept
   //     -> std::optional<int>
   // {
-  //   ChessRule::Square square = tileToSquareConverter_(tile);
+  //   Position square = tileToPosition(tile);
   //   auto piece = rule_.getPiece(square);
   //   if(!piece)
   //   {
@@ -125,12 +135,12 @@ namespace bgg
     return found->second;
   }
 
-  auto ChessRuleAdapter::getSquareToTileConverter(
+  auto ChessRuleAdapter::getPositionToTileConverter(
       std::string color) noexcept
-      -> std::function<TileCoords(ChessRule::Square const &)>
+      -> std::function<TileCoords(Position const &)>
   {
     auto squareToTileAtWhite =
-        [](ChessRule::Square const &square) noexcept -> TileCoords
+        [](Position const &square) noexcept -> TileCoords
     {
       BGG_VALIDATE_SQUARE(square);
 
@@ -143,7 +153,7 @@ namespace bgg
     };
 
     auto squareToTileAtBlack =
-        [](ChessRule::Square const &square) noexcept -> TileCoords
+        [](Position const &square) noexcept -> TileCoords
     {
       BGG_VALIDATE_SQUARE(square);
 
@@ -160,27 +170,27 @@ namespace bgg
                : squareToTileAtBlack;
   }
 
-  auto ChessRuleAdapter::getTileToSquareConverter(
+  auto ChessRuleAdapter::getTileToPositionConverter(
       std::string color) noexcept
-      -> std::function<ChessRule::Square(TileCoords const &)>
+      -> std::function<Position(TileCoords const &)>
   {
     auto tileToSquareAtWhite =
-        [](TileCoords const &tile) noexcept -> ChessRule::Square
+        [](TileCoords const &tile) noexcept -> Position
     {
       BGG_VALIDATE_TILE(tile);
 
-      return ChessRule::Square{
+      return Position{
           char(tile.x + ChessRule::FIRST_COL),
           char(ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_ROW - tile.y),
           '\0'};
     };
 
     auto tileToSquareAtBlack =
-        [](TileCoords const &tile) noexcept -> ChessRule::Square
+        [](TileCoords const &tile) noexcept -> Position
     {
       BGG_VALIDATE_TILE(tile);
 
-      return ChessRule::Square{
+      return Position{
           char(ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_COL - tile.x),
           char(tile.y + ChessRule::FIRST_ROW),
           '\0'};

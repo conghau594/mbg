@@ -16,7 +16,7 @@ namespace bgg
 {
   ChessPieceSelectableState::ChessPieceSelectableState(
       std::shared_ptr<IChessBoard> gameBoard,
-      std::shared_ptr<IGameRuleAdapter> gameRule,
+      std::shared_ptr<IChessRuleAdapter> gameRule,
       std::shared_ptr<TileMap> tileMap,
       std::shared_ptr<ItemStore> itemStore) noexcept
       : gameBoard_(std::move(gameBoard)),

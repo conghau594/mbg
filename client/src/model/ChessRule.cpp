@@ -25,7 +25,7 @@ namespace bgg
   }
 
   auto ChessRule::getPiecePlacements() noexcept
-      -> std::map<Square, Piece> const&
+      -> std::map<Square, Piece> const &
   {
     return piecePlacements_;
   }
@@ -69,6 +69,37 @@ namespace bgg
     }
 
     return found->second;
+  }
+
+  void ChessRule::movePiece(
+      Square const &fromSquare,
+      Square const &toSquare,
+      std::optional<std::string> const &promote)
+  {
+    // TODO: ChessRule::movePiece
+    auto movedPiece = piecePlacements_.find(fromSquare);
+
+    BOOST_ASSERT_MSG(
+        movedPiece != piecePlacements_.end(),
+        "There must be a piece at the 'fromSquare'");
+
+    auto targetedPiece = piecePlacements_.find(toSquare);
+    if (targetedPiece == piecePlacements_.end()) ///< if 'toSquare' is empty...
+    {
+      auto [iter, inserted] = piecePlacements_.try_emplace(
+          toSquare, movedPiece->second);
+    }
+    else
+    {
+      BOOST_ASSERT_MSG(
+          targetedPiece->second.color != movedPiece->second.color,
+          "The color of piece at the 'fromSquare' must be different from "
+          "the color of piece at the 'toSquare'");
+
+      targetedPiece->second = movedPiece->second;
+    }
+
+    piecePlacements_.erase(movedPiece);
   }
 
   // constexpr auto ChessRule::Board::indexToSquare(int index) -> Square

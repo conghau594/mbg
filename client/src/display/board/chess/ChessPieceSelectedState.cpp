@@ -18,7 +18,7 @@ namespace bgg
 {
   ChessPieceSelectedState::ChessPieceSelectedState(
       std::shared_ptr<IChessBoard> gameBoard,
-      std::shared_ptr<IGameRuleAdapter> gameRule,
+      std::shared_ptr<IChessRuleAdapter> gameRule,
       std::shared_ptr<TileMap> tileMap,
       std::shared_ptr<ItemStore> itemStore,
       TileCoords selectedTile) noexcept
@@ -146,7 +146,7 @@ namespace bgg
     // choiceHighlighter_.getItem().setVisible(false);
 
     gameBoard_->clearStates();
-    gameBoard_->requestMove(MoveChessPiece{selectedTile_, targetedTile, std::nullopt});
+    gameBoard_->requestMove(selectedTile_, targetedTile, std::nullopt);
   }
 
   void ChessPieceSelectedState::addHighlighters(

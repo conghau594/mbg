@@ -139,9 +139,9 @@ namespace bgg
       };
 
       ChessRule chessRule(findGameResponse.initialBoard, findGameResponse.yourSide);
-      // TODO: need to consider how to initiate the IGameRuleAdapter with
+      // TODO: need to consider how to initiate the IChessRuleAdapter with
       //       findGameResponse.initialBoard
-      std::shared_ptr<IGameRuleAdapter>
+      std::shared_ptr<IChessRuleAdapter>
           gameRuleAdapter = std::make_shared<ChessRuleAdapter>(std::move(chessRule));
 
       // this vector obj maps each ChessPiece enum to a item entry

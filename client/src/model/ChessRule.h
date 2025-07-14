@@ -120,6 +120,11 @@ namespace bgg
     [[nodiscard]]
     auto getPiece(Square const &square) const noexcept -> std::optional<Piece>;
 
+    void movePiece(
+        Square const &fromSquare,
+        Square const &toSquare,
+        std::optional<std::string> const &promote);
+
   private:
     // static constexpr auto indexToSquare(int index) -> Square;
     // static constexpr auto squareToIndex(Square const &square) -> std::size_t;
