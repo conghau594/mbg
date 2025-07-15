@@ -20,12 +20,6 @@ FetchContent_Declare(SFML
 )
 FetchContent_MakeAvailable(SFML)
 
-message(STATUS "SFML updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_SFML}")
-message(STATUS "SFML source directory: ${SFML_SOURCE_DIR}")
-message(STATUS "SFML binary directory: ${SFML_BINARY_DIR}")
-message(STATUS "SFML populated: ${SFML_POPULATED}")
-message(STATUS "SFML Added: ${SFML_ADDED}")
-
 ###############################################################################
 # FetchContent for ImGui                                                      #
 ###############################################################################
@@ -40,12 +34,6 @@ FetchContent_MakeAvailable(ImGui)
 FetchContent_GetProperties(ImGui SOURCE_DIR IMGUI_DIR)
 set(IMGUI_SFML_FIND_SFML OFF)
 
-message(STATUS "ImGui updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_IMGUI}")
-message(STATUS "ImGui source directory: ${ImGui_SOURCE_DIR}")
-message(STATUS "ImGui binary directory: ${ImGui_BINARY_DIR}")
-message(STATUS "ImGui populated: ${ImGui_POPULATED}")
-message(STATUS "ImGui Added: ${ImGui_ADDED}")
-
 ###############################################################################
 # FetchContent for spdlog                                                      #
 ###############################################################################
@@ -57,12 +45,6 @@ FetchContent_Declare(spdlog
   SYSTEM
 )
 FetchContent_MakeAvailable(spdlog)
-
-message(STATUS "spdlog updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_SPDLOG}")
-message(STATUS "spdlog source directory: ${spdlog_SOURCE_DIR}")
-message(STATUS "spdlog binary directory: ${spdlog_BINARY_DIR}")
-message(STATUS "spdlog populated: ${spdlog_POPULATED}")
-message(STATUS "spdlog Added: ${spdlog_ADDED}")
 
 ###############################################################################
 # FetchContent for ImGui-SFML                                                 #
@@ -76,16 +58,9 @@ FetchContent_Declare(ImGui_SFML
 )
 FetchContent_MakeAvailable(ImGui_SFML)
 
-message(STATUS "ImGui_SFML updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_IMGUI_SFML}")
-message(STATUS "ImGui_SFML source directory: ${ImGui_SFML_SOURCE_DIR}")
-message(STATUS "ImGui_SFML binary directory: ${ImGui_SFML_BINARY_DIR}")
-message(STATUS "ImGui_SFML populated: ${ImGui_SFML_POPULATED}")
-message(STATUS "ImGui_SFML Added: ${ImGui_SFML_ADDED}")
-
 ###############################################################################
 # First: Fetch Boost::config                                                   #
 ###############################################################################
-
 FetchContent_Declare(
   BoostConfig
   GIT_REPOSITORY https://github.com/boostorg/config.git
@@ -95,12 +70,6 @@ FetchContent_Declare(
   SYSTEM
 )
 FetchContent_MakeAvailable(BoostConfig)
-
-message(STATUS "BoostConfig updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTCONFIG}")
-message(STATUS "BoostConfig source directory: ${BoostConfig_SOURCE_DIR}")
-message(STATUS "BoostConfig binary directory: ${BoostConfig_BINARY_DIR}")
-message(STATUS "BoostConfig populated: ${BoostConfig_POPULATED}")
-message(STATUS "BoostConfig Added: ${BoostConfig_ADDED}")
 
 ###############################################################################
 # Then: Fetch Boost::assert                                                    #
@@ -114,29 +83,341 @@ FetchContent_Declare(BoostAssert
 )
 FetchContent_MakeAvailable(BoostAssert)
 
-message(STATUS "BoostAssert updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTASSERT}")
-message(STATUS "BoostAssert source directory: ${BoostAssert_SOURCE_DIR}")
-message(STATUS "BoostAssert binary directory: ${BoostAssert_BINARY_DIR}")
-message(STATUS "BoostAssert populated: ${BoostAssert_POPULATED}")
-message(STATUS "BoostAssert Added: ${BoostAssert_ADDED}")
+###############################################################################
+# Fetch Boost::type_index                                                       #
+###############################################################################
+FetchContent_Declare(BoostTypeIndex
+  GIT_REPOSITORY https://github.com/boostorg/type_index.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostTypeIndex)
 
-# ###############################################################################
-# # Fetch Boost::system                                                    #
-# ###############################################################################
-# FetchContent_Declare(BoostSystem
-#   GIT_REPOSITORY https://github.com/boostorg/system.git
-#   GIT_TAG        boost-1.88.0
-#   GIT_SHALLOW ON
-#   EXCLUDE_FROM_ALL
-#   SYSTEM
-# )
-# FetchContent_MakeAvailable(BoostSystem)
+###############################################################################
+# Fetch Boost::pool                                                       #
+###############################################################################
+FetchContent_Declare(BoostPool
+  GIT_REPOSITORY https://github.com/boostorg/pool.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostPool)
 
-# message(STATUS "BoostUuid updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTSYSTEM}")
-# message(STATUS "BoostSystem source directory: ${BoostSystem_SOURCE_DIR}")
-# message(STATUS "BoostSystem binary directory: ${BoostSystem_BINARY_DIR}")
-# message(STATUS "BoostSystem populated: ${BoostSystem_POPULATED}")
-# message(STATUS "BoostSystem Added: ${BoostSystem_ADDED}")
+###############################################################################
+# Fetch Boost::date_time                                                       #
+###############################################################################
+FetchContent_Declare(BoostDateTime
+  GIT_REPOSITORY https://github.com/boostorg/date_time.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostDateTime)
+
+###############################################################################
+# Fetch Boost::winapi                                                       #
+###############################################################################
+FetchContent_Declare(BoostWinApi
+  GIT_REPOSITORY https://github.com/boostorg/winapi.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostWinApi)
+
+###############################################################################
+# Fetch Boost::variant2                                                       #
+###############################################################################
+FetchContent_Declare(BoostVariant2
+  GIT_REPOSITORY https://github.com/boostorg/variant2.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostVariant2)
+
+###############################################################################
+# Fetch Boost::integer                                                       #
+###############################################################################
+FetchContent_Declare(BoostInteger
+  GIT_REPOSITORY https://github.com/boostorg/integer.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostInteger)
+
+###############################################################################
+# Fetch Boost::algorithm                                                       #
+###############################################################################
+FetchContent_Declare(BoostAlgorithm
+  GIT_REPOSITORY https://github.com/boostorg/algorithm.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostAlgorithm)
+
+###############################################################################
+# Fetch Boost::predef                                                       #
+###############################################################################
+FetchContent_Declare(BoostPredef
+  GIT_REPOSITORY https://github.com/boostorg/predef.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostPredef)
+
+###############################################################################
+# Fetch Boost::io                                                       #
+###############################################################################
+FetchContent_Declare(BoostIo
+  GIT_REPOSITORY https://github.com/boostorg/io.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostIo)
+
+###############################################################################
+# Fetch Boost::array                                                       #
+###############################################################################
+FetchContent_Declare(BoostArray
+  GIT_REPOSITORY https://github.com/boostorg/array.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostArray)
+
+###############################################################################
+# Fetch Boost::lexical_cast                                                       #
+###############################################################################
+FetchContent_Declare(BoostLexicalCast
+  GIT_REPOSITORY https://github.com/boostorg/lexical_cast.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostLexicalCast)
+
+###############################################################################
+# Fetch Boost::concept_check                                                       #
+###############################################################################
+FetchContent_Declare(BoostConceptCheck
+  GIT_REPOSITORY https://github.com/boostorg/concept_check.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostConceptCheck)
+
+###############################################################################
+# Fetch Boost::system                                                    #
+###############################################################################
+FetchContent_Declare(BoostSystem
+  GIT_REPOSITORY https://github.com/boostorg/system.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostSystem)
+
+###############################################################################
+# Fetch Boost::numeric_conversion                                                    #
+###############################################################################
+FetchContent_Declare(BoostNumericConversion
+  GIT_REPOSITORY https://github.com/boostorg/numeric_conversion.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostNumericConversion)
+
+###############################################################################
+# Fetch Boost::tuple                                                    #
+###############################################################################
+FetchContent_Declare(BoostTuple
+  GIT_REPOSITORY https://github.com/boostorg/tuple.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostTuple)
+
+###############################################################################
+# Fetch Boost::function                                                    #
+###############################################################################
+FetchContent_Declare(BoostFunction
+  GIT_REPOSITORY https://github.com/boostorg/function.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostFunction)
+
+###############################################################################
+# Fetch Boost::range                                                    #
+###############################################################################
+FetchContent_Declare(BoostRange
+  GIT_REPOSITORY https://github.com/boostorg/range.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostRange)
+
+###############################################################################
+# Fetch Boost::iterator                                                    #
+###############################################################################
+FetchContent_Declare(BoostIterator
+  GIT_REPOSITORY https://github.com/boostorg/iterator.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostIterator)
+
+###############################################################################
+# Fetch Boost::tokenizer                                                    #
+###############################################################################
+FetchContent_Declare(BoostTokenizer
+  GIT_REPOSITORY https://github.com/boostorg/tokenizer.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostTokenizer)
+
+###############################################################################
+# Fetch Boost::mpl                                                    #
+###############################################################################
+FetchContent_Declare(BoostMpl
+  GIT_REPOSITORY https://github.com/boostorg/mpl.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostMpl)
+
+###############################################################################
+# Fetch Boost::detail                                                    #
+###############################################################################
+FetchContent_Declare(BoostDetail
+  GIT_REPOSITORY https://github.com/boostorg/detail.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostDetail)
+
+###############################################################################
+# Fetch Boost::conversion                                                    #
+###############################################################################
+FetchContent_Declare(BoostConversion
+  GIT_REPOSITORY https://github.com/boostorg/conversion.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostConversion)
+
+###############################################################################
+# Fetch Boost::utility                                                    #
+###############################################################################
+FetchContent_Declare(BoostUtility
+  GIT_REPOSITORY https://github.com/boostorg/utility.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostUtility)
+
+###############################################################################
+# Fetch Boost::regex                                                    #
+###############################################################################
+FetchContent_Declare(BoostRegex
+  GIT_REPOSITORY https://github.com/boostorg/regex.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostRegex)
+
+###############################################################################
+# Fetch Boost::fusion                                                    #
+###############################################################################
+FetchContent_Declare(BoostFusion
+  GIT_REPOSITORY https://github.com/boostorg/fusion.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostFusion)
+
+###############################################################################
+# Fetch Boost::unordered                                                    #
+###############################################################################
+FetchContent_Declare(BoostUnordered
+  GIT_REPOSITORY https://github.com/boostorg/unordered.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostUnordered)
+
+###############################################################################
+# Fetch Boost::function_types                                                    #
+###############################################################################
+FetchContent_Declare(BoostFunctionTypes
+  GIT_REPOSITORY https://github.com/boostorg/function_types.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostFunctionTypes)
+
+###############################################################################
+# Fetch Boost::exception                                                    #
+###############################################################################
+FetchContent_Declare(BoostException
+  GIT_REPOSITORY https://github.com/boostorg/exception.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostException)
 
 ###############################################################################
 # Fetch Boost::throw_exception                                                    #
@@ -150,12 +431,6 @@ FetchContent_Declare(BoostThrowException
 )
 FetchContent_MakeAvailable(BoostThrowException)
 
-message(STATUS "BoostThrowException updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTTHROWEXCEPTION}")
-message(STATUS "BoostThrowException source directory: ${BoostThrowException_SOURCE_DIR}")
-message(STATUS "BoostThrowException binary directory: ${BoostThrowException_BINARY_DIR}")
-message(STATUS "BoostThrowException populated: ${BoostThrowException_POPULATED}")
-message(STATUS "BoostThrowException Added: ${BoostThrowException_ADDED}")
-
 ###############################################################################
 # Fetch Boost::type_traits                                                    #
 ###############################################################################
@@ -167,12 +442,6 @@ FetchContent_Declare(BoostTypeTraits
   SYSTEM
 )
 FetchContent_MakeAvailable(BoostTypeTraits)
-
-message(STATUS "BoostTypeTraits updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTTYPETRAITS}")
-message(STATUS "BoostTypeTraits source directory: ${BoostTypeTraits_SOURCE_DIR}")
-message(STATUS "BoostTypeTraits binary directory: ${BoostTypeTraits_BINARY_DIR}")
-message(STATUS "BoostTypeTraits populated: ${BoostTypeTraits_POPULATED}")
-message(STATUS "BoostTypeTraits Added: ${BoostTypeTraits_ADDED}")
 
 ###############################################################################
 # Fetch Boost::static_assert                                                    #
@@ -186,31 +455,295 @@ FetchContent_Declare(BoostStaticAssert
 )
 FetchContent_MakeAvailable(BoostStaticAssert)
 
-message(STATUS "BoostStaticAssert updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTSTATICASSERT}")
-message(STATUS "BoostStaticAssert source directory: ${BoostStaticAssert_SOURCE_DIR}")
-message(STATUS "BoostStaticAssert binary directory: ${BoostStaticAssert_BINARY_DIR}")
-message(STATUS "BoostStaticAssert populated: ${BoostStaticAssert_POPULATED}")
-message(STATUS "BoostStaticAssert Added: ${BoostStaticAssert_ADDED}")
-
 ###############################################################################
-# Then: Fetch Boost.Uuid                                                      #
+# Then: Fetch Boost::uuid                                                      #
 ###############################################################################
-
 FetchContent_Declare(BoostUuid
   GIT_REPOSITORY https://github.com/boostorg/uuid.git
   GIT_TAG        boost-1.88.0
   GIT_SHALLOW ON
   EXCLUDE_FROM_ALL
   SYSTEM
-  )
-
+)
 FetchContent_MakeAvailable(BoostUuid)
   
-message(STATUS "BoostUuid updates disconnected: ${FETCHCONTENT_UPDATES_DISCONNECTED_BOOSTUUID}")
-message(STATUS "BoostUuid source directory: ${BoostUuid_SOURCE_DIR}")
-message(STATUS "BoostUuid binary directory: ${BoostUuid_BINARY_DIR}")
-message(STATUS "BoostUuid populated: ${BoostUuid_POPULATED}")
-message(STATUS "BoostUuid Added: ${BoostUuid_ADDED}")
+###############################################################################
+# Fetch Boost::bind                                                      #
+###############################################################################
+FetchContent_Declare(BoostBind
+  GIT_REPOSITORY https://github.com/boostorg/bind.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostBind)
+
+###############################################################################
+# Fetch Boost::logic                                                      #
+###############################################################################
+FetchContent_Declare(BoostLogic
+  GIT_REPOSITORY https://github.com/boostorg/logic.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostLogic)
+ 
+###############################################################################
+# Fetch Boost::preprocessor                                                      #
+###############################################################################
+FetchContent_Declare(BoostPreprocessor
+  GIT_REPOSITORY https://github.com/boostorg/preprocessor.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostPreprocessor)
+ 
+###############################################################################
+# Fetch Boost::optional                                                      #
+###############################################################################
+FetchContent_Declare(BoostOptional
+  GIT_REPOSITORY https://github.com/boostorg/optional.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostOptional)
+ 
+###############################################################################
+# Fetch Boost::beast                                                      #
+###############################################################################
+FetchContent_Declare(BoostBeast
+  GIT_REPOSITORY https://github.com/boostorg/beast.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostBeast)
+
+###############################################################################
+# Fetch Boost::context                                                      #
+###############################################################################
+FetchContent_Declare(BoostContext
+  GIT_REPOSITORY https://github.com/boostorg/context.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostContext)
+ 
+###############################################################################
+# Fetch Boost::asio                                                      #
+###############################################################################
+FetchContent_Declare(BoostAsio
+  GIT_REPOSITORY https://github.com/boostorg/asio.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostAsio)
+
+###############################################################################
+# Fetch Boost::core                                                            #
+###############################################################################
+FetchContent_Declare(BoostCore
+  GIT_REPOSITORY https://github.com/boostorg/core.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostCore)
+  
+###############################################################################
+# Fetch Boost::move                                                      #
+###############################################################################
+FetchContent_Declare(BoostMove
+  GIT_REPOSITORY https://github.com/boostorg/move.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostMove)
+
+###############################################################################
+# Fetch Boost::intrusive                                                      #
+###############################################################################
+FetchContent_Declare(BoostIntrusive
+  GIT_REPOSITORY https://github.com/boostorg/intrusive.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostIntrusive)
+
+###############################################################################
+# Fetch Boost::endian                                                      #
+###############################################################################
+FetchContent_Declare(BoostEndian
+  GIT_REPOSITORY https://github.com/boostorg/endian.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostEndian)
+
+###############################################################################
+# Fetch Boost::mp11                                                      #
+###############################################################################
+FetchContent_Declare(BoostMp11
+  GIT_REPOSITORY https://github.com/boostorg/mp11.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostMp11)
+
+###############################################################################
+# Fetch Boost::smart_ptr                                                      #
+###############################################################################
+FetchContent_Declare(BoostSmartPtr
+  GIT_REPOSITORY https://github.com/boostorg/smart_ptr.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostSmartPtr)
+
+###############################################################################
+# Fetch Boost::describe                                                      #
+###############################################################################
+FetchContent_Declare(BoostDescribe
+  GIT_REPOSITORY https://github.com/boostorg/describe.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostDescribe)
+
+###############################################################################
+# Then: Fetch Boost::container_hash                                                      #
+###############################################################################
+FetchContent_Declare(BoostContainerHash
+  GIT_REPOSITORY https://github.com/boostorg/container_hash.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostContainerHash)
+
+###############################################################################
+# Fetch Boost::container                                                      #
+###############################################################################
+FetchContent_Declare(BoostContainer
+  GIT_REPOSITORY https://github.com/boostorg/container.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostContainer)
+
+###############################################################################
+# Then: Fetch Boost::align                                                      #
+###############################################################################
+FetchContent_Declare(BoostAlign
+  GIT_REPOSITORY https://github.com/boostorg/align.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostAlign)
+
+###############################################################################
+# Then: Fetch Boost::json                                                      #
+###############################################################################
+FetchContent_Declare(BoostJson
+  GIT_REPOSITORY https://github.com/boostorg/json.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostJson)
+
+###############################################################################
+# Fetch Boost::headers                                                      #
+###############################################################################
+FetchContent_Declare(BoostHeaders
+  GIT_REPOSITORY https://github.com/boostorg/headers.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostHeaders)
+
+###############################################################################
+# Fetch Boost::static_string                                                      #
+###############################################################################
+FetchContent_Declare(BoostStaticString
+  GIT_REPOSITORY https://github.com/boostorg/static_string.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostStaticString)
+
+###############################################################################
+# Fetch Boost::functional                                                      #
+###############################################################################
+FetchContent_Declare(BoostFunctional
+  GIT_REPOSITORY https://github.com/boostorg/functional.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostFunctional)
+
+###############################################################################
+# Fetch Boost::typeof                                                      #
+###############################################################################
+FetchContent_Declare(BoostTypeof
+  GIT_REPOSITORY https://github.com/boostorg/typeof.git
+  GIT_TAG        boost-1.88.0
+  GIT_SHALLOW ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(BoostTypeof)
+
+###############################################################################
+# Fetch OpenSSL::SSL OpenSSL::Crypto                                                  #
+###############################################################################
+FetchContent_Declare(OpenSSL
+  GIT_REPOSITORY https://github.com/janbar/openssl-cmake.git
+  GIT_TAG        master
+  GIT_SHALLOW    ON
+  EXCLUDE_FROM_ALL
+  SYSTEM
+)
+FetchContent_MakeAvailable(OpenSSL)
+
+
 
 ###############################################################################
 # Configure Build Process                                           #
@@ -224,7 +757,7 @@ if (MSVC)
     /MP                       # Multi-process build
     /Zi                       # Debug info, == -g
     /W4                       # Warning level 4, == -Wall -Wextra. 
-                              # Note that: max warning level is /Wall. It includes unnecessary warnings from system headers, STL, Windows SDK...
+                              # Note that: the max warning level is /Wall. It includes unnecessary warnings from system headers, STL, Windows SDK...
     /GS                       # Stack protector, == -fstack-protector-strong
     /EHsc                     # Exception model (C++)
     /permissive-              # Strict standard conformance, == -Wpedantic
@@ -296,11 +829,16 @@ target_link_libraries(bggclient PRIVATE
   ImGui-SFML::ImGui-SFML
   Boost::assert
   Boost::uuid
+  Boost::beast
+  Boost::json
+  ssl 
+  crypto
   spdlog
 )
 
 target_include_directories(bggclient PRIVATE 
-  ${CMAKE_SOURCE_DIR}/src)
+  ${CMAKE_SOURCE_DIR}/src
+)
 
 
 get_property(all_targets GLOBAL PROPERTY TARGETS)
@@ -316,10 +854,8 @@ message(STATUS "Include directories for bggclient: ${INCLUDE_DIRS}")
 ###############################################################################
 target_compile_definitions(bggclient PRIVATE
   $<$<CONFIG:Debug>:_DEBUG> #Macro _DEBUG
-)
-
-target_compile_definitions(bggclient PRIVATE
   $<$<CONFIG:Release>:NDEBUG> #Macro NDEBUG for disbleing assert() 
+  $<$<PLATFORM_ID:Windows>:_WIN32_WINNT=0x0601>
 )
 
 

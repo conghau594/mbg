@@ -3,7 +3,7 @@
 #include "app/QuickAppFactory.h"
 
 #include "base/Logger.h"
-
+#include "service/GeminiAgent.h"
 /**
  * GAME_TYPE:
  *  -1: All games
@@ -15,6 +15,9 @@
 int main()
 {
   utils::Logger::setUp();
+
+  bgg::GeminiAgent agent("");
+  agent.sendPrompt("who are you?");
 
   try
   {

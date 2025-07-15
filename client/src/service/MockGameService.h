@@ -5,7 +5,7 @@
 #include "ClientEventBus.h"
 #include "base/ThreadPool.h"
 
-#include <iostream>
+#include "GeminiAgent.h"
 
 namespace boost
 {
