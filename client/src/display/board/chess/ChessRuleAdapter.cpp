@@ -3,7 +3,6 @@
 #include <boost/assert.hpp>
 
 #include "ChessRuleAdapter.h"
-#include "model/ChessPiece.h"
 #include "display/board/ZOrder.h"
 #include "display/board/chess/ChessTextureCell.h"
 
@@ -11,18 +10,19 @@ namespace bgg
 {
   ChessRuleAdapter::ChessRuleAdapter(
       std::shared_ptr<ItemStore> itemStore, ChessRule rule) noexcept
-      : itemStore_(std::move(itemStore)),
-        rule_(std::move(rule)),
+      : rule_(std::move(rule)),
         positionToTileConverter_(getPositionToTileConverter(rule_.getYourColor())),
         tileToPositionConverter_(getTileToPositionConverter(rule_.getYourColor()))
   {
+    BOOST_ASSERT_MSG(itemStore, "The 'itemStore' cannot be null");
+
     // add piece items to itemStore, also assign the returned entry
     std::map<Position, Piece> const &initialBoard = rule_.getPiecePlacements();
     for (auto &[square, piece] : initialBoard)
     {
-      ItemStore::Entry itemEntry = itemStore_->addItem(
-          ChessTextureCell::getIndex(piece),
+      ItemStore::Entry itemEntry = itemStore->addItem(
           ZOrder::SECOND_LAYER,
+          ChessTextureCell::getIndex(piece),
           piece.toString());
 
       TileCoords tile = positionToTile(square);
@@ -44,31 +44,43 @@ namespace bgg
     return tileToPositionConverter_(tile);
   }
 
-  void ChessRuleAdapter::commitMove(ChessPieceMove const &move) noexcept
-  {
-    auto selectedItemIter = itemPlacements_.find(move.fromTile);
-    if (selectedItemIter == itemPlacements_.end())
-    {
-      BOOST_ASSERT_MSG(false, "There must be one item at the 'fromTile'");
-    }
+  // TODO: Need refactor
+  // auto ChessRuleAdapter::commitMove(
+  //     ChessMove const &move, std::optional<BoardItem> promotedItem) noexcept
+  //     -> ItemStore::Entry
+  // {
+  //   // change item entries
+  //   auto selectedItemIter = itemPlacements_.find(move.fromTile);
+  //   BOOST_ASSERT_MSG(
+  //       selectedItemIter != itemPlacements_.end(),
+  //       "There should be one item at the 'fromTile'");
 
-    auto capturedItemEntry = itemPlacements_.find(move.toTile);
-    if (capturedItemEntry == itemPlacements_.end()) ///< if 'toSquare' is empty...
-    {
-      itemPlacements_.emplace(move.toTile, selectedItemIter->second);
-    }
-    else
-    {
-      capturedItemEntry->second = selectedItemIter->second;
-    }
+  //   if (promotedItem)
+  //   {
+  //     selectedItemIter->second.getItem() = std::move(promotedItem.value());
+  //   }
 
-    itemPlacements_.erase(selectedItemIter);
+  //   ItemStore::Entry capturedItemEntry;
+  //   auto capturedItemIter = itemPlacements_.find(move.toTile);
+  //   if (capturedItemIter == itemPlacements_.end()) ///< if 'toSquare' is empty...
+  //   {
+  //     itemPlacements_.emplace(move.toTile, selectedItemIter->second);
+  //   }
+  //   else
+  //   {
+  //     capturedItemEntry = capturedItemIter->second;
+  //     capturedItemIter->second = std::move(selectedItemIter->second);
+  //   }
 
-    // change chess rule
-    Position fromSquare = tileToPosition(move.fromTile);
-    Position toSquare = tileToPosition(move.toTile);
-    rule_.movePiece(fromSquare, toSquare, move.promote);
-  }
+  //   itemPlacements_.erase(selectedItemIter);
+
+  //   // change chess rule
+  //   Position fromSquare = tileToPosition(move.fromTile);
+  //   Position toSquare = tileToPosition(move.toTile);
+  //   rule_.movePiece(fromSquare, toSquare, move.promote);
+
+  //   return capturedItemEntry; // return captured item if any
+  // }
 
   auto ChessRuleAdapter::getYourColor() const -> std::string const &
   {
@@ -137,18 +149,18 @@ namespace bgg
       captureMoves.emplace_back(positionToTile(square));
     }
 
-    std::vector<TileCoords> specialMoves;
-    if (candidateMoveInfo.specialMove.has_value())
+    std::optional<TileCoords> enPassantCaptureMove(std::nullopt);
+    if (candidateMoveInfo.enPassantCaptureMove)
     {
-      Position square = candidateMoveInfo.specialMove.value();
-      specialMoves.emplace_back(positionToTile(square));
+      Position const& square = candidateMoveInfo.enPassantCaptureMove.value();
+      enPassantCaptureMove = positionToTile(square);
     }
 
     return ReachableTileInfo{
         itemEntry,
         std::move(quietMoves),
         std::move(captureMoves),
-        std::move(specialMoves)};
+        std::move(enPassantCaptureMove)};
   }
 
   // auto ChessRuleAdapter::getItemType(TileCoords const &tile) const noexcept

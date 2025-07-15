@@ -6,23 +6,12 @@
 #include <vector>
 #include <optional>
 
-#include <SFML/System/Vector2.hpp>
-
 #include "display/board/ItemStore.h"
 #include "model/Piece.h"
+#include "ItemMove.h"
 
 namespace bgg
 {
-  using TileCoords = sf::Vector2i;
-
-  class ChessPieceMove
-  {
-  public:
-    TileCoords fromTile;
-    TileCoords toTile;
-    std::optional<std::string> promote;
-  };
-
   class TileComparator
   {
   public:
@@ -47,7 +36,7 @@ namespace bgg
 
     std::list<TileCoords> quietMoves;
     std::list<TileCoords> captureMoves;
-    std::vector<TileCoords> specialMoves;
+    std::optional<TileCoords> enPassantCaptureMove;
 
     // std::optional<TileCoords> checkMove;
     // bool isCheckmate;
@@ -90,7 +79,18 @@ namespace bgg
     [[nodiscard]]
     virtual auto tileToPosition(TileCoords const &tile) const -> Position = 0;
 
-    virtual void commitMove(ChessPieceMove const &move) = 0;
+    // [[nodiscard]]
+    // virtual auto tryMove(ItemMove 
+    //TODO: Need refactor
+    // /**
+    //  * \return the item entry of the captured piece. It should be disappeared
+    //  *         after removed from this.
+    //  */
+    // [[nodiscard]]
+    // virtual auto commitMove(
+    //     ChessMove const &move,
+    //     std::optional<BoardItem> promotedItem = std::nullopt)
+    //     -> ItemStore::Entry = 0;
 
     // virtual auto addItemEntry(TileCoords tile, ItemStore::Entry entry) -> bool = 0;
   };

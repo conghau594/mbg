@@ -1,18 +1,19 @@
-// ChessPieceSelectedState.h
+// ChessPieceMovedState.h
 #pragma once
 
 #include <memory>
 
 #include "display/board/IBoardState.h"
-#include "display/board/ItemStore.h"
-#include "IChessRuleAdapter.h"
 
 namespace bgg
 {
   class IChessBoard;
+  class IChessRuleAdapter;
   class TileMap;
+  class ItemStore;
+  class ItemMove;
 
-  class ChessPieceSelectedState final : public IBoardState
+  class ChessPieceMovedState final : public IBoardState
   {
     std::shared_ptr<IChessBoard> gameBoard_;
 
@@ -20,26 +21,14 @@ namespace bgg
     std::shared_ptr<TileMap> tileMap_;
     std::shared_ptr<ItemStore> itemStore_;
 
-    ItemPlacementMap reachableTiles_;
-
-    std::list<ItemStore::Entry> staticHighlighters_; ///< 'static' means these highlighters do not change until this state exits
-
-    ItemStore::Entry choiceHighlighter_; ///< choiceHighlighter_ is a dynamic highlighter
-    ItemStore::Entry selectedItemEntry_;
-    int originalSelectedItemZOrder_;
-
-    TileCoords selectedTile_;
-    TileCoords lastHoveredTile_;
 
   public:
-    ChessPieceSelectedState(
+    ChessPieceMovedState(
         std::shared_ptr<IChessBoard> gameBoard,
         std::shared_ptr<IChessRuleAdapter> gameRule,
         std::shared_ptr<TileMap> tileMap,
         std::shared_ptr<ItemStore> itemStore,
-        TileCoords selectedTile) noexcept;
-
-    ~ChessPieceSelectedState();
+        ItemMove const &move) noexcept;
 
   private:
     void onEnter(sf::Vector2i const &mousePos) noexcept override;
@@ -48,10 +37,5 @@ namespace bgg
     void onMousePressed(sf::Vector2i const &mousePos) noexcept override;
     void onMouseReleased(sf::Vector2i const &mousePos) noexcept override;
     void onServerMessage(ServerMessage const &msg) noexcept override;
-
-    void addHighlighters(ReachableTileInfo &reachableTileInfo) noexcept;
-
-    void onGameUpdatedNotification(GameUpdatedNotification const &notif) noexcept;
-    void onMoveResponse(MoveResponse const &response) noexcept;
   };
-}
+} // namespace bgg

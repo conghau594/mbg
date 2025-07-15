@@ -5,13 +5,13 @@
 #include "base/Logger.h"
 
 #include "ChessPieceSelectedState.h"
+#include "ChessPieceMovedState.h"
 #include "IChessBoard.h"
 #include "display/board/TileMap.h"
 #include "display/board/ZOrder.h"
 
 #include "ChessTextureCell.h"
 
-#include "model/ChessPiece.h"
 #include "service/ClientRequest.h"
 
 namespace bgg
@@ -35,8 +35,8 @@ namespace bgg
         lastHoveredTile_{-1, -1}
   {
     choiceHighlighter_ = itemStore_->addItem(
-        ChessTextureCell::CHOICE_HIGHLIGHTER,
         ZOrder::THIRD_LAYER,
+        ChessTextureCell::CHOICE_HIGHLIGHTER,
         ChessTextureCell::toString(ChessTextureCell::CHOICE_HIGHLIGHTER),
         false);
 
@@ -61,7 +61,7 @@ namespace bgg
           "There are {} reachable tiles from tile ({}, {}) obtained by '{}'",
           reachableTileInfo->quietMoves.size() +
               reachableTileInfo->captureMoves.size() +
-              reachableTileInfo->specialMoves.size(),
+              (reachableTileInfo->enPassantCaptureMove ? 1 : 0),
           selectedTile_.x, selectedTile_.y,
           "?" /*ChessPiece::toString(gameRule_->getItemT Entry(selectedTile_).value())*/);
       //==========
@@ -143,20 +143,33 @@ namespace bgg
       gameBoard_->popState(mousePos);
       return;
     }
-
     // choiceHighlighter_.getItem().setVisible(false);
 
-    gameBoard_->clearStates();
-    gameBoard_->requestMove(ChessPieceMove{
-        selectedTile_, targetedTile, std::nullopt});
+    std::optional<std::string> promotedPiece(std::nullopt);
+    if (targetedTile.y == 0)
+    {
+      promotedPiece = "Queen";
+    }
+
+    ItemMove move{selectedTile_, targetedTile, promotedPiece};
+    std::shared_ptr<IBoardState>
+        pieceMovedState = std::make_shared<ChessPieceMovedState>(
+            gameBoard_, gameRule_, tileMap_, itemStore_, std::move(move));
+
+    gameBoard_->changeState(std::move(pieceMovedState));
+  }
+
+  void ChessPieceSelectedState::onServerMessage(ServerMessage const & /*msg*/) noexcept
+  {
+    // do nothing
   }
 
   void ChessPieceSelectedState::addHighlighters(
       ReachableTileInfo &reachableTileInfo) noexcept
   {
     ItemStore::Entry &&selectedTileHighlighter = itemStore_->addItem(
-        ChessTextureCell::LAST_MOVE_HIGHLIGHTER,
         ZOrder::FIRST_LAYER,
+        ChessTextureCell::LAST_MOVE_HIGHLIGHTER,
         ChessTextureCell::toString(ChessTextureCell::LAST_MOVE_HIGHLIGHTER));
 
     tileMap_->fitItemToTile(selectedTileHighlighter.getItem(), selectedTile_);
@@ -165,8 +178,8 @@ namespace bgg
     for (TileCoords &tile : reachableTileInfo.quietMoves)
     {
       ItemStore::Entry quietMoveHighlighter = itemStore_->addItem(
-          ChessTextureCell::QUIET_MOVE_HIGHLIGHTER,
           ZOrder::THIRD_LAYER,
+          ChessTextureCell::QUIET_MOVE_HIGHLIGHTER,
           ChessTextureCell::toString(ChessTextureCell::QUIET_MOVE_HIGHLIGHTER));
 
       tileMap_->fitItemToTile(quietMoveHighlighter.getItem(), tile);
@@ -181,8 +194,8 @@ namespace bgg
     for (TileCoords &tile : reachableTileInfo.captureMoves)
     {
       ItemStore::Entry &&captureMoveHighlighter = itemStore_->addItem(
-          ChessTextureCell::CAPTURE_MOVE_HIGHLIGHTER,
           ZOrder::THIRD_LAYER,
+          ChessTextureCell::CAPTURE_MOVE_HIGHLIGHTER,
           ChessTextureCell::toString(ChessTextureCell::CAPTURE_MOVE_HIGHLIGHTER));
 
       tileMap_->fitItemToTile(captureMoveHighlighter.getItem(), tile);
@@ -194,7 +207,7 @@ namespace bgg
       BOOST_ASSERT_MSG(inserted, "There should be one item per tile");
     }
 
-    if (reachableTileInfo.specialMoves.empty())
+    if (!reachableTileInfo.enPassantCaptureMove)
     {
       return;
     }
@@ -202,13 +215,13 @@ namespace bgg
     // TODO: IMPORTANT!!! The following snippet is specific to the Chess game.
     //  So this class cannot be common to other types of board game.
     //  You need a refactor. You might delegate this to gameRule_?
-    TileCoords const &specialMoveTile = reachableTileInfo.specialMoves[0];
+    TileCoords const &specialMoveTile = reachableTileInfo.enPassantCaptureMove.value();
     auto itemAtSpecialTile = gameRule_->getItemEntry(specialMoveTile);
     if (!itemAtSpecialTile.isNull())
     {
       ItemStore::Entry &&captureMoveHighlighter = itemStore_->addItem(
-          ChessTextureCell::CAPTURE_MOVE_HIGHLIGHTER,
           ZOrder::THIRD_LAYER,
+          ChessTextureCell::CAPTURE_MOVE_HIGHLIGHTER,
           ChessTextureCell::toString(ChessTextureCell::CAPTURE_MOVE_HIGHLIGHTER));
 
       tileMap_->fitItemToTile(captureMoveHighlighter.getItem(), specialMoveTile);
@@ -222,8 +235,8 @@ namespace bgg
     else
     {
       ItemStore::Entry &&quietMoveHighlighter = itemStore_->addItem(
-          ChessTextureCell::QUIET_MOVE_HIGHLIGHTER,
           ZOrder::THIRD_LAYER,
+          ChessTextureCell::QUIET_MOVE_HIGHLIGHTER,
           ChessTextureCell::toString(ChessTextureCell::QUIET_MOVE_HIGHLIGHTER));
 
       tileMap_->fitItemToTile(quietMoveHighlighter.getItem(), specialMoveTile);

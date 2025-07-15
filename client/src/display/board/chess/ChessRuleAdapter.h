@@ -18,7 +18,6 @@ namespace bgg
 
   class ChessRuleAdapter final : public IChessRuleAdapter
   {
-    std::shared_ptr<ItemStore> itemStore_;
     ChessRule rule_;
 
     ItemPlacementMap itemPlacements_; ///< Usage: itemEntries_[ChessPiece::<ENUM>]
@@ -39,7 +38,12 @@ namespace bgg
         Position const &position) const noexcept -> TileCoords override;
     auto tileToPosition(
         TileCoords const &tile) const noexcept -> Position override;
-    void commitMove(ChessPieceMove const &move) noexcept override;
+
+    // TODO: Need refactor
+    // auto commitMove(
+    //     ChessMove const &move,
+    //     std::optional<BoardItem> promotedItem = std::nullopt) noexcept
+    //     -> ItemStore::Entry override;
 
     auto getYourColor() const -> std::string const & override;
 

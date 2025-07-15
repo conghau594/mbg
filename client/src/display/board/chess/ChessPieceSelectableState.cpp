@@ -10,7 +10,6 @@
 #include "display/board/ZOrder.h"
 
 #include "ChessTextureCell.h"
-#include "model/ChessPiece.h"
 
 namespace bgg
 {
@@ -27,8 +26,8 @@ namespace bgg
         lastHoveredTile_{-1, -1}
   {
     choiceHighlighter_ = itemStore_->addItem(
-        ChessTextureCell::CHOICE_HIGHLIGHTER,
         ZOrder::THIRD_LAYER,
+        ChessTextureCell::CHOICE_HIGHLIGHTER,
         ChessTextureCell::toString(ChessTextureCell::CHOICE_HIGHLIGHTER),
         false);
 
@@ -97,6 +96,11 @@ namespace bgg
   }
 
   void ChessPieceSelectableState::onMouseReleased(sf::Vector2i const & /*mousePos*/) noexcept
+  {
+    // do nothing
+  }
+  
+  void ChessPieceSelectableState::onServerMessage(ServerMessage const &/*msg*/) noexcept
   {
     // do nothing
   }

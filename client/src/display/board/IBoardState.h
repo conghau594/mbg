@@ -3,6 +3,8 @@
 
 #include <SFML/System/Vector2.hpp>
 
+#include "service/ServerMessage.h"
+
 namespace bgg
 {
   class IBoardState
@@ -14,5 +16,6 @@ namespace bgg
     virtual void onMouseMoved(sf::Vector2i const &mousePos) = 0;
     virtual void onMousePressed(sf::Vector2i const &mousePos) = 0;
     virtual void onMouseReleased(sf::Vector2i const &mousePos) = 0;
+    virtual void onServerMessage(ServerMessage const &msg) = 0;
   };
 } // namespace bgg

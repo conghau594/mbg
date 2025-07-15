@@ -64,7 +64,7 @@ namespace bgg
   {
   public:
     ErrorCode errcode;
-    std::optional<GameUpdatedNotification> currentGameState;
+    //std::optional<GameUpdatedNotification> currentGameState;
   };
 
   class ResignGameResponse final

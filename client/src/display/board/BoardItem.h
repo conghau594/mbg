@@ -11,19 +11,19 @@ namespace bgg
 {
   class BoardItem final : public sf::Drawable
   {
-    std::shared_ptr<const BaseTextureAtlas> const atlas_;
+    std::shared_ptr<const BaseTextureAtlas> atlas_;
     sf::Sprite sprite_;
     std::string name_;
     bool isVisible_;
 
   public:
     BoardItem(
-        std::shared_ptr<const BaseTextureAtlas> const atlas,
-        sf::IntRect rectangle,
+        std::shared_ptr<const BaseTextureAtlas> atlas,
+        sf::IntRect textureCellRect,
         std::string name,
         bool isVisible = true) noexcept
         : atlas_(std::move(atlas)),
-          sprite_(*(atlas_->getTexture()), std::move(rectangle)),
+          sprite_(*(atlas_->getTexture()), std::move(textureCellRect)),
           name_(std::move(name)),
           isVisible_(isVisible)
     {

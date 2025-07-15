@@ -15,22 +15,54 @@ namespace bgg
   }
 
   auto ItemStore::addItem(
-      int textureCellIndex,
       int zOrder,
+      int textureCellIndex,
       std::string name,
       bool visible) noexcept -> ItemStore::Entry
   {
-    sf::IntRect textureCellRect = itemTextureAtlas_->getRegion(textureCellIndex);
     size_t id = generateNextId(zOrder);
 
+    sf::IntRect &&textureCellRect = itemTextureAtlas_->getRegion(textureCellIndex);
     auto [iter, inserted] = boardItems_.try_emplace(
         id, itemTextureAtlas_, textureCellRect, std::move(name), visible);
 
-    BOOST_ASSERT_MSG(inserted, "With a unique id, emplacing to boardItems_ should not fail");
+    BOOST_ASSERT_MSG(
+        inserted,
+        "With a unique id, emplacing to boardItems_ should not fail");
 
-    return Entry(
-        std::make_shared<Container::iterator>(iter),
-        &boardItems_);
+    return Entry(std::make_shared<Container::iterator>(iter), &boardItems_);
+  }
+
+  auto ItemStore::addItem(int zOrder, BoardItem item) noexcept -> Entry
+  {
+    size_t id = generateNextId(zOrder);
+    auto [iter, inserted] = boardItems_.try_emplace(id, std::move(item));
+
+    BOOST_ASSERT_MSG(
+        inserted,
+        "With a unique id, emplacing to boardItems_ should not fail");
+
+    return Entry(std::make_shared<Container::iterator>(iter), &boardItems_);
+  }
+
+  auto ItemStore::createItem(
+      int textureCellIndex, std::string name, bool visible) noexcept -> BoardItem
+  {
+    sf::IntRect &&textureCellRect = itemTextureAtlas_->getRegion(textureCellIndex);
+    return BoardItem(itemTextureAtlas_, textureCellRect, std::move(name), visible);
+  }
+
+  auto ItemStore::removeItem(Entry &entry) noexcept -> bool
+  {
+    if (entry.isNull() || (entry.itemMapPtr_ != &boardItems_))
+    {
+      return false;
+    }
+
+    boardItems_.erase(*(entry.itemIter_));
+    // entry.itemMapPtr_ = nullptr;
+    entry.itemIter_ = nullptr; // make sure the entry is null but it still belongs to this store
+    return true;
   }
 
   auto ItemStore::getZOrder(Entry const &entry) const noexcept -> int
@@ -58,17 +90,12 @@ namespace bgg
     *(entry.itemIter_) = iter;
   }
 
-  auto ItemStore::removeItem(Entry &entry) noexcept -> bool
+  void ItemStore::changeItem(
+      Entry &entry, int textureCellIndex, std::string name, bool visible) noexcept
   {
-    if (entry.isNull() || (entry.itemMapPtr_ != &boardItems_))
-    {
-      return false;
-    }
-
-    boardItems_.erase(*(entry.itemIter_));
-    // entry.itemMapPtr_ = nullptr;
-    entry.itemIter_ = nullptr; // make sure the entry is null but it still belongs to this store
-    return true;
+    sf::IntRect &&textureCellRect = itemTextureAtlas_->getRegion(textureCellIndex);
+    entry.getItem() = BoardItem(
+        itemTextureAtlas_, textureCellRect, std::move(name), visible);
   }
 
   auto ItemStore::begin() noexcept -> ItemStore::Iter
@@ -156,11 +183,6 @@ namespace bgg
       Container const *itemMapPtr) noexcept
       : itemIter_(std::move(itemIter)),
         itemMapPtr_(itemMapPtr)
-  {
-  }
-
-  ItemStore::Entry::Entry() noexcept
-      : Entry(nullptr, nullptr)
   {
   }
 

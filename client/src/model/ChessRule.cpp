@@ -12,7 +12,7 @@ namespace bgg
   }
 
   ChessRule::ChessRule(
-      std::map<Square, Piece> piecePlacements,
+      std::map<Position, Piece> piecePlacements,
       std::string color) noexcept
       : piecePlacements_(std::move(piecePlacements)), yourColor_(std::move(color))
   {
@@ -24,7 +24,7 @@ namespace bgg
     return yourColor_;
   }
 
-  auto ChessRule::getColor(Square const &square) const noexcept
+  auto ChessRule::getColor(Position const &square) const noexcept
       -> std::optional<std::string>
   {
     std::optional<Piece> piece = getPiece(square);
@@ -36,23 +36,23 @@ namespace bgg
   }
 
   auto ChessRule::getPiecePlacements() noexcept
-      -> std::map<Square, Piece> const &
+      -> std::map<Position, Piece> const &
   {
     return piecePlacements_;
   }
 
   auto ChessRule::getSelectablePieces() const noexcept
-      -> std::map<Square, Piece>
+      -> std::map<Position, Piece>
   {
     // TODO: getSelectablePieces()
     return piecePlacements_;
   }
 
-  auto ChessRule::getCandidateMoves(Square const &square) const noexcept
+  auto ChessRule::getCandidateMoves(Position const &square) const noexcept
       -> std::optional<CandidateMoveInfo>
   {
     BGG_VALIDATE_SQUARE(square);
-    // TODO: getCandidateMoves(Square const &square)
+    // TODO: getCandidateMoves(Position const &square)
 
     std::optional<Piece> piece = getPiece(square);
     if (!piece)
@@ -62,14 +62,14 @@ namespace bgg
 
     CandidateMoveInfo candidateMoveInfo{
         piece.value(),
-        {Square{"a2"}, Square{"e6"}, Square{"b1"}},
-        {Square{"f1"}, Square{"d5"}},
-        Square{"e4"}};
+        {Position{"a2"}, Position{"e6"}, Position{"b1"}},
+        {Position{"f1"}, Position{"d5"}, Position{"h8"}},
+        Position{"e4"}};
 
     return candidateMoveInfo;
   }
 
-  auto ChessRule::getPiece(Square const &square) const noexcept
+  auto ChessRule::getPiece(Position const &square) const noexcept
       -> std::optional<Piece>
   {
     BGG_VALIDATE_SQUARE(square);
@@ -82,51 +82,38 @@ namespace bgg
     return found->second;
   }
 
-  void ChessRule::movePiece(
-      Square const &fromSquare,
-      Square const &toSquare,
-      std::optional<std::string> const &promote)
+  auto ChessRule::tryMove(ChessMove const &move) const noexcept -> ChessMove::Result
   {
-    // TODO: ChessRule::movePiece
-    auto movedPiece = piecePlacements_.find(fromSquare);
-
-    BOOST_ASSERT_MSG(
-        movedPiece != piecePlacements_.end(),
-        "There must be a piece at the 'fromSquare'");
-
-    auto targetedPiece = piecePlacements_.find(toSquare);
-    if (targetedPiece == piecePlacements_.end()) ///< if 'toSquare' is empty...
-    {
-      auto [iter, inserted] = piecePlacements_.try_emplace(
-          toSquare, movedPiece->second);
-    }
-    else
-    {
-      BOOST_ASSERT_MSG(
-          targetedPiece->second.color != movedPiece->second.color,
-          "The color of piece at the 'fromSquare' must be different from "
-          "the color of piece at the 'toSquare'");
-
-      targetedPiece->second = movedPiece->second;
-    }
-
-    piecePlacements_.erase(movedPiece);
+    return ChessMove::Invalid();
   }
 
-  // constexpr auto ChessRule::Board::indexToSquare(int index) -> Square
+  // void ChessRule::movePiece(
+  //     Position const &fromSquare,
+  //     Position const &toSquare,
+  //     std::optional<std::string> const &promote)
   // {
-  //   int const row = index / SIDE_LENGTH + FIRST_ROW;
-  //   int const col = index % SIDE_LENGTH + FIRST_COL;
+  //   // TODO: ChessRule::movePiece
+  //   auto movedPiece = piecePlacements_.find(fromSquare);
 
-  //   return Square{char(col), char(row), '\0'};
-  // }
+  //   BOOST_ASSERT_MSG(
+  //       movedPiece != piecePlacements_.end(),
+  //       "There must be a piece at the 'fromSquare'");
 
-  // constexpr auto ChessRule::Board::squareToIndex(Square const &square) -> std::size_t
-  // {
-  //   int const col = int(square[0]);
-  //   int const row = int(square[1]);
-  //   int const index = (row - FIRST_ROW) * SIDE_LENGTH + col - FIRST_COL;
+  //   auto targetedPiece = piecePlacements_.find(toSquare);
+  //   if (targetedPiece == piecePlacements_.end()) ///< if 'toSquare' is empty...
+  //   {
+  //     piecePlacements_.try_emplace(toSquare, movedPiece->second);
+  //   }
+  //   else
+  //   {
+  //     BOOST_ASSERT_MSG(
+  //         targetedPiece->second.color != movedPiece->second.color,
+  //         "The color of piece at the 'fromSquare' must be different from "
+  //         "the color of piece at the 'toSquare'");
 
-  //   return std::size_t(index);
+  //     targetedPiece->second = movedPiece->second;
+  //   }
+
+  //   piecePlacements_.erase(movedPiece);
   // }
 } // namespace bgg

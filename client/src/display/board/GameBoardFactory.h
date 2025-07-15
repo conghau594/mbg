@@ -88,8 +88,7 @@ namespace bgg
             std::move(tileMap),
             std::move(itemStore));
 
-        chessBoard->pushState(std::move(initialBoardState), {-1000, -1000}); ///< to make initial mouse pos far away from window
-                                                                             ///< => make choice highlighter not appear wrong
+        chessBoard->pushState(std::move(initialBoardState));
       }
 
       return chessBoard;

@@ -40,16 +40,28 @@ namespace bgg
     ItemStore(std::shared_ptr<const BaseTextureAtlas> itemTextureAtlas) noexcept;
 
     auto addItem(
-        int textureCellIndex,
         int zOrder,
+        int textureCellIndex,
         std::string name = "",
         bool visible = true) noexcept -> Entry;
 
+    auto addItem(int zOrder, BoardItem item) noexcept -> Entry;
+
+    auto createItem(
+        int textureCellIndex,
+        std::string name = "",
+        bool visible = true) noexcept -> BoardItem;
+
     // auto removeItem(std::size_t itemId) noexcept -> bool;
+    auto removeItem(Entry &entry) noexcept -> bool;
 
     auto getZOrder(Entry const &entry) const noexcept -> int;
     void changeZOrder(Entry &entry, int newZOrder) noexcept;
-    auto removeItem(Entry &entry) noexcept -> bool;
+    void changeItem(
+        Entry &entry,
+        int textureCellIndex,
+        std::string name = "",
+        bool visible = true) noexcept;
 
     [[nodiscard]] auto begin() noexcept -> Iter;
     [[nodiscard]] auto end() noexcept -> Iter;
@@ -105,7 +117,9 @@ namespace bgg
      * Construct an null Entry object associated with an ItemStore
      *
      */
-    Entry() noexcept;
+    constexpr Entry() noexcept : itemIter_(nullptr), itemMapPtr_(nullptr)
+    {
+    }
 
     /**
      * \return True if two entries are copies of each other. Otherwise false.

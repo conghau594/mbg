@@ -40,5 +40,6 @@ namespace bgg
     void onMouseMoved(sf::Vector2i const &mousePos) noexcept override;
     void onMousePressed(sf::Vector2i const &mousePos) noexcept override;
     void onMouseReleased(sf::Vector2i const &mousePos) noexcept override;
+    void onServerMessage(ServerMessage const &msg) noexcept override;
   };
 }

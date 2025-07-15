@@ -196,7 +196,7 @@ namespace bgg
           int errCodeValue = 0;
           try
           {
-            simulateNetworkLatencyAndFailure(0);
+            simulateNetworkLatencyAndFailure(50);
           }
           catch (std::runtime_error const &e)
           {
@@ -221,12 +221,12 @@ namespace bgg
             errCodeValue = -1;
           }
 
-          std::string gameId = "@Test123";
+          std::string gameId = "@Test123 ";
           int side = 0; // 0: WHITE, 1: BLACK
           emit(GameUpdatedNotification{
               Position("a7"),
               Position("a5"),
-              "Queen",
+              "Bishop",
               0,
               0});
         });
