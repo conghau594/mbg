@@ -44,7 +44,8 @@ namespace bgg
   auto ChessRule::getSelectablePieces() const noexcept
       -> std::map<Position, Piece>
   {
-    // TODO: getSelectablePieces()
+    std::map<Position, Piece> selectablePieces;
+
     return piecePlacements_;
   }
 
@@ -84,7 +85,193 @@ namespace bgg
 
   auto ChessRule::tryMove(ChessMove const &move) const noexcept -> ChessMove::Result
   {
-    return ChessMove::Invalid();
+    std::optional<Piece> movedPiece = getPiece(move.fromPos);
+    if (!movedPiece)
+    {
+      return ChessMove::Invalid{ChessMove::Error::INVALID_FROM_POS};
+    }
+
+    std::optional<Piece> capturedPiece = getPiece(move.toPos);
+    if (capturedPiece && (movedPiece->color == capturedPiece->color))
+    {
+      return ChessMove::Invalid{ChessMove::Error::INVALID_TO_POS};
+    }
+
+    if (movedPiece->type == PieceType::PAWN)
+    {
+    }
+    else if (movedPiece->type == PieceType::KING)
+    {
+    }
+    else
+    {
+    }
+  }
+
+  auto ChessRule::isSquareMovable(Position const &square, std::string const &color) const noexcept -> bool
+  {
+    int const col = int(square[0]);
+    int const row = int(square[1]);
+
+    if ((col < FIRST_COL) || (col > BOARD_SIDE + FIRST_COL - 1) ||
+        (row < FIRST_ROW) || (row > BOARD_SIDE + FIRST_ROW - 1))
+    {
+      return false;
+    }
+
+    auto found = piecePlacements_.find(square);
+    if ((found == piecePlacements_.cend()) || (found->second.color != color))
+    {
+      return true;
+    }
+
+    return false;
+  }
+
+  auto ChessRule::isStraightMovePossible(
+      Position const &square, std::string const &color) const noexcept -> bool
+  {
+    BGG_VALIDATE_COLOR(color);
+    BGG_VALIDATE_SQUARE(square);
+
+    int const col = int(square[0]);
+    int const row = int(square[1]);
+    Position const nearSquares[4]{
+        Position{char(col + 1), char(row), '\0'},
+        Position{char(col - 1), char(row), '\0'},
+        Position{char(col), char(row + 1), '\0'},
+        Position{char(col), char(row - 1), '\0'}};
+
+    for (Position const &nearSquare : nearSquares)
+    {
+      if (isSquareMovable(nearSquare, color))
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  auto ChessRule::isDiagonalMovePossible(
+      Position const &square, std::string const &color) const noexcept -> bool
+  {
+    BGG_VALIDATE_COLOR(color);
+    BGG_VALIDATE_SQUARE(square);
+
+    int const col = int(square[0]);
+    int const row = int(square[1]);
+    Position const nearSquares[4]{
+        Position{char(col + 1), char(row + 1), '\0'},
+        Position{char(col + 1), char(row - 1), '\0'},
+        Position{char(col - 1), char(row + 1), '\0'},
+        Position{char(col - 1), char(row - 1), '\0'}};
+
+    for (Position const &nearSquare : nearSquares)
+    {
+      if (isSquareMovable(nearSquare, color))
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  auto ChessRule::isKnightMovePossible(
+      Position const &square, std::string const &color) const noexcept -> bool
+  {
+    BGG_VALIDATE_COLOR(color);
+    BGG_VALIDATE_SQUARE(square);
+
+    int const col = int(square[0]);
+    int const row = int(square[1]);
+    Position const nearSquares[8]{
+        Position{char(col + 1), char(row + 2), '\0'},
+        Position{char(col + 1), char(row - 2), '\0'},
+        Position{char(col - 1), char(row + 2), '\0'},
+        Position{char(col - 1), char(row - 2), '\0'},
+        Position{char(col + 2), char(row + 1), '\0'},
+        Position{char(col - 2), char(row + 1), '\0'},
+        Position{char(col + 2), char(row - 1), '\0'},
+        Position{char(col - 2), char(row - 1), '\0'}};
+
+    for (Position const &nearSquare : nearSquares)
+    {
+      if (isSquareMovable(nearSquare, color))
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  auto ChessRule::isPawnMovePossible(
+      Position const &square, std::string const &color) const noexcept -> bool
+  {
+    BGG_VALIDATE_COLOR(color);
+    BGG_VALIDATE_SQUARE(square);
+
+    BOOST_ASSERT_MSG(
+        square[1] != '1' && square[1] != '8',
+        "Pawns never stand on row 1 and row 8");
+
+    int const col = int(square[0]);
+    int const row = int(square[1]);
+
+    int step = 1;
+    if (color == Color::BLACK)
+    {
+      step = -1;
+    }
+
+    Position front{char(col), char(row + step), '\0'};
+    auto found = piecePlacements_.find(front);
+    if (found == piecePlacements_.cend())
+    {
+      return true;
+    }
+
+    Position left{char(col - 1), char(row + step), '\0'};
+    found = piecePlacements_.find(left);
+    if ((found != piecePlacements_.cend()) && (found->second.color == color))
+    {
+      return true;
+    }
+
+    Position right{char(col + 1), char(row + step), '\0'};
+    found = piecePlacements_.find(right);
+    if ((found != piecePlacements_.cend()) && (found->second.color == color))
+    {
+      return true;
+    }
+
+    return false;
+  }
+
+  auto ChessRule::getStraightMovableSquares(
+      Position const &square, unsigned radius) const noexcept -> std::list<Position>
+  {
+    return std::list<Position>();
+  }
+
+  auto ChessRule::getDiagonalMovableSquares(
+      Position const &square, unsigned radius) const noexcept -> std::list<Position>
+  {
+    return std::list<Position>();
+  }
+
+  auto ChessRule::getKnightMovableSquares(
+      Position const &square) const noexcept -> std::list<Position>
+  {
+    return std::list<Position>();
+  }
+
+  auto ChessRule::getPawnMovableSquares(
+      Position const &square) const noexcept -> std::list<Position>
+  {
+    return std::list<Position>();
   }
 
   // void ChessRule::movePiece(

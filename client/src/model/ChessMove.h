@@ -4,7 +4,8 @@
 #include <optional>
 #include <string>
 
-#include "base/Variant.hpp"
+#include "base/Variant.h"
+#include "base/EnumBitwises.h"
 #include "Piece.h"
 
 namespace bgg
@@ -17,12 +18,13 @@ namespace bgg
     std::optional<std::string> promote;
 
     /////////////////////////////////////////////////////////////////////////////
-    enum class Error{
-        INVALID_FROM_POS = 1 << 0,
-        INVALID_TO_POS = 1 << 1,
-        INVALID_PROMOTION = 1 << 2,
-        INVALID_CASTLING = 1 << 3,
-        KING_EXPOSED = 1 << 4,
+    enum class Error
+    {
+      INVALID_FROM_POS = 1 << 0,
+      INVALID_TO_POS = 1 << 1,
+      INVALID_PROMOTION = 1 << 2,
+      INVALID_CASTLING = 1 << 3,
+      KING_EXPOSED = 1 << 4,
     };
 
     enum class KingStatus : unsigned
@@ -96,5 +98,4 @@ namespace bgg
         EnPassant,
         Castling>;
   };
-
 } // namespace bgg

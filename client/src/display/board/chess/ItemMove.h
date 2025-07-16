@@ -6,7 +6,7 @@
 
 #include <SFML/System/Vector2.hpp>
 
-#include "base/Variant.hpp"
+#include "base/Variant.h"
 
 namespace bgg
 {

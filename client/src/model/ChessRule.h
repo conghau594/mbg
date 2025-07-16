@@ -131,6 +131,26 @@ namespace bgg
     //     Position const &toSquare,
     //     std::optional<std::string> const &promote);
 
+  private:
+    auto isSquareMovable(
+        Position const &square, std::string const &color) const noexcept -> bool;
+    auto isStraightMovePossible(
+        Position const &square, std::string const &color) const noexcept -> bool;
+    auto isDiagonalMovePossible(
+        Position const &square, std::string const &color) const noexcept -> bool;
+    auto isKnightMovePossible(
+        Position const &square, std::string const &color) const noexcept -> bool;
+    auto isPawnMovePossible(
+        Position const &square, std::string const &color) const noexcept -> bool;
+
+    auto getStraightMovableSquares(
+        Position const &square, unsigned radius) const noexcept -> std::list<Position>;
+    auto getDiagonalMovableSquares(
+        Position const &square, unsigned radius) const noexcept -> std::list<Position>;
+    auto getKnightMovableSquares(
+        Position const &square) const noexcept -> std::list<Position>;
+    auto getPawnMovableSquares(
+        Position const &square) const noexcept -> std::list<Position>;
   };
 
 } // namespace bgg
