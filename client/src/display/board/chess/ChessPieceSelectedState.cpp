@@ -61,7 +61,7 @@ namespace bgg
           "There are {} reachable tiles from tile ({}, {}) obtained by '{}'",
           reachableTileInfo->quietMoves.size() +
               reachableTileInfo->captureMoves.size() +
-              (reachableTileInfo->enPassantCaptureMove ? 1 : 0),
+              (reachableTileInfo->enPassantPos ? 1 : 0),
           selectedTile_.x, selectedTile_.y,
           "?" /*ChessPiece::toString(gameRule_->getItemT Entry(selectedTile_).value())*/);
       //==========
@@ -207,7 +207,7 @@ namespace bgg
       BOOST_ASSERT_MSG(inserted, "There should be one item per tile");
     }
 
-    if (!reachableTileInfo.enPassantCaptureMove)
+    if (!reachableTileInfo.enPassantPos)
     {
       return;
     }
@@ -215,7 +215,7 @@ namespace bgg
     // TODO: IMPORTANT!!! The following snippet is specific to the Chess game.
     //  So this class cannot be common to other types of board game.
     //  You need a refactor. You might delegate this to gameRule_?
-    TileCoords const &specialMoveTile = reachableTileInfo.enPassantCaptureMove.value();
+    TileCoords const &specialMoveTile = reachableTileInfo.enPassantPos.value();
     auto itemAtSpecialTile = gameRule_->getItemEntry(specialMoveTile);
     if (!itemAtSpecialTile.isNull())
     {

@@ -36,7 +36,7 @@ namespace bgg
 
     std::list<TileCoords> quietMoves;
     std::list<TileCoords> captureMoves;
-    std::optional<TileCoords> enPassantCaptureMove;
+    std::optional<TileCoords> enPassantPos;
 
     // std::optional<TileCoords> checkMove;
     // bool isCheckmate;

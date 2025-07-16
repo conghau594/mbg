@@ -149,18 +149,18 @@ namespace bgg
       captureMoves.emplace_back(positionToTile(square));
     }
 
-    std::optional<TileCoords> enPassantCaptureMove(std::nullopt);
-    if (candidateMoveInfo.enPassantCaptureMove)
+    std::optional<TileCoords> enPassantPos(std::nullopt);
+    if (candidateMoveInfo.enPassantPos)
     {
-      Position const& square = candidateMoveInfo.enPassantCaptureMove.value();
-      enPassantCaptureMove = positionToTile(square);
+      Position const& square = candidateMoveInfo.enPassantPos.value();
+      enPassantPos = positionToTile(square);
     }
 
     return ReachableTileInfo{
         itemEntry,
         std::move(quietMoves),
         std::move(captureMoves),
-        std::move(enPassantCaptureMove)};
+        std::move(enPassantPos)};
   }
 
   // auto ChessRuleAdapter::getItemType(TileCoords const &tile) const noexcept

@@ -25,7 +25,7 @@ namespace bgg
     auto createGameApp() noexcept -> GameApp override
     {
       int constexpr RESIGN_REGION_HEIGHT = 40;
-      int constexpr BOARD_SIDE_LENGTH = 1200;
+      int constexpr BOARD_SIDE_LENGTH = 200;
       int constexpr BOARD_MIN_SIDE_LENGTH = 80;
 
       sf::Vector2u constexpr WINDOW_SIZE(
@@ -58,8 +58,44 @@ namespace bgg
           gameDisplay = std::make_shared<GameDisplay>(window, eventBus);
 
       //==============
+      std::pair<Position, Piece> TESTING_PLACEMENTS[ChessRule::PIECE_COUNT]{
+          {Position{"e2"}, Piece{ChessRule::PieceType::KING, Color::WHITE}},
+          {Position{"e4"}, Piece{ChessRule::PieceType::QUEEN, Color::WHITE}},
+          {Position{"a2"}, Piece{ChessRule::PieceType::ROOK, Color::WHITE}},
+          {Position{"h2"}, Piece{ChessRule::PieceType::ROOK, Color::WHITE}},
+          {Position{"b2"}, Piece{ChessRule::PieceType::KNIGHT, Color::WHITE}},
+          {Position{"g2"}, Piece{ChessRule::PieceType::KNIGHT, Color::WHITE}},
+          {Position{"c2"}, Piece{ChessRule::PieceType::BISHOP, Color::WHITE}},
+          {Position{"f2"}, Piece{ChessRule::PieceType::BISHOP, Color::WHITE}},
+          {Position{"a6"}, Piece{ChessRule::PieceType::PAWN, Color::WHITE}},
+          {Position{"a5"}, Piece{ChessRule::PieceType::PAWN, Color::WHITE}},
+          {Position{"a4"}, Piece{ChessRule::PieceType::PAWN, Color::WHITE}},
+          {Position{"a3"}, Piece{ChessRule::PieceType::PAWN, Color::WHITE}},
+          {Position{"b6"}, Piece{ChessRule::PieceType::PAWN, Color::WHITE}},
+          {Position{"b5"}, Piece{ChessRule::PieceType::PAWN, Color::WHITE}},
+          {Position{"b4"}, Piece{ChessRule::PieceType::PAWN, Color::WHITE}},
+          {Position{"b3"}, Piece{ChessRule::PieceType::PAWN, Color::WHITE}},
+
+          {Position{"e8"}, Piece{ChessRule::PieceType::KING, Color::BLACK}},
+          {Position{"d8"}, Piece{ChessRule::PieceType::QUEEN, Color::BLACK}},
+          {Position{"a8"}, Piece{ChessRule::PieceType::ROOK, Color::BLACK}},
+          {Position{"h8"}, Piece{ChessRule::PieceType::ROOK, Color::BLACK}},
+          {Position{"b8"}, Piece{ChessRule::PieceType::KNIGHT, Color::BLACK}},
+          {Position{"g8"}, Piece{ChessRule::PieceType::KNIGHT, Color::BLACK}},
+          {Position{"c8"}, Piece{ChessRule::PieceType::BISHOP, Color::BLACK}},
+          {Position{"f8"}, Piece{ChessRule::PieceType::BISHOP, Color::BLACK}},
+          {Position{"a7"}, Piece{ChessRule::PieceType::PAWN, Color::BLACK}},
+          {Position{"b7"}, Piece{ChessRule::PieceType::PAWN, Color::BLACK}},
+          {Position{"c7"}, Piece{ChessRule::PieceType::PAWN, Color::BLACK}},
+          {Position{"d7"}, Piece{ChessRule::PieceType::PAWN, Color::BLACK}},
+          {Position{"e7"}, Piece{ChessRule::PieceType::PAWN, Color::BLACK}},
+          {Position{"f7"}, Piece{ChessRule::PieceType::PAWN, Color::BLACK}},
+          {Position{"g7"}, Piece{ChessRule::PieceType::PAWN, Color::BLACK}},
+          {Position{"h7"}, Piece{ChessRule::PieceType::PAWN, Color::BLACK}},
+      };
+
       std::map<Position, Piece> initialPlacements(
-          ChessRule::INITIAL_PLACEMENTS, ChessRule::INITIAL_PLACEMENTS + ChessRule::PIECE_COUNT);
+          TESTING_PLACEMENTS, TESTING_PLACEMENTS + ChessRule::PIECE_COUNT);
       FindGameResponse findGameResponse{
           {0, "", "Mock"}, // error code
           gameType_,

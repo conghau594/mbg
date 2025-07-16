@@ -243,7 +243,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     -Wall                       # Enable most common warnings
     -Wextra                     # Enable extra (more aggressive) warnings
     #-Wnoexcept                  # Enables warnings if a function marked noexcept might actually throw
-    -O2                         # Enables deeper analysis of noexcept
+    #-O2                         # Enables deeper analysis of noexcept
     -Wpedantic                  # Enforce strict ISO C++ compliance
     -Wconversion                # Warn on implicit type conversions (e.g., int to float)
     -Wsign-conversion           # Warn on implicit sign conversions (e.g., unsigned to signed)
