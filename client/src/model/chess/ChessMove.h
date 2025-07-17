@@ -6,10 +6,32 @@
 
 #include "base/Variant.h"
 #include "base/EnumBitwises.h"
-#include "Piece.h"
+#include "model/Piece.h"
 
 namespace bgg
 {
+  class CandidateMoveInfo final
+  {
+  public:
+    Piece piece;
+
+    std::list<Position> quietMoves;
+    std::list<Position> captureMoves;
+    std::optional<Position> enPassantPos; ///< includes: en passant;
+
+    void merge(CandidateMoveInfo other) noexcept
+    {
+      quietMoves.splice(quietMoves.end(), other.quietMoves);
+      captureMoves.splice(captureMoves.end(), other.captureMoves);
+
+      if (!enPassantPos && other.enPassantPos)
+      {
+        enPassantPos = std::move(other.enPassantPos);
+      }
+    }
+  };
+
+  /////////////////////////////////////////////////////////////////////////////
   class ChessMove
   {
   public:
@@ -20,8 +42,8 @@ namespace bgg
     /////////////////////////////////////////////////////////////////////////////
     enum class Error
     {
-      INVALID_FROM_POS = 1 << 0,
-      INVALID_TO_POS = 1 << 1,
+      INVALID_SOURCE_SQUARE = 1 << 0,
+      INVALID_TARGET_SQUARE = 1 << 1,
       INVALID_PROMOTION = 1 << 2,
       INVALID_CASTLING = 1 << 3,
       KING_EXPOSED = 1 << 4,
@@ -91,7 +113,7 @@ namespace bgg
       KingStatus enemyKingStatus;
     };
 
-    using Result = Variant<
+    using VariantAction = Variant<
         Invalid,
         Normal,
         Promotion,

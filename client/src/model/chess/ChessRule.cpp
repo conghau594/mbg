@@ -5,7 +5,9 @@
 namespace bgg
 {
   ChessRule::ChessRule(std::string color) noexcept
-      : piecePlacements_(INITIAL_PLACEMENTS, INITIAL_PLACEMENTS + PIECE_COUNT),
+      : piecePlacements_(
+            ChessUtils::INITIAL_PLACEMENTS,
+            ChessUtils::INITIAL_PLACEMENTS + ChessUtils::PIECE_COUNT),
         yourColor_(std::move(color))
   {
     BGG_VALIDATE_COLOR(yourColor_);
@@ -36,7 +38,7 @@ namespace bgg
     return piece->color;
   }
 
-  auto ChessRule::getPiecePlacements() noexcept
+  auto ChessRule::getPiecePlacements() const noexcept
       -> std::map<Position, Piece> const &
   {
     return piecePlacements_;
@@ -48,8 +50,13 @@ namespace bgg
     std::map<Position, Piece> selectablePieces;
     for (auto &[square, piece] : piecePlacements_)
     {
-      if (piece.type == PieceType::KING ||
-          piece.type == PieceType::QUEEN)
+      if (piece.color != yourColor_)
+      {
+        continue;
+      }
+
+      if (piece.type == ChessUtils::KING ||
+          piece.type == ChessUtils::QUEEN)
       {
         if (isStraightMovePossible(square, yourColor_) ||
             isDiagonalMovePossible(square, yourColor_))
@@ -57,28 +64,28 @@ namespace bgg
           selectablePieces.emplace(square, piece);
         }
       }
-      else if (piece.type == PieceType::ROOK)
+      else if (piece.type == ChessUtils::ROOK)
       {
         if (isStraightMovePossible(square, yourColor_))
         {
           selectablePieces.emplace(square, piece);
         }
       }
-      else if (piece.type == PieceType::BISHOP)
+      else if (piece.type == ChessUtils::BISHOP)
       {
         if (isDiagonalMovePossible(square, yourColor_))
         {
           selectablePieces.emplace(square, piece);
         }
       }
-      else if (piece.type == PieceType::KNIGHT)
+      else if (piece.type == ChessUtils::KNIGHT)
       {
         if (isKnightMovePossible(square, yourColor_))
         {
           selectablePieces.emplace(square, piece);
         }
       }
-      else if (piece.type == PieceType::PAWN)
+      else if (piece.type == ChessUtils::PAWN)
       {
         if (isPawnMovePossible(square, yourColor_))
         {
@@ -101,38 +108,41 @@ namespace bgg
       return std::nullopt;
     }
 
-    if (piece->type == PieceType::QUEEN)
+    if (piece->type == ChessUtils::QUEEN)
     {
       CandidateMoveInfo candidateMoves = getStraightMovableSquares(
-          square, yourColor_, BOARD_SIDE - 1);
+          square, piece->color, ChessUtils::BOARD_SIDE - 1);
       candidateMoves.merge(getDiagonalMovableSquares(
-          square, yourColor_, BOARD_SIDE - 1));
+          square, piece->color, ChessUtils::BOARD_SIDE - 1));
+
       return candidateMoves;
     }
-    else if (piece->type == PieceType::KING)
+    else if (piece->type == ChessUtils::KING)
     {
       CandidateMoveInfo candidateMoves = getStraightMovableSquares(
-          square, yourColor_, 1);
-      candidateMoves.merge(getDiagonalMovableSquares(square, yourColor_, 1));
+          square, piece->color, 1);
+      candidateMoves.merge(getDiagonalMovableSquares(
+          square, piece->color, 1));
+      candidateMoves.quietMoves.splice(
+          candidateMoves.quietMoves.end(), getCastlableSquares(square, piece->color));
 
-      // TODO: check if this king can castle or not
       return candidateMoves;
     }
-    else if (piece->type == PieceType::ROOK)
+    else if (piece->type == ChessUtils::ROOK)
     {
-      return getStraightMovableSquares(square, yourColor_, BOARD_SIDE - 1);
+      return getStraightMovableSquares(square, piece->color, ChessUtils::BOARD_SIDE - 1);
     }
-    else if (piece->type == PieceType::BISHOP)
+    else if (piece->type == ChessUtils::BISHOP)
     {
-      return getDiagonalMovableSquares(square, yourColor_, BOARD_SIDE - 1);
+      return getDiagonalMovableSquares(square, piece->color, ChessUtils::BOARD_SIDE - 1);
     }
-    else if (piece->type == PieceType::KNIGHT)
+    else if (piece->type == ChessUtils::KNIGHT)
     {
-      return getKnightMovableSquares(square, yourColor_);
+      return getKnightMovableSquares(square, piece->color);
     }
-    else if (piece->type == PieceType::PAWN)
+    else if (piece->type == ChessUtils::PAWN)
     {
-      return getPawnMovableSquares(square, yourColor_);
+      return getPawnMovableSquares(square, piece->color);
     }
   }
 
@@ -149,29 +159,64 @@ namespace bgg
     return found->second;
   }
 
-  auto ChessRule::tryMove(ChessMove const &move) const noexcept -> ChessMove::Result
+  auto ChessRule::attemptMove(ChessMove const &move) const noexcept -> bool
   {
     std::optional<Piece> movedPiece = getPiece(move.fromPos);
     if (!movedPiece)
     {
-      return ChessMove::Invalid{ChessMove::Error::INVALID_FROM_POS};
+      return false; // ChessMove::Invalid{ChessMove::Error::INVALID_SOURCE_SQUARE};
     }
 
     std::optional<Piece> capturedPiece = getPiece(move.toPos);
     if (capturedPiece && (movedPiece->color == capturedPiece->color))
     {
-      return ChessMove::Invalid{ChessMove::Error::INVALID_TO_POS};
+      return false; // ChessMove::Invalid{ChessMove::Error::INVALID_TARGET_SQUARE};
     }
 
-    if (movedPiece->type == PieceType::PAWN)
+    if (movedPiece->type == ChessUtils::PAWN)
     {
     }
-    else if (movedPiece->type == PieceType::KING)
+    else if (movedPiece->type == ChessUtils::KING)
     {
     }
     else
     {
     }
+  }
+
+  void ChessRule::commitLastAttemptedMove() noexcept
+  {
+    moveTracker.increaseTotalMoveCount();
+
+    // void ChessRule::movePiece(
+    //     Position const &fromSquare,
+    //     Position const &toSquare,
+    //     std::optional<std::string> const &promote)
+    // {
+    //   // TODO: ChessRule::movePiece
+    //   auto movedPiece = piecePlacements_.find(fromSquare);
+
+    //   BOOST_ASSERT_MSG(
+    //       movedPiece != piecePlacements_.end(),
+    //       "There must be a piece at the 'fromSquare'");
+
+    //   auto targetedPiece = piecePlacements_.find(toSquare);
+    //   if (targetedPiece == piecePlacements_.end()) ///< if 'toSquare' is empty...
+    //   {
+    //     piecePlacements_.try_emplace(toSquare, movedPiece->second);
+    //   }
+    //   else
+    //   {
+    //     BOOST_ASSERT_MSG(
+    //         targetedPiece->second.color != movedPiece->second.color,
+    //         "The color of piece at the 'fromSquare' must be different from "
+    //         "the color of piece at the 'toSquare'");
+
+    //     targetedPiece->second = movedPiece->second;
+    //   }
+
+    //   piecePlacements_.erase(movedPiece);
+    // }
   }
 
   auto ChessRule::getSquareStatus(
@@ -181,8 +226,8 @@ namespace bgg
     int const col = int(square[0]);
     int const row = int(square[1]);
 
-    if ((col < FIRST_COL) || (col > BOARD_SIDE + FIRST_COL - 1) ||
-        (row < FIRST_ROW) || (row > BOARD_SIDE + FIRST_ROW - 1))
+    if ((col < ChessUtils::FIRST_COL) || (col > ChessUtils::BOARD_SIDE + ChessUtils::FIRST_COL - 1) ||
+        (row < ChessUtils::FIRST_ROW) || (row > ChessUtils::BOARD_SIDE + ChessUtils::FIRST_ROW - 1))
     {
       return SquareStatus::OUT_OF_BOARD;
     }
@@ -201,20 +246,20 @@ namespace bgg
     return SquareStatus::ENEMY;
   }
 
-  auto ChessRule::evaluateAndCollectMove(
-      Position const &sqr,
+  auto ChessRule::evaluateAndCollectCandidateMove(
+      Position const &square,
       std::string const &color,
       CandidateMoveInfo &candidateMoves) const noexcept -> SquareStatus
   {
-    auto squareStatus = getSquareStatus(sqr, color);
+    auto squareStatus = getSquareStatus(square, color);
 
     if (squareStatus == SquareStatus::EMPTY)
     {
-      candidateMoves.quietMoves.emplace_back(sqr);
+      candidateMoves.quietMoves.emplace_back(square);
     }
     else if (squareStatus == SquareStatus::ENEMY)
     {
-      candidateMoves.captureMoves.emplace_back(sqr);
+      candidateMoves.captureMoves.emplace_back(square);
     }
 
     return squareStatus;
@@ -341,6 +386,39 @@ namespace bgg
       return true;
     }
 
+    return isEnPassantCapturePossible(square, color);
+  }
+
+  auto ChessRule::isEnPassantCapturePossible(
+      Position const &square,
+      std::string const &color) const noexcept -> bool
+  {
+    if (!(square[1] == '5' && color == Color::WHITE) &&
+        !(square[1] == '4' && color == Color::BLACK))
+    {
+      return false;
+    }
+
+    auto const &specialMoveTracker = moveTracker.getSpecialPieceMoveTracker(color);
+    int const col = int(square[0]);
+    if (col > ChessUtils::FIRST_COL)
+    {
+      if (specialMoveTracker.getFirstDoubleStepMoveOfPawn(col - 1) ==
+          moveTracker.getTotalMoveCount())
+      {
+        return true;
+      }
+    }
+
+    if (col < ChessUtils::FIRST_COL + ChessUtils::BOARD_SIDE - 1)
+    {
+      if (specialMoveTracker.getFirstDoubleStepMoveOfPawn(col + 1) ==
+          moveTracker.getTotalMoveCount())
+      {
+        return true;
+      }
+    }
+
     return false;
   }
 
@@ -352,8 +430,8 @@ namespace bgg
     BGG_VALIDATE_COLOR(color);
     BGG_VALIDATE_SQUARE(square);
     BOOST_ASSERT_MSG(
-        radius > 0 && radius < BOARD_SIDE,
-        "The radius of neighborhood must be greater than 0 and less than BOARD_SIDE");
+        radius > 0 && radius < ChessUtils::BOARD_SIDE,
+        "The radius of neighborhood must be greater than 0 and less than ChessUtils::BOARD_SIDE");
 
     int const col = int(square[0]);
     int const row = int(square[1]);
@@ -362,23 +440,10 @@ namespace bgg
 
     for (int i = 1; i <= radius; ++i)
     {
-      if (row + i <= BOARD_SIDE + FIRST_ROW - 1)
+      if (row + i <= ChessUtils::BOARD_SIDE + ChessUtils::FIRST_ROW - 1)
       {
-        Position square{char(col), char(row + i), '\0'};
-        auto squareStatus = evaluateAndCollectMove(square, color, candidateMoves);
-        if (squareStatus != SquareStatus::EMPTY)
-        {
-          break;
-        }
-      }
-    }
-    
-    for (int i = 1; i <= radius; ++i)
-    {
-      if (row - i >= FIRST_ROW)
-      {
-        Position square{char(col), char(row - i), '\0'};
-        auto squareStatus = evaluateAndCollectMove(square, color, candidateMoves);
+        Position sqr{char(col), char(row + i), '\0'};
+        auto squareStatus = evaluateAndCollectCandidateMove(sqr, color, candidateMoves);
         if (squareStatus != SquareStatus::EMPTY)
         {
           break;
@@ -388,10 +453,10 @@ namespace bgg
 
     for (int i = 1; i <= radius; ++i)
     {
-      if (col + i <= BOARD_SIDE + FIRST_COL - 1)
+      if (row - i >= ChessUtils::FIRST_ROW)
       {
-        Position square{char(col + i), char(row), '\0'};
-        auto squareStatus = evaluateAndCollectMove(square, color, candidateMoves);
+        Position sqr{char(col), char(row - i), '\0'};
+        auto squareStatus = evaluateAndCollectCandidateMove(sqr, color, candidateMoves);
         if (squareStatus != SquareStatus::EMPTY)
         {
           break;
@@ -401,17 +466,30 @@ namespace bgg
 
     for (int i = 1; i <= radius; ++i)
     {
-      if (col - i >= FIRST_COL)
+      if (col + i <= ChessUtils::BOARD_SIDE + ChessUtils::FIRST_COL - 1)
       {
-        Position square{char(col - i), char(row), '\0'};
-        auto squareStatus = evaluateAndCollectMove(square, color, candidateMoves);
+        Position sqr{char(col + i), char(row), '\0'};
+        auto squareStatus = evaluateAndCollectCandidateMove(sqr, color, candidateMoves);
         if (squareStatus != SquareStatus::EMPTY)
         {
           break;
         }
       }
     }
-    
+
+    for (int i = 1; i <= radius; ++i)
+    {
+      if (col - i >= ChessUtils::FIRST_COL)
+      {
+        Position sqr{char(col - i), char(row), '\0'};
+        auto squareStatus = evaluateAndCollectCandidateMove(sqr, color, candidateMoves);
+        if (squareStatus != SquareStatus::EMPTY)
+        {
+          break;
+        }
+      }
+    }
+
     return candidateMoves;
   }
 
@@ -423,52 +501,68 @@ namespace bgg
     BGG_VALIDATE_COLOR(color);
     BGG_VALIDATE_SQUARE(square);
     BOOST_ASSERT_MSG(
-        radius > 0 && radius < BOARD_SIDE,
-        "The radius of neighborhood must be greater than 0 and less than BOARD_SIDE");
+        radius > 0 && radius < ChessUtils::BOARD_SIDE,
+        "The radius of neighborhood must be greater than 0 and less than ChessUtils::BOARD_SIDE");
 
     int const col = int(square[0]);
     int const row = int(square[1]);
 
-    CandidateMoveInfo result;
+    CandidateMoveInfo candidateMoves;
 
     for (int i = 1; i <= radius; ++i)
     {
-      if (col + i <= BOARD_SIDE + FIRST_COL - 1)
+      if ((col + i <= ChessUtils::BOARD_SIDE + ChessUtils::FIRST_COL - 1) &&
+          (row + i <= ChessUtils::BOARD_SIDE + ChessUtils::FIRST_ROW - 1))
       {
-        if (row + i <= BOARD_SIDE + FIRST_ROW - 1)
+        Position sqr{char(col + i), char(row + i), '\0'};
+        auto squareStatus = evaluateAndCollectCandidateMove(sqr, color, candidateMoves);
+        if (squareStatus != SquareStatus::EMPTY)
         {
-          mainDiagonalSquares.emplace_back(
-              Position{char(col + i), char(row + i), '\0'});
-        }
-
-        if (row - i >= FIRST_ROW)
-        {
-          mainDiagonalSquares.emplace_back(
-              Position{char(col - i), char(row - i), '\0'});
+          break;
         }
       }
     }
 
-    std::list<Position> minorDiagonalSquares;
     for (int i = 1; i <= radius; ++i)
     {
-      if (col - i >= FIRST_COL)
+      if ((col + i <= ChessUtils::BOARD_SIDE + ChessUtils::FIRST_COL - 1) && (row - i >= ChessUtils::FIRST_ROW))
       {
-        if (row + i <= BOARD_SIDE + FIRST_ROW - 1)
+        Position sqr{char(col + i), char(row - i), '\0'};
+        auto squareStatus = evaluateAndCollectCandidateMove(sqr, color, candidateMoves);
+        if (squareStatus != SquareStatus::EMPTY)
         {
-          minorDiagonalSquares.emplace_back(
-              Position{char(col - i), char(row + i), '\0'});
-        }
-
-        if (row - i >= FIRST_ROW)
-        {
-          minorDiagonalSquares.emplace_back(
-              Position{char(col + i), char(row - i), '\0'});
+          break;
         }
       }
-    };
+    }
 
-    return result;
+    for (int i = 1; i <= radius; ++i)
+    {
+      if ((col - i >= ChessUtils::FIRST_COL) && (row + i <= ChessUtils::BOARD_SIDE + ChessUtils::FIRST_ROW - 1))
+      {
+        Position sqr{char(col - i), char(row + i), '\0'};
+        auto squareStatus = evaluateAndCollectCandidateMove(sqr, color, candidateMoves);
+        if (squareStatus != SquareStatus::EMPTY)
+        {
+          break;
+        }
+      }
+    }
+
+    for (int i = 1; i <= radius; ++i)
+    {
+      if ((col - i >= ChessUtils::FIRST_COL) && (row - i >= ChessUtils::FIRST_ROW))
+      {
+        Position sqr{char(col - i), char(row - i), '\0'};
+        auto squareStatus = evaluateAndCollectCandidateMove(sqr, color, candidateMoves);
+        if (squareStatus != SquareStatus::EMPTY)
+        {
+          break;
+        }
+      }
+    }
+
+    return candidateMoves;
   }
 
   auto ChessRule::getKnightMovableSquares(
@@ -514,9 +608,8 @@ namespace bgg
     BGG_VALIDATE_COLOR(color);
     BGG_VALIDATE_SQUARE(square);
 
-    BOOST_ASSERT_MSG(
-        square[1] != '1' && square[1] != '8',
-        "Pawns never stand on row 1 and row 8");
+    BOOST_ASSERT_MSG(square[1] != '1' && square[1] != '8',
+                     "Pawns never stand on row 1 and row 8");
 
     int const col = int(square[0]);
     int const row = int(square[1]);
@@ -555,38 +648,65 @@ namespace bgg
       result.captureMoves.emplace_back(right);
     }
 
-    // TODO: en passant capture
+    result.enPassantPos = getEnPassantCapturableSquare(square, color);
 
     return result;
   }
 
-  // void ChessRule::movePiece(
-  //     Position const &fromSquare,
-  //     Position const &toSquare,
-  //     std::optional<std::string> const &promote)
-  // {
-  //   // TODO: ChessRule::movePiece
-  //   auto movedPiece = piecePlacements_.find(fromSquare);
+  auto ChessRule::getEnPassantCapturableSquare(
+      Position const &square,
+      std::string const &color) const noexcept -> std::optional<Position>
+  {
+    if (!(square[1] == '5' && color == Color::WHITE) &&
+        !(square[1] == '4' && color == Color::BLACK))
+    {
+      return std::nullopt;
+    }
 
-  //   BOOST_ASSERT_MSG(
-  //       movedPiece != piecePlacements_.end(),
-  //       "There must be a piece at the 'fromSquare'");
+    auto const &specialMoveTracker = moveTracker.getSpecialPieceMoveTracker(color);
+    int const col = int(square[0]);
+    if (col > ChessUtils::FIRST_COL)
+    {
+      if (specialMoveTracker.getFirstDoubleStepMoveOfPawn(col - 1) ==
+          moveTracker.getTotalMoveCount())
+      {
+        return Position{char(col - 1), square[1], '\0'};
+      }
+    }
+    else if (col < ChessUtils::FIRST_COL + ChessUtils::BOARD_SIDE - 1)
+    {
+      if (specialMoveTracker.getFirstDoubleStepMoveOfPawn(col + 1) ==
+          moveTracker.getTotalMoveCount())
+      {
+        return Position{char(col + 1), square[1], '\0'};
+      }
+    }
 
-  //   auto targetedPiece = piecePlacements_.find(toSquare);
-  //   if (targetedPiece == piecePlacements_.end()) ///< if 'toSquare' is empty...
-  //   {
-  //     piecePlacements_.try_emplace(toSquare, movedPiece->second);
-  //   }
-  //   else
-  //   {
-  //     BOOST_ASSERT_MSG(
-  //         targetedPiece->second.color != movedPiece->second.color,
-  //         "The color of piece at the 'fromSquare' must be different from "
-  //         "the color of piece at the 'toSquare'");
+    return std::nullopt;
+  }
 
-  //     targetedPiece->second = movedPiece->second;
-  //   }
+  auto ChessRule::getCastlableSquares(
+      Position const &square,
+      std::string const &color) const noexcept -> std::list<Position>
+  {
+    std::list<Position> result;
+    auto const &specialMoveTracker = moveTracker.getSpecialPieceMoveTracker(color);
+    if (specialMoveTracker.isKingMoved())
+    {
+      return result;
+    }
 
-  //   piecePlacements_.erase(movedPiece);
-  // }
+    if (!specialMoveTracker.isRookAMoved())
+    {
+      result.emplace_back(Position{square[0] - 2, square[1], '\0'});
+    }
+
+    if (!specialMoveTracker.isRookHMoved())
+    {
+      result.emplace_back(Position{square[0] + 2, square[1], '\0'});
+    }
+
+    return result;
+  }
+
 } // namespace bgg

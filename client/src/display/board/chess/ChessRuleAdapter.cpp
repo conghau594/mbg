@@ -128,14 +128,14 @@ namespace bgg
 
     Position originSquare = tileToPosition(tile);
 
-    std::optional<ChessRule::CandidateMoveInfo>
+    std::optional<CandidateMoveInfo>
         candidateMovesOpt = rule_.getCandidateMoves(originSquare);
     if (!candidateMovesOpt)
     {
       return std::nullopt;
     }
 
-    ChessRule::CandidateMoveInfo const &candidateMoveInfo = candidateMovesOpt.value();
+    CandidateMoveInfo const &candidateMoveInfo = candidateMovesOpt.value();
 
     std::list<TileCoords> quietMoves;
     for (auto &square : candidateMoveInfo.quietMoves)
@@ -152,7 +152,7 @@ namespace bgg
     std::optional<TileCoords> enPassantPos(std::nullopt);
     if (candidateMoveInfo.enPassantPos)
     {
-      Position const& square = candidateMoveInfo.enPassantPos.value();
+      Position const &square = candidateMoveInfo.enPassantPos.value();
       enPassantPos = positionToTile(square);
     }
 
@@ -208,8 +208,8 @@ namespace bgg
       int const col = int(square[0]);
 
       return TileCoords{
-          col - ChessRule::FIRST_COL,
-          ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_ROW - row};
+          col - ChessUtils::FIRST_COL,
+          ChessUtils::BOARD_SIDE - 1 + ChessUtils::FIRST_ROW - row};
     };
 
     auto squareToTileAtBlack =
@@ -221,8 +221,8 @@ namespace bgg
       int const col = int(square[0]);
 
       return TileCoords{
-          ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_COL - col,
-          row - ChessRule::FIRST_ROW};
+          ChessUtils::BOARD_SIDE - 1 + ChessUtils::FIRST_COL - col,
+          row - ChessUtils::FIRST_ROW};
     };
 
     return Color::WHITE == color
@@ -239,8 +239,8 @@ namespace bgg
       BGG_VALIDATE_TILE(tile);
 
       return Position{
-          char(tile.x + ChessRule::FIRST_COL),
-          char(ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_ROW - tile.y),
+          char(tile.x + ChessUtils::FIRST_COL),
+          char(ChessUtils::BOARD_SIDE - 1 + ChessUtils::FIRST_ROW - tile.y),
           '\0'};
     };
 
@@ -250,8 +250,8 @@ namespace bgg
       BGG_VALIDATE_TILE(tile);
 
       return Position{
-          char(ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_COL - tile.x),
-          char(tile.y + ChessRule::FIRST_ROW),
+          char(ChessUtils::BOARD_SIDE - 1 + ChessUtils::FIRST_COL - tile.x),
+          char(tile.y + ChessUtils::FIRST_ROW),
           '\0'};
     };
 
