@@ -27,4 +27,10 @@ namespace bgg
   };
 
   using Position = std::array<char, 3>;
+
+  inline auto operator==(Position const &lhs, Position const &rhs) -> bool
+  {
+    return (lhs[0] == rhs[0]) && (lhs[1] == rhs[1]);
+    //&& (lhs[2] == rhs[2]) && (lhs[2] == '\0');
+  }
 } // namespace bgg

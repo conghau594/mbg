@@ -1,14 +1,14 @@
 // ChessMoveTracker.h
 #pragma once
 
-#include "ChessUtils.h"
+#include "ChessRule.h"
 
 namespace bgg
 {
 
   class SpecialPieceMoveTracker
   {
-    int firstDoubleStepMoveOfPawn_[ChessUtils::BOARD_SIDE]{0, 0, 0, 0, 0, 0, 0, 0};
+    int firstDoubleStepMoveOfPawn_[ChessRule::BOARD_SIDE]{0, 0, 0, 0, 0, 0, 0, 0};
     bool kingMoved_ = false;
     bool rookAMoved_ = false;
     bool rookHMoved_ = false;
@@ -30,9 +30,9 @@ namespace bgg
     [[nodiscard]] auto getFirstDoubleStepMoveOfPawn(int col) const noexcept -> int
     {
       BOOST_ASSERT_MSG(
-          col >= ChessUtils::FIRST_COL && col < ChessUtils::FIRST_COL + ChessUtils::BOARD_SIDE,
+          col >= ChessRule::FIRST_COL && col < ChessRule::FIRST_COL + ChessRule::BOARD_SIDE,
           "Column of pawn must be from 'a' to 'h'");
-      return firstDoubleStepMoveOfPawn_[col - ChessUtils::FIRST_COL];
+      return firstDoubleStepMoveOfPawn_[col - ChessRule::FIRST_COL];
     }
 
     void markKingMoved() noexcept
@@ -51,14 +51,14 @@ namespace bgg
     void setFirstDoubleStepMoveOfPawn(int col, int moveNumber) noexcept
     {
       BOOST_ASSERT_MSG(
-          col >= ChessUtils::FIRST_COL && col < ChessUtils::FIRST_COL + ChessUtils::BOARD_SIDE,
+          col >= ChessRule::FIRST_COL && col < ChessRule::FIRST_COL + ChessRule::BOARD_SIDE,
           "Column of pawn must be from 'a' to 'h'");
 
       BOOST_ASSERT_MSG(
-          firstDoubleStepMoveOfPawn_[col - ChessUtils::FIRST_COL] == 0,
-          "You are allowed to set each of 'firstDoubleStepMoveOfPawn_' only once");
+          firstDoubleStepMoveOfPawn_[col - ChessRule::FIRST_COL] == 0,
+          "You can only set value to each of 'firstDoubleStepMoveOfPawn_' once");
 
-      firstDoubleStepMoveOfPawn_[int(col) - ChessUtils::FIRST_COL] = moveNumber;
+      firstDoubleStepMoveOfPawn_[int(col) - ChessRule::FIRST_COL] = moveNumber;
     }
   };
 

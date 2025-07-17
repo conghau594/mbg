@@ -2,7 +2,7 @@
 #pragma once
 
 // #include "base/EnumUtils.h"
-#include "model/chess/ChessRule.h"
+#include "model/chess/ChessBoardState.h"
 
 namespace bgg
 {
@@ -64,74 +64,74 @@ namespace bgg
     static auto getIndex(Piece const &piece) noexcept -> int
     {
       // constexpr const char *PIECE_STRINGS[]{
-      //     ChessUtils::KING,
-      //     ChessUtils::QUEEN,
-      //     ChessUtils::ROOK,
-      //     ChessUtils::BISHOP,
-      //     ChessUtils::KNIGHT,
-      //     ChessUtils::PAWN,
+      //     ChessRule::KING,
+      //     ChessRule::QUEEN,
+      //     ChessRule::ROOK,
+      //     ChessRule::BISHOP,
+      //     ChessRule::KNIGHT,
+      //     ChessRule::PAWN,
       // };
 
       if (Color::WHITE == piece.color)
       {
-        if (ChessUtils::KING == piece.type)
+        if (ChessRule::KING == piece.type)
         {
           return ChessTextureCell::WHITE_KING;
         }
 
-        if (ChessUtils::QUEEN == piece.type)
+        if (ChessRule::QUEEN == piece.type)
         {
           return ChessTextureCell::WHITE_QUEEN;
         }
 
-        if (ChessUtils::ROOK == piece.type)
+        if (ChessRule::ROOK == piece.type)
         {
           return ChessTextureCell::WHITE_ROOK;
         }
 
-        if (ChessUtils::BISHOP == piece.type)
+        if (ChessRule::BISHOP == piece.type)
         {
           return ChessTextureCell::WHITE_BISHOP;
         }
 
-        if (ChessUtils::KNIGHT == piece.type)
+        if (ChessRule::KNIGHT == piece.type)
         {
           return ChessTextureCell::WHITE_KNIGHT;
         }
 
-        if (ChessUtils::PAWN == piece.type)
+        if (ChessRule::PAWN == piece.type)
         {
           return ChessTextureCell::WHITE_PAWN;
         }
       }
       else if (Color::BLACK == piece.color)
       {
-        if (ChessUtils::KING == piece.type)
+        if (ChessRule::KING == piece.type)
         {
           return ChessTextureCell::BLACK_KING;
         }
 
-        if (ChessUtils::QUEEN == piece.type)
+        if (ChessRule::QUEEN == piece.type)
         {
           return ChessTextureCell::BLACK_QUEEN;
         }
 
-        if (ChessUtils::ROOK == piece.type)
+        if (ChessRule::ROOK == piece.type)
         {
           return ChessTextureCell::BLACK_ROOK;
         }
 
-        if (ChessUtils::BISHOP == piece.type)
+        if (ChessRule::BISHOP == piece.type)
         {
           return ChessTextureCell::BLACK_BISHOP;
         }
 
-        if (ChessUtils::KNIGHT == piece.type)
+        if (ChessRule::KNIGHT == piece.type)
         {
           return ChessTextureCell::BLACK_KNIGHT;
         }
 
-        if (ChessUtils::PAWN == piece.type)
+        if (ChessRule::PAWN == piece.type)
         {
           return ChessTextureCell::BLACK_PAWN;
         }

@@ -6,7 +6,7 @@
 
 #include "IChessRuleAdapter.h"
 #include "display/board/ItemStore.h"
-#include "model/chess/ChessRule.h"
+#include "model/chess/ChessBoardState.h"
 
 #define BGG_VALIDATE_TILE(tile) BOOST_ASSERT_MSG(             \
     tile.x >= 0 && tile.x <= 7 && tile.y >= 0 && tile.y <= 7, \
@@ -18,7 +18,7 @@ namespace bgg
 
     class ChessRuleAdapter final : public IChessRuleAdapter
     {
-        ChessRule rule_;
+        ChessBoardState rule_;
 
         ItemPlacementMap itemPlacements_; ///< Usage: itemEntries_[ChessPiece::<ENUM>]
         std::function<TileCoords(Position const &)> const positionToTileConverter_;
@@ -26,7 +26,7 @@ namespace bgg
 
     public:
         ChessRuleAdapter(
-            std::shared_ptr<ItemStore> itemStore, ChessRule rule) noexcept;
+            std::shared_ptr<ItemStore> itemStore, ChessBoardState rule) noexcept;
 
         static auto getPositionToTileConverter(std::string color) noexcept
             -> std::function<TileCoords(Position const &)>;

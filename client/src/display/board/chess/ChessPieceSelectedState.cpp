@@ -59,9 +59,9 @@ namespace bgg
       //==========
       SPDLOG_DEBUG(
           "There are {} reachable tiles from tile ({}, {}) obtained by '{}'",
-          reachableTileInfo->quietMoves.size() +
-              reachableTileInfo->captureMoves.size() +
-              (reachableTileInfo->enPassantPos ? 1 : 0),
+          reachableTileInfo->quietSquares.size() +
+              reachableTileInfo->captureSquares.size() +
+              (reachableTileInfo->enPassantSquare ? 1 : 0),
           selectedTile_.x, selectedTile_.y,
           "?" /*ChessPiece::toString(gameRule_->getItemT Entry(selectedTile_).value())*/);
       //==========
@@ -175,7 +175,7 @@ namespace bgg
     tileMap_->fitItemToTile(selectedTileHighlighter.getItem(), selectedTile_);
     staticHighlighters_.emplace_back(selectedTileHighlighter);
 
-    for (TileCoords &tile : reachableTileInfo.quietMoves)
+    for (TileCoords &tile : reachableTileInfo.quietSquares)
     {
       ItemStore::Entry quietMoveHighlighter = itemStore_->addItem(
           ZOrder::THIRD_LAYER,
@@ -191,7 +191,7 @@ namespace bgg
       BOOST_ASSERT_MSG(inserted, "There should be one item per tile");
     }
 
-    for (TileCoords &tile : reachableTileInfo.captureMoves)
+    for (TileCoords &tile : reachableTileInfo.captureSquares)
     {
       ItemStore::Entry &&captureMoveHighlighter = itemStore_->addItem(
           ZOrder::THIRD_LAYER,
@@ -207,7 +207,7 @@ namespace bgg
       BOOST_ASSERT_MSG(inserted, "There should be one item per tile");
     }
 
-    if (!reachableTileInfo.enPassantPos)
+    if (!reachableTileInfo.enPassantSquare)
     {
       return;
     }
@@ -215,7 +215,7 @@ namespace bgg
     // TODO: IMPORTANT!!! The following snippet is specific to the Chess game.
     //  So this class cannot be common to other types of board game.
     //  You need a refactor. You might delegate this to gameRule_?
-    TileCoords const &specialMoveTile = reachableTileInfo.enPassantPos.value();
+    TileCoords const &specialMoveTile = reachableTileInfo.enPassantSquare.value();
     auto itemAtSpecialTile = gameRule_->getItemEntry(specialMoveTile);
     if (!itemAtSpecialTile.isNull())
     {

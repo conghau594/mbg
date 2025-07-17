@@ -12,7 +12,7 @@
 #include "display/board/GameBoardFactory.h"
 
 #include "peeb/EventBus.hpp"
-#include "model/chess/ChessRule.h"
+#include "model/chess/ChessBoardState.h"
 namespace bgg
 {
 	class QuickAppFactory final : public GameAppFactory
@@ -58,44 +58,44 @@ namespace bgg
 					gameDisplay = std::make_shared<GameDisplay>(window, eventBus);
 
 			//==============
-			std::pair<Position, Piece> TESTING_PLACEMENTS[ChessUtils::PIECE_COUNT]{
-					{Position{"e1"}, Piece{ChessUtils::KING, Color::WHITE}},
-					{Position{"d4"}, Piece{ChessUtils::QUEEN, Color::WHITE}},
-					{Position{"a2"}, Piece{ChessUtils::ROOK, Color::WHITE}},
-					{Position{"h2"}, Piece{ChessUtils::ROOK, Color::WHITE}},
-					{Position{"b2"}, Piece{ChessUtils::KNIGHT, Color::WHITE}},
-					{Position{"g2"}, Piece{ChessUtils::KNIGHT, Color::WHITE}},
-					{Position{"c2"}, Piece{ChessUtils::BISHOP, Color::WHITE}},
-					{Position{"f2"}, Piece{ChessUtils::BISHOP, Color::WHITE}},
-					{Position{"a6"}, Piece{ChessUtils::PAWN, Color::WHITE}},
-					{Position{"a5"}, Piece{ChessUtils::PAWN, Color::WHITE}},
-					{Position{"a4"}, Piece{ChessUtils::PAWN, Color::WHITE}},
-					{Position{"a3"}, Piece{ChessUtils::PAWN, Color::WHITE}},
-					{Position{"b6"}, Piece{ChessUtils::PAWN, Color::WHITE}},
-					{Position{"b5"}, Piece{ChessUtils::PAWN, Color::WHITE}},
-					{Position{"b4"}, Piece{ChessUtils::PAWN, Color::WHITE}},
-					{Position{"b3"}, Piece{ChessUtils::PAWN, Color::WHITE}},
+			std::pair<Position, Piece> TESTING_PLACEMENTS[ChessRule::PIECE_COUNT]{
+					{Position{"e1"}, Piece{ChessRule::KING, Color::WHITE}},
+					{Position{"d4"}, Piece{ChessRule::QUEEN, Color::WHITE}},
+					{Position{"a2"}, Piece{ChessRule::ROOK, Color::WHITE}},
+					{Position{"h2"}, Piece{ChessRule::ROOK, Color::WHITE}},
+					{Position{"b2"}, Piece{ChessRule::KNIGHT, Color::WHITE}},
+					{Position{"g2"}, Piece{ChessRule::KNIGHT, Color::WHITE}},
+					{Position{"c2"}, Piece{ChessRule::BISHOP, Color::WHITE}},
+					{Position{"f2"}, Piece{ChessRule::BISHOP, Color::WHITE}},
+					{Position{"a6"}, Piece{ChessRule::PAWN, Color::WHITE}},
+					{Position{"a5"}, Piece{ChessRule::PAWN, Color::WHITE}},
+					{Position{"a4"}, Piece{ChessRule::PAWN, Color::WHITE}},
+					{Position{"a3"}, Piece{ChessRule::PAWN, Color::WHITE}},
+					{Position{"b6"}, Piece{ChessRule::PAWN, Color::WHITE}},
+					{Position{"b5"}, Piece{ChessRule::PAWN, Color::WHITE}},
+					{Position{"b4"}, Piece{ChessRule::PAWN, Color::WHITE}},
+					{Position{"b3"}, Piece{ChessRule::PAWN, Color::WHITE}},
 
-					{Position{"e8"}, Piece{ChessUtils::KING, Color::BLACK}},
-					{Position{"d8"}, Piece{ChessUtils::QUEEN, Color::BLACK}},
-					{Position{"a8"}, Piece{ChessUtils::ROOK, Color::BLACK}},
-					{Position{"h8"}, Piece{ChessUtils::ROOK, Color::BLACK}},
-					{Position{"b8"}, Piece{ChessUtils::KNIGHT, Color::BLACK}},
-					{Position{"g8"}, Piece{ChessUtils::KNIGHT, Color::BLACK}},
-					{Position{"c8"}, Piece{ChessUtils::BISHOP, Color::BLACK}},
-					{Position{"f8"}, Piece{ChessUtils::BISHOP, Color::BLACK}},
-					{Position{"a7"}, Piece{ChessUtils::PAWN, Color::BLACK}},
-					{Position{"b7"}, Piece{ChessUtils::PAWN, Color::BLACK}},
-					{Position{"c7"}, Piece{ChessUtils::PAWN, Color::BLACK}},
-					{Position{"d7"}, Piece{ChessUtils::PAWN, Color::BLACK}},
-					{Position{"e7"}, Piece{ChessUtils::PAWN, Color::BLACK}},
-					{Position{"f7"}, Piece{ChessUtils::PAWN, Color::BLACK}},
-					{Position{"g7"}, Piece{ChessUtils::PAWN, Color::BLACK}},
-					{Position{"h7"}, Piece{ChessUtils::PAWN, Color::BLACK}},
+					{Position{"e8"}, Piece{ChessRule::KING, Color::BLACK}},
+					{Position{"d8"}, Piece{ChessRule::QUEEN, Color::BLACK}},
+					{Position{"a8"}, Piece{ChessRule::ROOK, Color::BLACK}},
+					{Position{"h8"}, Piece{ChessRule::ROOK, Color::BLACK}},
+					{Position{"b8"}, Piece{ChessRule::KNIGHT, Color::BLACK}},
+					{Position{"g8"}, Piece{ChessRule::KNIGHT, Color::BLACK}},
+					{Position{"c8"}, Piece{ChessRule::BISHOP, Color::BLACK}},
+					{Position{"f8"}, Piece{ChessRule::BISHOP, Color::BLACK}},
+					{Position{"a7"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"b7"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"c7"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"d7"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"e7"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"f7"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"g7"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"h7"}, Piece{ChessRule::PAWN, Color::BLACK}},
 			};
 
 			std::map<Position, Piece> initialPlacements(
-					TESTING_PLACEMENTS, TESTING_PLACEMENTS + ChessUtils::PIECE_COUNT);
+					TESTING_PLACEMENTS, TESTING_PLACEMENTS + ChessRule::PIECE_COUNT);
 			FindGameResponse findGameResponse{
 					{0, "", "Mock"}, // error code
 					gameType_,

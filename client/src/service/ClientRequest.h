@@ -37,7 +37,7 @@ namespace bgg
     std::string userId;
     std::string gameId;
 
-    Position fromPosition, toPosition;
+    Position fromSquare, toSquare;
     std::optional<std::string> promote; // e.g. promote to: "Queen", "check"
   };
 

@@ -13,17 +13,17 @@ namespace bgg
   class Variant final
   {
   public:
-    using Pack = ppt::Pack<T...>;
+    using Pack = ppt::Pack<std::monostate, T...>;
 
   private:
     Pack::template EncloseBy<std::variant> data_;
 
   public:
-    Variant() = delete;
+    constexpr Variant() noexcept = default;
 
     template <typename U>
       requires(peeb::is_in_template_v<U, Pack>)
-    constexpr Variant(U const &data) : data_(data)
+    constexpr Variant(U const &data) noexcept : data_(data)
     {
     }
 
@@ -39,6 +39,12 @@ namespace bgg
     [[nodiscard]] constexpr auto is() const noexcept -> bool
     {
       return std::holds_alternative<U>(data_);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+    [[nodiscard]] constexpr auto isEmpty() const noexcept -> bool
+    {
+      return std::holds_alternative<std::monostate>(data_);
     }
 
     /////////////////////////////////////////////////////////////////////////////

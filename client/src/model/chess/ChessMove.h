@@ -3,6 +3,7 @@
 
 #include <optional>
 #include <string>
+#include <list>
 
 #include "base/Variant.h"
 #include "base/EnumBitwises.h"
@@ -10,50 +11,51 @@
 
 namespace bgg
 {
-  class CandidateMoveInfo final
+  class CandidateChessMoveInfo final
   {
   public:
     Piece piece;
 
-    std::list<Position> quietMoves;
-    std::list<Position> captureMoves;
-    std::optional<Position> enPassantPos; ///< includes: en passant;
+    std::list<Position> quietSquares;
+    std::list<Position> captureSquares;
+    std::optional<Position> enPassantSquare;
 
-    void merge(CandidateMoveInfo other) noexcept
+    void merge(CandidateChessMoveInfo other) noexcept
     {
-      quietMoves.splice(quietMoves.end(), other.quietMoves);
-      captureMoves.splice(captureMoves.end(), other.captureMoves);
+      quietSquares.splice(quietSquares.end(), other.quietSquares);
+      captureSquares.splice(captureSquares.end(), other.captureSquares);
 
-      if (!enPassantPos && other.enPassantPos)
+      if (!enPassantSquare && other.enPassantSquare)
       {
-        enPassantPos = std::move(other.enPassantPos);
+        enPassantSquare = std::move(other.enPassantSquare);
       }
     }
+  };
+
+  enum class KingStatus : unsigned
+  {
+    SAFE,
+    CHECK,
+    CHECKMATE
   };
 
   /////////////////////////////////////////////////////////////////////////////
   class ChessMove
   {
   public:
-    Position fromPos;
-    Position toPos;
+    Position fromSquare;
+    Position toSquare;
     std::optional<std::string> promote;
 
     /////////////////////////////////////////////////////////////////////////////
     enum class Error
     {
       INVALID_SOURCE_SQUARE = 1 << 0,
-      INVALID_TARGET_SQUARE = 1 << 1,
-      INVALID_PROMOTION = 1 << 2,
-      INVALID_CASTLING = 1 << 3,
-      KING_EXPOSED = 1 << 4,
-    };
-
-    enum class KingStatus : unsigned
-    {
-      SAFE,
-      CHECK,
-      CHECKMATE
+      INVALID_DESTINATION_SQUARE = 1 << 1,
+      // INVALID_EN_PASSANT_CAPTURE = 1 << 2,
+      INVALID_PROMOTION = 1 << 3,
+      INVALID_CASTLING = 1 << 4,
+      KING_EXPOSED = 1 << 5,
     };
 
     class Invalid
@@ -65,10 +67,10 @@ namespace bgg
     class Normal
     {
     public:
-      Position fromPos;
-      Position toPos;
+      Position fromSquare;
+      Position toSquare;
 
-      bool canCapture;
+      bool canCapture; ///< whether the piece at 'toSquare' is of enemy or not
       KingStatus enemyKingStatus;
     };
 
@@ -78,12 +80,12 @@ namespace bgg
     class Promotion
     {
     public:
-      Position fromPos;
-      Position toPos;
+      Position fromSquare;
+      Position toSquare;
 
-      std::string promote;
-      bool canCapture;
+      bool canCapture; ///< whether the piece at 'toSquare' is of enemy or not
       KingStatus enemyKingStatus;
+      std::string promote; ///< the piece name, is one of: Queen, Rook, Bishop, Knight
     };
 
     /** \brief just for Pawns
@@ -92,10 +94,10 @@ namespace bgg
     class EnPassant
     {
     public:
-      Position fromPos;
-      Position toPos;
+      Position fromSquare;
+      Position toSquare;
 
-      Position capturePosition;
+      Position enPassantSquare;
       KingStatus enemyKingStatus;
     };
 
@@ -105,11 +107,11 @@ namespace bgg
     class Castling
     {
     public:
-      Position fromPos;
-      Position toPos;
+      Position fromSquare;
+      Position toSquare;
 
-      Position rookFromPos;
-      Position rookToPos;
+      Position rookSource;
+      Position rookDestination;
       KingStatus enemyKingStatus;
     };
 
@@ -119,5 +121,12 @@ namespace bgg
         Promotion,
         EnPassant,
         Castling>;
+
+    template <typename ACTION>
+      requires(peeb::is_in_template_v<ACTION, VariantAction>)
+    static void setEnemyKingStatus(ACTION &moveAction, KingStatus value) noexcept
+    {
+      moveAction.enemyKingStatus = value;
+    }
   };
 } // namespace bgg

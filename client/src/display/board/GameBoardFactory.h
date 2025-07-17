@@ -66,7 +66,7 @@ namespace bgg
 
       auto itemStore = std::make_shared<ItemStore>(chessTextureAtlas);
 
-      ChessRule chessRule(findGameResponse.initialBoard, findGameResponse.yourSide);
+      ChessBoardState chessRule(findGameResponse.initialBoard, findGameResponse.yourSide);
       // TODO: need to consider how to initiate the IChessRuleAdapter with
       //       findGameResponse.initialBoard
       std::shared_ptr<IChessRuleAdapter>

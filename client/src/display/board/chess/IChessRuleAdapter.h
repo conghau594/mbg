@@ -34,9 +34,9 @@ namespace bgg
   public:
     ItemStore::Entry entry;
 
-    std::list<TileCoords> quietMoves;
-    std::list<TileCoords> captureMoves;
-    std::optional<TileCoords> enPassantPos;
+    std::list<TileCoords> quietSquares;
+    std::list<TileCoords> captureSquares;
+    std::optional<TileCoords> enPassantSquare;
 
     // std::optional<TileCoords> checkMove;
     // bool isCheckmate;

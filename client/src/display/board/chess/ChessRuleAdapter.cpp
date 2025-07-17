@@ -9,7 +9,7 @@
 namespace bgg
 {
   ChessRuleAdapter::ChessRuleAdapter(
-      std::shared_ptr<ItemStore> itemStore, ChessRule rule) noexcept
+      std::shared_ptr<ItemStore> itemStore, ChessBoardState rule) noexcept
       : rule_(std::move(rule)),
         positionToTileConverter_(getPositionToTileConverter(rule_.getYourColor())),
         tileToPositionConverter_(getTileToPositionConverter(rule_.getYourColor()))
@@ -128,39 +128,39 @@ namespace bgg
 
     Position originSquare = tileToPosition(tile);
 
-    std::optional<CandidateMoveInfo>
+    std::optional<CandidateChessMoveInfo>
         candidateMovesOpt = rule_.getCandidateMoves(originSquare);
     if (!candidateMovesOpt)
     {
       return std::nullopt;
     }
 
-    CandidateMoveInfo const &candidateMoveInfo = candidateMovesOpt.value();
+    CandidateChessMoveInfo const &candidateMoveInfo = candidateMovesOpt.value();
 
-    std::list<TileCoords> quietMoves;
-    for (auto &square : candidateMoveInfo.quietMoves)
+    std::list<TileCoords> quietSquares;
+    for (auto &square : candidateMoveInfo.quietSquares)
     {
-      quietMoves.emplace_back(positionToTile(square));
+      quietSquares.emplace_back(positionToTile(square));
     }
 
-    std::list<TileCoords> captureMoves;
-    for (auto &square : candidateMoveInfo.captureMoves)
+    std::list<TileCoords> captureSquares;
+    for (auto &square : candidateMoveInfo.captureSquares)
     {
-      captureMoves.emplace_back(positionToTile(square));
+      captureSquares.emplace_back(positionToTile(square));
     }
 
-    std::optional<TileCoords> enPassantPos(std::nullopt);
-    if (candidateMoveInfo.enPassantPos)
+    std::optional<TileCoords> enPassantSquare(std::nullopt);
+    if (candidateMoveInfo.enPassantSquare)
     {
-      Position const &square = candidateMoveInfo.enPassantPos.value();
-      enPassantPos = positionToTile(square);
+      Position const &square = candidateMoveInfo.enPassantSquare.value();
+      enPassantSquare = positionToTile(square);
     }
 
     return ReachableTileInfo{
         itemEntry,
-        std::move(quietMoves),
-        std::move(captureMoves),
-        std::move(enPassantPos)};
+        std::move(quietSquares),
+        std::move(captureSquares),
+        std::move(enPassantSquare)};
   }
 
   // auto ChessRuleAdapter::getItemType(TileCoords const &tile) const noexcept
@@ -208,8 +208,8 @@ namespace bgg
       int const col = int(square[0]);
 
       return TileCoords{
-          col - ChessUtils::FIRST_COL,
-          ChessUtils::BOARD_SIDE - 1 + ChessUtils::FIRST_ROW - row};
+          col - ChessRule::FIRST_COL,
+          ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_ROW - row};
     };
 
     auto squareToTileAtBlack =
@@ -221,8 +221,8 @@ namespace bgg
       int const col = int(square[0]);
 
       return TileCoords{
-          ChessUtils::BOARD_SIDE - 1 + ChessUtils::FIRST_COL - col,
-          row - ChessUtils::FIRST_ROW};
+          ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_COL - col,
+          row - ChessRule::FIRST_ROW};
     };
 
     return Color::WHITE == color
@@ -239,8 +239,8 @@ namespace bgg
       BGG_VALIDATE_TILE(tile);
 
       return Position{
-          char(tile.x + ChessUtils::FIRST_COL),
-          char(ChessUtils::BOARD_SIDE - 1 + ChessUtils::FIRST_ROW - tile.y),
+          char(tile.x + ChessRule::FIRST_COL),
+          char(ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_ROW - tile.y),
           '\0'};
     };
 
@@ -250,8 +250,8 @@ namespace bgg
       BGG_VALIDATE_TILE(tile);
 
       return Position{
-          char(ChessUtils::BOARD_SIDE - 1 + ChessUtils::FIRST_COL - tile.x),
-          char(tile.y + ChessUtils::FIRST_ROW),
+          char(ChessRule::BOARD_SIDE - 1 + ChessRule::FIRST_COL - tile.x),
+          char(tile.y + ChessRule::FIRST_ROW),
           '\0'};
     };
 

@@ -46,7 +46,7 @@ namespace bgg
   {
   public:
     // enemy move
-    Position fromPosition, toPosition;
+    Position fromSquare, toSquare;
     std::optional<std::string> promote; // e.g. promote to: "Queen"
     int yourTurn;
     int currentTurn;

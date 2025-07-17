@@ -124,8 +124,8 @@ namespace bgg
   // {
   //   // TODO: ChessBoard::onGameUpdatedNotification()
   //   ChessMove move{
-  //       gameRule_->positionToTile(notif.fromPosition), // fromTile
-  //       gameRule_->positionToTile(notif.toPosition),   // toTile
+  //       gameRule_->positionToTile(notif.fromSquare), // fromTile
+  //       gameRule_->positionToTile(notif.toSquare),   // toTile
   //       notif.promote};
 
   //   lastMoveTiles_[0] = move.fromTile;
