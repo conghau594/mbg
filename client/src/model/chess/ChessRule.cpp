@@ -54,9 +54,10 @@ namespace bgg
   }
 
   auto ChessRule::isKingInCheck(
-      std::map<Position, Piece> &piecePlacements,
+      std::map<Position, Piece> const &piecePlacements,
       std::string const &color) noexcept -> bool
   {
+
     return false;
   }
 

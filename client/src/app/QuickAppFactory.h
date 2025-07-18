@@ -25,7 +25,7 @@ namespace bgg
 		auto createGameApp() noexcept -> GameApp override
 		{
 			int constexpr RESIGN_REGION_HEIGHT = 40;
-			int constexpr BOARD_SIDE_LENGTH = 200;
+			int constexpr BOARD_SIDE_LENGTH = 1200;
 			int constexpr BOARD_MIN_SIDE_LENGTH = 80;
 
 			sf::Vector2u constexpr WINDOW_SIZE(
@@ -76,22 +76,22 @@ namespace bgg
 					{Position{"b4"}, Piece{ChessRule::PAWN, Color::WHITE}},
 					{Position{"b3"}, Piece{ChessRule::PAWN, Color::WHITE}},
 
-					{Position{"e8"}, Piece{ChessRule::KING, Color::BLACK}},
-					{Position{"d8"}, Piece{ChessRule::QUEEN, Color::BLACK}},
-					{Position{"a8"}, Piece{ChessRule::ROOK, Color::BLACK}},
-					{Position{"h8"}, Piece{ChessRule::ROOK, Color::BLACK}},
-					{Position{"b8"}, Piece{ChessRule::KNIGHT, Color::BLACK}},
-					{Position{"g8"}, Piece{ChessRule::KNIGHT, Color::BLACK}},
-					{Position{"c8"}, Piece{ChessRule::BISHOP, Color::BLACK}},
-					{Position{"f8"}, Piece{ChessRule::BISHOP, Color::BLACK}},
-					{Position{"a7"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"b7"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"c7"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"d7"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"e7"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"f7"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"g7"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"h7"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"e7"}, Piece{ChessRule::KING, Color::BLACK}},
+					{Position{"d7"}, Piece{ChessRule::QUEEN, Color::BLACK}},
+					{Position{"a7"}, Piece{ChessRule::ROOK, Color::BLACK}},
+					{Position{"h7"}, Piece{ChessRule::ROOK, Color::BLACK}},
+					{Position{"b7"}, Piece{ChessRule::KNIGHT, Color::BLACK}},
+					{Position{"g7"}, Piece{ChessRule::KNIGHT, Color::BLACK}},
+					{Position{"c7"}, Piece{ChessRule::BISHOP, Color::BLACK}},
+					{Position{"f7"}, Piece{ChessRule::BISHOP, Color::BLACK}},
+					{Position{"g6"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"g5"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"g4"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"g3"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"h6"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"h5"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"h4"}, Piece{ChessRule::PAWN, Color::BLACK}},
+					{Position{"h3"}, Piece{ChessRule::PAWN, Color::BLACK}},
 			};
 
 			std::map<Position, Piece> initialPlacements(

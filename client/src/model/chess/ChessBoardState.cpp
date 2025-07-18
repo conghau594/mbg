@@ -97,14 +97,14 @@ namespace bgg
   }
 
   auto ChessBoardState::getCandidateMoves(Position const &square) const noexcept
-      -> std::optional<CandidateChessMoveInfo>
+      -> CandidateChessMoveInfo
   {
     BGG_VALIDATE_SQUARE(square);
 
     std::optional<Piece> piece = getPiece(square);
     if (!piece)
     {
-      return std::nullopt;
+      return CandidateChessMoveInfo{};
     }
 
     if (piece->type == ChessRule::QUEEN)
@@ -185,8 +185,25 @@ namespace bgg
       {
         if (sqr == move.toSquare)
         {
+          if (ChessRule::isKingInCheck(piecePlacements_, movedPiece->color))
+          {
+            return ChessMove::Invalid{ChessMove::Error::INVALID_PROMOTION};
+          }
           std::pair<Position, Position> castlingRookMove =
               ChessRule::getCastlingRookMove(move.toSquare, movedPiece->color);
+
+          std::map<Position, Piece> copiedPiecePlacements = piecePlacements_;
+          copiedPiecePlacements.erase(move.fromSquare);
+
+          Position midwaySquare{
+              (move.fromSquare[0] + castlingRookMove.second[0]) / 2,
+              move.fromSquare[1],
+              '\0'};
+          copiedPiecePlacements.emplace(midwaySquare, movedPiece.value());
+          if (ChessRule::isKingInCheck(copiedPiecePlacements, movedPiece->color))
+          {
+            return ChessMove::Invalid{ChessMove::Error::INVALID_PROMOTION};
+          }
 
           moveAction = ChessMove::Castling{
               move.fromSquare,
@@ -382,15 +399,17 @@ namespace bgg
     std::string enemyColor = ChessRule::getEnemyColor(movedPiece->color);
     if (ChessRule::isKingInCheck(copiedPiecePlacements, enemyColor))
     {
-      moveAction.visit(
-          [](ChessMove::VariantAction &action)
-          {
-            ChessMove::setEnemyKingStatus(action, KingStatus::CHECK);
-          },
-          moveAction);
+      auto moveActionVisitor = []<typename T>(T &action)
+      {
+        if constexpr (requires { {action.enemyKingStatus} -> std::same_as<KingStatus>; })
+        {
+          action.enemyKingStatus = KingStatus::CHECK;
+        }
+      };
+      moveAction.visit(moveActionVisitor);
     }
 
-    //TODO: handle checkmate
+    // TODO: handle checkmate
     return moveAction;
   }
 
@@ -428,6 +447,8 @@ namespace bgg
 
     //   piecePlacements_.erase(movedPiece);
     // }
+
+    return true;
   }
 
   auto ChessBoardState::getSquareStatus(
@@ -735,7 +756,8 @@ namespace bgg
 
     for (int i = 1; i <= radius; ++i)
     {
-      if ((col + i <= ChessRule::BOARD_SIDE + ChessRule::FIRST_COL - 1) && (row - i >= ChessRule::FIRST_ROW))
+      if ((col + i <= ChessRule::BOARD_SIDE + ChessRule::FIRST_COL - 1) &&
+          (row - i >= ChessRule::FIRST_ROW))
       {
         Position sqr{char(col + i), char(row - i), '\0'};
         auto squareStatus = tryAddCandidateMove(sqr, color, candidateMoves);
@@ -748,7 +770,8 @@ namespace bgg
 
     for (int i = 1; i <= radius; ++i)
     {
-      if ((col - i >= ChessRule::FIRST_COL) && (row + i <= ChessRule::BOARD_SIDE + ChessRule::FIRST_ROW - 1))
+      if ((col - i >= ChessRule::FIRST_COL) &&
+          (row + i <= ChessRule::BOARD_SIDE + ChessRule::FIRST_ROW - 1))
       {
         Position sqr{char(col - i), char(row + i), '\0'};
         auto squareStatus = tryAddCandidateMove(sqr, color, candidateMoves);
@@ -761,7 +784,8 @@ namespace bgg
 
     for (int i = 1; i <= radius; ++i)
     {
-      if ((col - i >= ChessRule::FIRST_COL) && (row - i >= ChessRule::FIRST_ROW))
+      if ((col - i >= ChessRule::FIRST_COL) &&
+          (row - i >= ChessRule::FIRST_ROW))
       {
         Position sqr{char(col - i), char(row - i), '\0'};
         auto squareStatus = tryAddCandidateMove(sqr, color, candidateMoves);

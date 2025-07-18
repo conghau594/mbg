@@ -7,7 +7,7 @@
 #include "model/Piece.h"
 #include "model/chess/ChessMove.h"
 
-#define BGG_VALIDATE_CHESS_PIECE(type) BOOST_ASSERT_MSG(              \
+#define BGG_VALIDATE_CHESS_PIECE(type) BOOST_ASSERT_MSG(            \
 		(type == ChessRule::KING) || (type == ChessRule::QUEEN) ||      \
 				(type == ChessRule::ROOK) || (type == ChessRule::BISHOP) || \
 				(type == ChessRule::KNIGHT) || (type == ChessRule::PAWN),   \
@@ -41,13 +41,13 @@ namespace bgg
 
 		static const std::initializer_list<std::pair<Position, Piece>> INITIAL_PLACEMENTS;
 
-		static auto getEnemyColor(std::string const& color) noexcept -> std::string;
+		static auto getEnemyColor(std::string const &color) noexcept -> std::string;
 		static void commitMoveAction(
 				std::map<Position, Piece> &piecePlacements,
 				ChessMove::VariantAction const &moveAction) noexcept;
 
 		static auto isKingInCheck(
-				std::map<Position, Piece> &piecePlacements,
+				std::map<Position, Piece> const &piecePlacements,
 				std::string const &color) noexcept -> bool;
 
 		static auto isPromotionSquare(

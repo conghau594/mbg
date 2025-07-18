@@ -121,12 +121,5 @@ namespace bgg
         Promotion,
         EnPassant,
         Castling>;
-
-    template <typename ACTION>
-      requires(peeb::is_in_template_v<ACTION, VariantAction>)
-    static void setEnemyKingStatus(ACTION &moveAction, KingStatus value) noexcept
-    {
-      moveAction.enemyKingStatus = value;
-    }
   };
 } // namespace bgg

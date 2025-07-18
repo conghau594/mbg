@@ -23,7 +23,7 @@ namespace bgg
 	public:
 		ChessBoardState(std::string color) noexcept;
 		ChessBoardState(std::map<Position, Piece> piecePlacements,
-							std::string color) noexcept;
+										std::string color) noexcept;
 
 		[[nodiscard]] auto getYourColor() const noexcept
 				-> std::string const &;
@@ -35,7 +35,7 @@ namespace bgg
 		[[nodiscard]] auto getSelectablePieces() const noexcept
 				-> std::map<Position, Piece>;
 		[[nodiscard]] auto getCandidateMoves(Position const &square) const noexcept
-				-> std::optional<CandidateChessMoveInfo>;
+				-> CandidateChessMoveInfo;
 
 		[[nodiscard]] auto getPiece(Position const &square) const noexcept
 				-> std::optional<Piece>;

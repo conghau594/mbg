@@ -128,14 +128,7 @@ namespace bgg
 
     Position originSquare = tileToPosition(tile);
 
-    std::optional<CandidateChessMoveInfo>
-        candidateMovesOpt = rule_.getCandidateMoves(originSquare);
-    if (!candidateMovesOpt)
-    {
-      return std::nullopt;
-    }
-
-    CandidateChessMoveInfo const &candidateMoveInfo = candidateMovesOpt.value();
+    CandidateChessMoveInfo candidateMoveInfo = rule_.getCandidateMoves(originSquare);
 
     std::list<TileCoords> quietSquares;
     for (auto &square : candidateMoveInfo.quietSquares)

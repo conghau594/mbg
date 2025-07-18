@@ -70,5 +70,13 @@ namespace bgg
     {
       return std::visit(std::forward<VISITOR>(func), data_);
     }
+
+    /////////////////////////////////////////////////////////////////////////////
+    template <typename VISITOR>
+    // TODO: requires(is_in_template_v<VISITOR, ??? >) -> consider moving `using ListenerVariant` from Bus<> to this template?
+    auto visit(VISITOR &&func) -> decltype(auto)
+    {
+      return std::visit(std::forward<VISITOR>(func), data_);
+    }
   };
 } // namespace peeb
