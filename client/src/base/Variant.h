@@ -48,6 +48,12 @@ namespace bgg
     }
 
     /////////////////////////////////////////////////////////////////////////////
+    constexpr void setEmpty() noexcept
+    {
+      data_ = std::monostate{};
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
     template <typename U>
       requires(peeb::is_in_template_v<U, Pack>)
     [[nodiscard]] constexpr auto getIf() const noexcept -> U const *

@@ -87,10 +87,10 @@ namespace bgg
     return rule_.getYourColor();
   }
 
-  auto ChessRuleAdapter::getColor(TileCoords const &tile) const noexcept
+  auto ChessRuleAdapter::getItemColor(TileCoords const &tile) const noexcept
       -> std::optional<std::string>
   {
-    return rule_.getColor(tileToPosition(tile));
+    return rule_.getPieceColor(tileToPosition(tile));
   }
 
   auto ChessRuleAdapter::getItemPlacements() -> ItemPlacementMap const &
@@ -101,7 +101,7 @@ namespace bgg
   auto ChessRuleAdapter::getSelectableTiles() const noexcept -> ItemPlacementMap
   {
     std::map<Position, Piece>
-        piecePlacements = rule_.getSelectablePieces();
+        piecePlacements = rule_.getSelectablePieces(rule_.getYourColor());
 
     ItemPlacementMap itemPlacements;
     for (auto &[square, piece] : piecePlacements)
@@ -142,18 +142,17 @@ namespace bgg
       captureSquares.emplace_back(positionToTile(square));
     }
 
-    std::optional<TileCoords> enPassantSquare(std::nullopt);
-    if (candidateMoveInfo.enPassantSquare)
+    std::list<TileCoords> specialSquares;
+    for (auto &square : candidateMoveInfo.specialSquares)
     {
-      Position const &square = candidateMoveInfo.enPassantSquare.value();
-      enPassantSquare = positionToTile(square);
+      specialSquares.emplace_back(positionToTile(square));
     }
 
     return ReachableTileInfo{
         itemEntry,
         std::move(quietSquares),
         std::move(captureSquares),
-        std::move(enPassantSquare)};
+        std::move(specialSquares)};
   }
 
   // auto ChessRuleAdapter::getItemType(TileCoords const &tile) const noexcept

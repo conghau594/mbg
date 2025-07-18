@@ -26,7 +26,7 @@ namespace bgg
     return yourColor_;
   }
 
-  auto ChessBoardState::getColor(Position const &square) const noexcept
+  auto ChessBoardState::getPieceColor(Position const &square) const noexcept
       -> std::optional<std::string>
   {
     std::optional<Piece> piece = getPiece(square);
@@ -43,50 +43,50 @@ namespace bgg
     return piecePlacements_;
   }
 
-  auto ChessBoardState::getSelectablePieces() const noexcept
+  auto ChessBoardState::getSelectablePieces(std::string const &color) const noexcept
       -> std::map<Position, Piece>
   {
     std::map<Position, Piece> selectablePieces;
     for (auto &[square, piece] : piecePlacements_)
     {
-      if (piece.color != yourColor_)
+      if (piece.color != color)
       {
         continue;
       }
 
-      if (piece.type == ChessRule::KING ||
-          piece.type == ChessRule::QUEEN)
+      if (piece.type == ChessRule::QUEEN || piece.type == ChessRule::KING)
       {
-        if (isStraightMovePossible(square, yourColor_) ||
-            isDiagonalMovePossible(square, yourColor_))
+        if (ChessRule::isOrthogonalMovePossible(piecePlacements_, square, color) ||
+            ChessRule::isDiagonalMovePossible(piecePlacements_, square, color))
         {
           selectablePieces.emplace(square, piece);
         }
       }
       else if (piece.type == ChessRule::ROOK)
       {
-        if (isStraightMovePossible(square, yourColor_))
+        if (ChessRule::isOrthogonalMovePossible(piecePlacements_, square, color))
         {
           selectablePieces.emplace(square, piece);
         }
       }
       else if (piece.type == ChessRule::BISHOP)
       {
-        if (isDiagonalMovePossible(square, yourColor_))
+        if (ChessRule::isDiagonalMovePossible(piecePlacements_, square, color))
         {
           selectablePieces.emplace(square, piece);
         }
       }
       else if (piece.type == ChessRule::KNIGHT)
       {
-        if (isKnightMovePossible(square, yourColor_))
+        if (ChessRule::isKnightMovePossible(piecePlacements_, square, color))
         {
           selectablePieces.emplace(square, piece);
         }
       }
       else if (piece.type == ChessRule::PAWN)
       {
-        if (isPawnMovePossible(square, yourColor_))
+        if (ChessRule::isNormalPawnMovePossible(piecePlacements_, square, color) ||
+            !getEnPassantSquare(square, color).empty())
         {
           selectablePieces.emplace(square, piece);
         }
@@ -102,53 +102,96 @@ namespace bgg
     BGG_VALIDATE_SQUARE(square);
 
     std::optional<Piece> piece = getPiece(square);
+    CandidateChessMoveInfo candidateMoves;
     if (!piece)
     {
-      return CandidateChessMoveInfo{};
+      return candidateMoves; // empty
     }
 
     if (piece->type == ChessRule::QUEEN)
     {
-      CandidateChessMoveInfo candidateMoves = getStraightMovableSquares(
-          square, piece->color, ChessRule::BOARD_SIDE - 1);
-      candidateMoves.merge(getDiagonalMovableSquares(
-          square, piece->color, ChessRule::BOARD_SIDE - 1));
+      ChessRule::collectOrthogonalReachableSquares(
+          piecePlacements_,
+          square,
+          piece->color,
+          ChessRule::BOARD_SIDE - 1,
+          &candidateMoves.quietSquares,
+          &candidateMoves.captureSquares);
 
-      return candidateMoves;
-    }
-    else if (piece->type == ChessRule::KING)
-    {
-      CandidateChessMoveInfo candidateMoves = getStraightMovableSquares(
-          square, piece->color, 1);
-      candidateMoves.merge(getDiagonalMovableSquares(
-          square, piece->color, 1));
-
-      candidateMoves.quietSquares.splice(
-          candidateMoves.quietSquares.end(),
-          getValidCastlingSquares(square, piece->color));
-
-      return candidateMoves;
+      ChessRule::collectDiagonalReachableSquares(
+          piecePlacements_,
+          square,
+          piece->color,
+          ChessRule::BOARD_SIDE - 1,
+          &candidateMoves.quietSquares,
+          &candidateMoves.captureSquares);
     }
     else if (piece->type == ChessRule::ROOK)
     {
-      return getStraightMovableSquares(square, piece->color, ChessRule::BOARD_SIDE - 1);
+      ChessRule::collectOrthogonalReachableSquares(
+          piecePlacements_,
+          square,
+          piece->color,
+          ChessRule::BOARD_SIDE - 1,
+          &candidateMoves.quietSquares,
+          &candidateMoves.captureSquares);
     }
     else if (piece->type == ChessRule::BISHOP)
     {
-      return getDiagonalMovableSquares(square, piece->color, ChessRule::BOARD_SIDE - 1);
+      ChessRule::collectDiagonalReachableSquares(
+          piecePlacements_,
+          square,
+          piece->color,
+          ChessRule::BOARD_SIDE - 1,
+          &candidateMoves.quietSquares,
+          &candidateMoves.captureSquares);
     }
     else if (piece->type == ChessRule::KNIGHT)
     {
-      return getKnightMovableSquares(square, piece->color);
+      ChessRule::collectKnightReachableSquares(
+          piecePlacements_,
+          square,
+          piece->color,
+          &candidateMoves.quietSquares,
+          &candidateMoves.captureSquares);
     }
-    else // if (piece->type == ChessRule::PAWN)
+    else if (piece->type == ChessRule::PAWN)
     {
-      return getPawnMovableSquares(square, piece->color);
+      ChessRule::collectPawnBasicReachableSquares(
+          piecePlacements_,
+          square,
+          piece->color,
+          &candidateMoves.quietSquares,
+          &candidateMoves.captureSquares);
+
+      candidateMoves.specialSquares = getEnPassantSquare(square, piece->color);
     }
+    else // if (piece->type == ChessRule::KING)
+    {
+      ChessRule::collectOrthogonalReachableSquares(
+          piecePlacements_,
+          square,
+          piece->color,
+          1,
+          &candidateMoves.quietSquares,
+          &candidateMoves.captureSquares);
+
+      ChessRule::collectDiagonalReachableSquares(
+          piecePlacements_,
+          square,
+          piece->color,
+          1,
+          &candidateMoves.quietSquares,
+          &candidateMoves.captureSquares);
+
+      candidateMoves.specialSquares = getValidCastlingSquares(piece->color);
+    }
+
+    return candidateMoves;
   }
 
-  auto ChessBoardState::getPiece(Position const &square) const noexcept
-      -> std::optional<Piece>
+  auto ChessBoardState::getPiece(
+      Position const &square) const noexcept -> std::optional<Piece>
   {
     BGG_VALIDATE_SQUARE(square);
     auto found = piecePlacements_.find(square);
@@ -160,8 +203,8 @@ namespace bgg
     return found->second;
   }
 
-  auto ChessBoardState::tryMove(ChessMove const &move) const noexcept
-      -> ChessMove::VariantAction
+  auto ChessBoardState::tryMove(
+      ChessMove const &move) const noexcept -> ChessMove::VariantAction
   {
     std::optional<Piece> movedPiece = getPiece(move.fromSquare);
     if (!movedPiece)
@@ -175,219 +218,126 @@ namespace bgg
       return ChessMove::Invalid{ChessMove::Error::INVALID_DESTINATION_SQUARE};
     }
 
-    ChessMove::VariantAction moveAction;
-    if (movedPiece->type == ChessRule::KING)
-    {
-      std::list<Position> castlingSquares = getValidCastlingSquares(
-          move.fromSquare, movedPiece->color);
+    // ====================
+    // check the move based on the CandidateChessMoveInfo
+    CandidateChessMoveInfo candidateMoves = getCandidateMoves(move.fromSquare);
 
-      for (auto &sqr : castlingSquares)
+    ChessMove::VariantAction moveAction;
+    // ----------
+    // 1st, check if the move is a normal move
+    for (auto &sqr : candidateMoves.quietSquares)
+    {
+      if (sqr == move.toSquare)
+      {
+        moveAction = ChessMove::Normal{
+            move.fromSquare, move.toSquare, false, KingStatus::SAFE};
+        break;
+      }
+    }
+
+    // ----------
+    // 2nd, check if the move is a normal capture move
+    if (moveAction.isEmpty())
+    {
+      for (auto &sqr : candidateMoves.captureSquares)
       {
         if (sqr == move.toSquare)
         {
-          if (ChessRule::isKingInCheck(piecePlacements_, movedPiece->color))
-          {
-            return ChessMove::Invalid{ChessMove::Error::INVALID_PROMOTION};
-          }
-          std::pair<Position, Position> castlingRookMove =
-              ChessRule::getCastlingRookMove(move.toSquare, movedPiece->color);
-
-          std::map<Position, Piece> copiedPiecePlacements = piecePlacements_;
-          copiedPiecePlacements.erase(move.fromSquare);
-
-          Position midwaySquare{
-              (move.fromSquare[0] + castlingRookMove.second[0]) / 2,
-              move.fromSquare[1],
-              '\0'};
-          copiedPiecePlacements.emplace(midwaySquare, movedPiece.value());
-          if (ChessRule::isKingInCheck(copiedPiecePlacements, movedPiece->color))
-          {
-            return ChessMove::Invalid{ChessMove::Error::INVALID_PROMOTION};
-          }
-
-          moveAction = ChessMove::Castling{
-              move.fromSquare,
-              move.toSquare,
-              castlingRookMove.first,
-              castlingRookMove.second,
-              KingStatus::SAFE};
+          moveAction = ChessMove::Normal{
+              move.fromSquare, move.toSquare, true, KingStatus::SAFE};
           break;
         }
       }
-
-      CandidateChessMoveInfo candidateMoves = getStraightMovableSquares(
-          move.fromSquare, movedPiece->color, 1);
-      candidateMoves.merge(getDiagonalMovableSquares(
-          move.fromSquare, movedPiece->color, 1));
-
-      if (moveAction.isEmpty())
-      {
-        for (auto &sqr : candidateMoves.quietSquares)
-        {
-          if (sqr == move.toSquare)
-          {
-            moveAction = ChessMove::Normal{
-                move.fromSquare,
-                move.toSquare,
-                false,
-                KingStatus::SAFE};
-            break;
-          }
-        }
-      }
-
-      if (moveAction.isEmpty())
-      {
-        for (auto &sqr : candidateMoves.captureSquares)
-        {
-          if (sqr == move.toSquare)
-          {
-            moveAction = ChessMove::Normal{
-                move.fromSquare,
-                move.toSquare,
-                true,
-                KingStatus::SAFE};
-            break;
-          }
-        }
-      }
-
-      if (moveAction.isEmpty())
-      {
-        return ChessMove::Invalid{ChessMove::Error::INVALID_DESTINATION_SQUARE};
-      }
     }
-    else if (movedPiece->type == ChessRule::PAWN)
-    {
-      CandidateChessMoveInfo candidateMoves = getPawnMovableSquares(
-          move.fromSquare, movedPiece->color);
-      if (candidateMoves.enPassantSquare)
-      {
-        Position const &enPassantSqr = candidateMoves.enPassantSquare.value();
-        if (enPassantSqr[0] == move.toSquare[0] &&
-            enPassantSqr[1] == move.fromSquare[1])
-        {
-          moveAction = ChessMove::EnPassant{
-              move.fromSquare,
-              move.toSquare,
-              enPassantSqr,
-              KingStatus::SAFE};
-        }
-      }
 
-      if (moveAction.isEmpty())
+    // ----------
+    // 3rd, check if the move is a special move
+    if (moveAction.isEmpty())
+    {
+      // 3.1: if the move is of the king
+      if (movedPiece->type == ChessRule::KING)
       {
-        for (auto &sqr : candidateMoves.quietSquares)
+        for (auto &sqr : candidateMoves.specialSquares)
         {
           if (sqr == move.toSquare)
           {
-            if (!ChessRule::isPromotionSquare(move.toSquare, movedPiece->color))
-            {
-              moveAction = ChessMove::Normal{
-                  move.fromSquare,
-                  move.toSquare,
-                  false,
-                  KingStatus::SAFE};
-              break;
-            }
-            else if (move.promote)
-            {
-              moveAction = ChessMove::Promotion{
-                  move.fromSquare,
-                  move.toSquare,
-                  false,
-                  KingStatus::SAFE,
-                  move.promote.value()};
-              break;
-            }
-            else
+            if (ChessRule::isKingInCheck(piecePlacements_, movedPiece->color))
             {
               return ChessMove::Invalid{ChessMove::Error::INVALID_PROMOTION};
             }
-          }
-        }
-      }
 
-      if (moveAction.isEmpty())
-      {
-        for (auto &sqr : candidateMoves.captureSquares)
-        {
-          if (sqr == move.toSquare)
-          {
-            if (!ChessRule::isPromotionSquare(move.toSquare, movedPiece->color))
-            {
-              moveAction = ChessMove::Normal{
-                  move.fromSquare,
-                  move.toSquare,
-                  true,
-                  KingStatus::SAFE};
-              break;
-            }
-            else if (move.promote)
-            {
-              moveAction = ChessMove::Promotion{
-                  move.fromSquare,
-                  move.toSquare,
-                  true,
-                  KingStatus::SAFE,
-                  move.promote.value()};
-              break;
-            }
-            else
+            std::pair<Position, Position> castlingRookMove =
+                ChessRule::getCastlingRookMove(move.toSquare, movedPiece->color);
+
+            std::map<Position, Piece> copiedPiecePlacements = piecePlacements_;
+            copiedPiecePlacements.erase(move.fromSquare);
+
+            Position midwaySquare{
+                char((move.fromSquare[0] + castlingRookMove.second[0]) / 2),
+                move.fromSquare[1],
+                '\0'};
+            copiedPiecePlacements.emplace(midwaySquare, movedPiece.value());
+            if (ChessRule::isKingInCheck(copiedPiecePlacements, movedPiece->color))
             {
               return ChessMove::Invalid{ChessMove::Error::INVALID_PROMOTION};
             }
+
+            moveAction = ChessMove::Castling{
+                move.fromSquare,
+                move.toSquare,
+                castlingRookMove.first,
+                castlingRookMove.second,
+                KingStatus::SAFE};
+            break;
           }
         }
       }
-
-      if (moveAction.isEmpty())
+      // 3.2: if the move is of the pawn
+      else if (movedPiece->type == ChessRule::PAWN)
       {
-        return ChessMove::Invalid{ChessMove::Error::INVALID_DESTINATION_SQUARE};
+        if (!candidateMoves.specialSquares.empty())
+        {
+          Position const &enPassantSqr = candidateMoves.specialSquares.front();
+          if (enPassantSqr[0] == move.toSquare[0] &&
+              enPassantSqr[1] == move.fromSquare[1])
+          {
+            moveAction = ChessMove::EnPassant{
+                move.fromSquare,
+                move.toSquare,
+                enPassantSqr,
+                KingStatus::SAFE};
+          }
+        }
       }
     }
-    else // other pieces
+    // ----------
+    // 4th, check if the move is a promotion
+    else if (ChessRule::isPromotionSquare(move.toSquare, movedPiece->color) &&
+             (movedPiece->type == ChessRule::PAWN))
     {
-      CandidateChessMoveInfo candidateMoves = getCandidateMoves(move.fromSquare);
-
-      if (moveAction.isEmpty())
+      if (move.promote)
       {
-        for (auto &sqr : candidateMoves.quietSquares)
-        {
-          if (sqr == move.toSquare)
-          {
-            moveAction = ChessMove::Normal{
-                move.fromSquare,
-                move.toSquare,
-                false,
-                KingStatus::SAFE};
-            break;
-          }
-        }
+        auto normalMove = moveAction.getIf<ChessMove::Normal>();
+
+        moveAction = ChessMove::Promotion{
+            normalMove->fromSquare,
+            normalMove->toSquare,
+            normalMove->canCapture,
+            normalMove->enemyKingStatus,
+            move.promote.value()};
       }
-
-      if (moveAction.isEmpty())
+      else
       {
-        for (auto &sqr : candidateMoves.captureSquares)
-        {
-          if (sqr == move.toSquare)
-          {
-            moveAction = ChessMove::Normal{
-                move.fromSquare,
-                move.toSquare,
-                true,
-                KingStatus::SAFE};
-            break;
-          }
-        }
-      }
-
-      if (moveAction.isEmpty())
-      {
-        return ChessMove::Invalid{ChessMove::Error::INVALID_DESTINATION_SQUARE};
+        return ChessMove::Invalid{ChessMove::Error::INVALID_PROMOTION};
       }
     }
 
+    if (moveAction.isEmpty())
+    {
+      return ChessMove::Invalid{ChessMove::Error::INVALID_DESTINATION_SQUARE};
+    }
+
+    //TODO: continue from here
     std::map<Position, Piece> copiedPiecePlacements = piecePlacements_;
     ChessRule::commitMoveAction(copiedPiecePlacements, moveAction);
 
@@ -451,456 +401,25 @@ namespace bgg
     return true;
   }
 
-  auto ChessBoardState::getSquareStatus(
-      Position const &square, std::string const &color) const noexcept
-      -> SquareStatus
-  {
-    int const col = int(square[0]);
-    int const row = int(square[1]);
-
-    if ((col < ChessRule::FIRST_COL) || (col > ChessRule::BOARD_SIDE + ChessRule::FIRST_COL - 1) ||
-        (row < ChessRule::FIRST_ROW) || (row > ChessRule::BOARD_SIDE + ChessRule::FIRST_ROW - 1))
-    {
-      return SquareStatus::OUT_OF_BOARD;
-    }
-
-    auto found = piecePlacements_.find(square);
-    if (found == piecePlacements_.cend())
-    {
-      return SquareStatus::EMPTY;
-    }
-
-    if (found->second.color == color)
-    {
-      return SquareStatus::ALLY;
-    }
-
-    return SquareStatus::ENEMY;
-  }
-
-  auto ChessBoardState::tryAddCandidateMove(
-      Position const &square,
-      std::string const &color,
-      CandidateChessMoveInfo &candidateMoves) const noexcept -> SquareStatus
-  {
-    auto squareStatus = getSquareStatus(square, color);
-
-    if (squareStatus == SquareStatus::EMPTY)
-    {
-      candidateMoves.quietSquares.emplace_back(square);
-    }
-    else if (squareStatus == SquareStatus::ENEMY)
-    {
-      candidateMoves.captureSquares.emplace_back(square);
-    }
-
-    return squareStatus;
-  }
-
-  auto ChessBoardState::isStraightMovePossible(
-      Position const &square, std::string const &color) const noexcept -> bool
-  {
-    BGG_VALIDATE_COLOR(color);
-    BGG_VALIDATE_SQUARE(square);
-
-    int const col = int(square[0]);
-    int const row = int(square[1]);
-    Position const nearSquares[]{
-        Position{char(col + 1), char(row), '\0'},
-        Position{char(col - 1), char(row), '\0'},
-        Position{char(col), char(row + 1), '\0'},
-        Position{char(col), char(row - 1), '\0'}};
-
-    for (Position const &nearSquare : nearSquares)
-    {
-      if (getSquareStatus(nearSquare, color) == SquareStatus::ENEMY ||
-          getSquareStatus(nearSquare, color) == SquareStatus::EMPTY)
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  auto ChessBoardState::isDiagonalMovePossible(
-      Position const &square, std::string const &color) const noexcept -> bool
-  {
-    BGG_VALIDATE_COLOR(color);
-    BGG_VALIDATE_SQUARE(square);
-
-    int const col = int(square[0]);
-    int const row = int(square[1]);
-    Position const nearSquares[]{
-        Position{char(col + 1), char(row + 1), '\0'},
-        Position{char(col + 1), char(row - 1), '\0'},
-        Position{char(col - 1), char(row + 1), '\0'},
-        Position{char(col - 1), char(row - 1), '\0'}};
-
-    for (Position const &nearSquare : nearSquares)
-    {
-      if (getSquareStatus(nearSquare, color) == SquareStatus::ENEMY ||
-          getSquareStatus(nearSquare, color) == SquareStatus::EMPTY)
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  auto ChessBoardState::isKnightMovePossible(
-      Position const &square, std::string const &color) const noexcept -> bool
-  {
-    BGG_VALIDATE_COLOR(color);
-    BGG_VALIDATE_SQUARE(square);
-
-    int const col = int(square[0]);
-    int const row = int(square[1]);
-    Position const possibleSquares[]{
-        Position{char(col + 1), char(row + 2), '\0'},
-        Position{char(col + 1), char(row - 2), '\0'},
-        Position{char(col - 1), char(row + 2), '\0'},
-        Position{char(col - 1), char(row - 2), '\0'},
-        Position{char(col + 2), char(row + 1), '\0'},
-        Position{char(col - 2), char(row + 1), '\0'},
-        Position{char(col + 2), char(row - 1), '\0'},
-        Position{char(col - 2), char(row - 1), '\0'}};
-
-    for (Position const &sqr : possibleSquares)
-    {
-      if (getSquareStatus(sqr, color) == SquareStatus::ENEMY ||
-          getSquareStatus(sqr, color) == SquareStatus::EMPTY)
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  auto ChessBoardState::isPawnMovePossible(
-      Position const &square, std::string const &color) const noexcept -> bool
-  {
-    BGG_VALIDATE_COLOR(color);
-    BGG_VALIDATE_SQUARE(square);
-
-    BOOST_ASSERT_MSG(
-        square[1] != '1' && square[1] != '8',
-        "Pawns never stand on row 1 and row 8");
-
-    int const col = int(square[0]);
-    int const row = int(square[1]);
-
-    int step = 1;
-    if (color == Color::BLACK)
-    {
-      step = -1;
-    }
-
-    Position front{char(col), char(row + step), '\0'};
-    if (piecePlacements_.find(front) == piecePlacements_.cend())
-    {
-      return true;
-    }
-
-    Position left{char(col - 1), char(row + step), '\0'};
-    auto found = piecePlacements_.find(left);
-    if ((found != piecePlacements_.cend()) && (found->second.color != color))
-    {
-      return true;
-    }
-
-    Position right{char(col + 1), char(row + step), '\0'};
-    found = piecePlacements_.find(right);
-    if ((found != piecePlacements_.cend()) && (found->second.color != color))
-    {
-      return true;
-    }
-
-    return isEnPassantCapturePossible(square, color);
-  }
-
-  auto ChessBoardState::isEnPassantCapturePossible(
-      Position const &square,
-      std::string const &color) const noexcept -> bool
-  {
-    if (!(square[1] == '5' && color == Color::WHITE) &&
-        !(square[1] == '4' && color == Color::BLACK))
-    {
-      return false;
-    }
-
-    auto const &specialMoveTracker = moveTracker_.getSpecialPieceMoveTracker(color);
-    int const col = int(square[0]);
-    int const moveCount = moveTracker_.getTotalMoveCount();
-    if (col > ChessRule::FIRST_COL)
-    {
-      if (specialMoveTracker.getFirstDoubleStepMoveOfPawn(col - 1) == moveCount)
-      {
-        return true;
-      }
-    }
-
-    if (col < ChessRule::FIRST_COL + ChessRule::BOARD_SIDE - 1)
-    {
-      if (specialMoveTracker.getFirstDoubleStepMoveOfPawn(col + 1) == moveCount)
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  auto ChessBoardState::getStraightMovableSquares(
-      Position const &square,
-      std::string const &color,
-      int radius) const noexcept -> CandidateChessMoveInfo
-  {
-    BGG_VALIDATE_COLOR(color);
-    BGG_VALIDATE_SQUARE(square);
-    BOOST_ASSERT_MSG(
-        (radius > 0) && (radius < ChessRule::BOARD_SIDE),
-        "The radius of neighborhood must be greater than 0 and less than BOARD_SIDE");
-
-    int const col = int(square[0]);
-    int const row = int(square[1]);
-
-    CandidateChessMoveInfo candidateMoves;
-
-    for (int i = 1; i <= radius; ++i)
-    {
-      if (row + i <= ChessRule::BOARD_SIDE + ChessRule::FIRST_ROW - 1)
-      {
-        Position sqr{char(col), char(row + i), '\0'};
-        auto squareStatus = tryAddCandidateMove(sqr, color, candidateMoves);
-        if (squareStatus != SquareStatus::EMPTY)
-        {
-          break;
-        }
-      }
-    }
-
-    for (int i = 1; i <= radius; ++i)
-    {
-      if (row - i >= ChessRule::FIRST_ROW)
-      {
-        Position sqr{char(col), char(row - i), '\0'};
-        auto squareStatus = tryAddCandidateMove(sqr, color, candidateMoves);
-        if (squareStatus != SquareStatus::EMPTY)
-        {
-          break;
-        }
-      }
-    }
-
-    for (int i = 1; i <= radius; ++i)
-    {
-      if (col + i <= ChessRule::BOARD_SIDE + ChessRule::FIRST_COL - 1)
-      {
-        Position sqr{char(col + i), char(row), '\0'};
-        auto squareStatus = tryAddCandidateMove(sqr, color, candidateMoves);
-        if (squareStatus != SquareStatus::EMPTY)
-        {
-          break;
-        }
-      }
-    }
-
-    for (int i = 1; i <= radius; ++i)
-    {
-      if (col - i >= ChessRule::FIRST_COL)
-      {
-        Position sqr{char(col - i), char(row), '\0'};
-        auto squareStatus = tryAddCandidateMove(sqr, color, candidateMoves);
-        if (squareStatus != SquareStatus::EMPTY)
-        {
-          break;
-        }
-      }
-    }
-
-    return candidateMoves;
-  }
-
-  auto ChessBoardState::getDiagonalMovableSquares(
-      Position const &square,
-      std::string const &color,
-      int radius) const noexcept -> CandidateChessMoveInfo
-  {
-    BGG_VALIDATE_COLOR(color);
-    BGG_VALIDATE_SQUARE(square);
-    BOOST_ASSERT_MSG(
-        radius > 0 && radius < ChessRule::BOARD_SIDE,
-        "The radius of neighborhood must be greater than 0 and less than BOARD_SIDE");
-
-    int const col = int(square[0]);
-    int const row = int(square[1]);
-
-    CandidateChessMoveInfo candidateMoves;
-
-    for (int i = 1; i <= radius; ++i)
-    {
-      if ((col + i <= ChessRule::BOARD_SIDE + ChessRule::FIRST_COL - 1) &&
-          (row + i <= ChessRule::BOARD_SIDE + ChessRule::FIRST_ROW - 1))
-      {
-        Position sqr{char(col + i), char(row + i), '\0'};
-        auto squareStatus = tryAddCandidateMove(sqr, color, candidateMoves);
-        if (squareStatus != SquareStatus::EMPTY)
-        {
-          break;
-        }
-      }
-    }
-
-    for (int i = 1; i <= radius; ++i)
-    {
-      if ((col + i <= ChessRule::BOARD_SIDE + ChessRule::FIRST_COL - 1) &&
-          (row - i >= ChessRule::FIRST_ROW))
-      {
-        Position sqr{char(col + i), char(row - i), '\0'};
-        auto squareStatus = tryAddCandidateMove(sqr, color, candidateMoves);
-        if (squareStatus != SquareStatus::EMPTY)
-        {
-          break;
-        }
-      }
-    }
-
-    for (int i = 1; i <= radius; ++i)
-    {
-      if ((col - i >= ChessRule::FIRST_COL) &&
-          (row + i <= ChessRule::BOARD_SIDE + ChessRule::FIRST_ROW - 1))
-      {
-        Position sqr{char(col - i), char(row + i), '\0'};
-        auto squareStatus = tryAddCandidateMove(sqr, color, candidateMoves);
-        if (squareStatus != SquareStatus::EMPTY)
-        {
-          break;
-        }
-      }
-    }
-
-    for (int i = 1; i <= radius; ++i)
-    {
-      if ((col - i >= ChessRule::FIRST_COL) &&
-          (row - i >= ChessRule::FIRST_ROW))
-      {
-        Position sqr{char(col - i), char(row - i), '\0'};
-        auto squareStatus = tryAddCandidateMove(sqr, color, candidateMoves);
-        if (squareStatus != SquareStatus::EMPTY)
-        {
-          break;
-        }
-      }
-    }
-
-    return candidateMoves;
-  }
-
-  auto ChessBoardState::getKnightMovableSquares(
-      Position const &square,
-      std::string const &color) const noexcept -> CandidateChessMoveInfo
-  {
-    BGG_VALIDATE_COLOR(color);
-    BGG_VALIDATE_SQUARE(square);
-
-    int const col = int(square[0]);
-    int const row = int(square[1]);
-    Position const possibleSquares[]{
-        Position{char(col + 1), char(row + 2), '\0'},
-        Position{char(col + 1), char(row - 2), '\0'},
-        Position{char(col - 1), char(row + 2), '\0'},
-        Position{char(col - 1), char(row - 2), '\0'},
-        Position{char(col + 2), char(row + 1), '\0'},
-        Position{char(col - 2), char(row + 1), '\0'},
-        Position{char(col + 2), char(row - 1), '\0'},
-        Position{char(col - 2), char(row - 1), '\0'}};
-
-    CandidateChessMoveInfo candidateMoves;
-    for (Position const &sqr : possibleSquares)
-    {
-      tryAddCandidateMove(sqr, color, candidateMoves);
-    }
-
-    return candidateMoves;
-  }
-
-  auto ChessBoardState::getPawnMovableSquares(
-      Position const &square,
-      std::string const &color) const noexcept -> CandidateChessMoveInfo
-  {
-    BGG_VALIDATE_COLOR(color);
-    BGG_VALIDATE_SQUARE(square);
-
-    BOOST_ASSERT_MSG(square[1] != '1' && square[1] != '8',
-                     "Pawns never stand on row 1 and row 8");
-
-    int const col = int(square[0]);
-    int const row = int(square[1]);
-
-    int step = 1;
-    if (color == Color::BLACK)
-    {
-      step = -1;
-    }
-
-    CandidateChessMoveInfo result;
-
-    Position front1{char(col), char(row + step), '\0'};
-    if (piecePlacements_.find(front1) == piecePlacements_.cend())
-    {
-      result.quietSquares.emplace_back(front1);
-
-      Position front2{char(col), char(row + 2 * step), '\0'};
-      if (piecePlacements_.find(front2) == piecePlacements_.cend())
-      {
-        result.quietSquares.emplace_back(front2);
-      }
-    }
-
-    Position left{char(col - 1), char(row + step), '\0'};
-    auto found = piecePlacements_.find(left);
-    if ((found != piecePlacements_.cend()) && (found->second.color != color))
-    {
-      result.captureSquares.emplace_back(left);
-    }
-
-    Position right{char(col + 1), char(row + step), '\0'};
-    found = piecePlacements_.find(right);
-    if ((found != piecePlacements_.cend()) && (found->second.color != color))
-    {
-      result.captureSquares.emplace_back(right);
-    }
-
-    auto enPassantPos = getEnPassantSquare(square, color);
-    if (enPassantPos)
-    {
-      result.enPassantSquare = std::move(enPassantPos);
-    }
-
-    return result;
-  }
-
   auto ChessBoardState::getEnPassantSquare(
       Position const &square,
-      std::string const &color) const noexcept -> std::optional<Position>
+      std::string const &color) const noexcept -> std::list<Position>
   {
+    std::list<Position> enPassantSquare;
     if (!(square[1] == '5' && color == Color::WHITE) &&
         !(square[1] == '4' && color == Color::BLACK))
     {
-      return std::nullopt;
+      return enPassantSquare;
     }
 
-    auto const &specialMoveTracker = moveTracker_.getSpecialPieceMoveTracker(color);
+    auto const &specialMoveTracker = moveTracker_.getSpecialMoveTracker(color);
     int const col = int(square[0]);
     if (col > ChessRule::FIRST_COL)
     {
       if (specialMoveTracker.getFirstDoubleStepMoveOfPawn(col - 1) ==
           moveTracker_.getTotalMoveCount())
       {
-        return Position{char(col - 1), square[1], '\0'};
+        enPassantSquare.emplace_back(Position{char(col - 1), square[1], '\0'});
       }
     }
     else if (col < ChessRule::FIRST_COL + ChessRule::BOARD_SIDE - 1)
@@ -908,25 +427,26 @@ namespace bgg
       if (specialMoveTracker.getFirstDoubleStepMoveOfPawn(col + 1) ==
           moveTracker_.getTotalMoveCount())
       {
-        return Position{char(col + 1), square[1], '\0'};
+        enPassantSquare.emplace_back(Position{char(col + 1), square[1], '\0'});
       }
     }
 
-    return std::nullopt;
+    return enPassantSquare;
   }
 
   auto ChessBoardState::getValidCastlingSquares(
-      Position const &square,
       std::string const &color) const noexcept -> std::list<Position>
   {
-    std::list<Position> result;
-    if (!(square == Position("e1") && color == Color::WHITE) &&
-        !(square == Position("e8") && color == Color::BLACK))
+    BGG_VALIDATE_COLOR(color);
+
+    Position kingSquare{"e1"}; // if (color == Color::WHITE)
+    if (color == Color::BLACK)
     {
-      return result;
+      kingSquare = Position("e8");
     }
 
-    auto const &specialMoveTracker = moveTracker_.getSpecialPieceMoveTracker(color);
+    std::list<Position> result;
+    auto const &specialMoveTracker = moveTracker_.getSpecialMoveTracker(color);
     if (specialMoveTracker.isKingMoved())
     {
       return result;
@@ -934,12 +454,12 @@ namespace bgg
 
     if (!specialMoveTracker.isRookAMoved())
     {
-      result.emplace_back(Position{char(square[0] - 2), square[1], '\0'});
+      result.emplace_back(Position{char(kingSquare[0] - 2), kingSquare[1], '\0'});
     }
 
     if (!specialMoveTracker.isRookHMoved())
     {
-      result.emplace_back(Position{char(square[0] + 2), square[1], '\0'});
+      result.emplace_back(Position{char(kingSquare[0] + 2), kingSquare[1], '\0'});
     }
 
     return result;

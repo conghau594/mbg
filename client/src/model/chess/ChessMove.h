@@ -18,18 +18,7 @@ namespace bgg
 
     std::list<Position> quietSquares;
     std::list<Position> captureSquares;
-    std::optional<Position> enPassantSquare;
-
-    void merge(CandidateChessMoveInfo other) noexcept
-    {
-      quietSquares.splice(quietSquares.end(), other.quietSquares);
-      captureSquares.splice(captureSquares.end(), other.captureSquares);
-
-      if (!enPassantSquare && other.enPassantSquare)
-      {
-        enPassantSquare = std::move(other.enPassantSquare);
-      }
-    }
+    std::list<Position> specialSquares; ///< includes 'enPassantSquare' and 'castlingSquares' 
   };
 
   enum class KingStatus : unsigned

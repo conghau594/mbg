@@ -79,7 +79,7 @@ namespace bgg
 
   //   if (move.promote)
   //   {
-  //     auto itemColor = gameRule_->getColor(move.fromTile);
+  //     auto itemColor = gameRule_->getPieceColor(move.fromTile);
   //     Piece promotedPiece{move.promote.value(), itemColor.value()};
 
   //     // add new promoted item to itemStore_
@@ -142,7 +142,7 @@ namespace bgg
   //   std::optional<BoardItem> promotedItem(std::nullopt);
   //   if (move.promote)
   //   {
-  //     auto itemColor = gameRule_->getColor(move.fromTile);
+  //     auto itemColor = gameRule_->getItemColor(move.fromTile);
   //     Piece promotedPiece{move.promote.value(), itemColor.value()};
 
   //     promotedItem = itemStore_->createItem(

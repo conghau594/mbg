@@ -36,7 +36,7 @@ namespace bgg
 
     std::list<TileCoords> quietSquares;
     std::list<TileCoords> captureSquares;
-    std::optional<TileCoords> enPassantSquare;
+    std::list<TileCoords> specialSquares;
 
     // std::optional<TileCoords> checkMove;
     // bool isCheckmate;
@@ -51,7 +51,7 @@ namespace bgg
     virtual auto getYourColor() const -> std::string const & = 0;
 
     [[nodiscard]]
-    virtual auto getColor(TileCoords const &tile) const
+    virtual auto getItemColor(TileCoords const &tile) const
         -> std::optional<std::string> = 0;
 
     [[nodiscard]]

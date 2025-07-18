@@ -6,7 +6,7 @@
 namespace bgg
 {
 
-  class SpecialPieceMoveTracker
+  class SpecialMoveTracker
   {
     int firstDoubleStepMoveOfPawn_[ChessRule::BOARD_SIDE]{0, 0, 0, 0, 0, 0, 0, 0};
     bool kingMoved_ = false;
@@ -66,18 +66,18 @@ namespace bgg
   class ChessMoveTracker
   {
     int totalMoveCount_ = 0;
-    SpecialPieceMoveTracker white_, black_;
+    SpecialMoveTracker white_, black_;
 
   public:
-    [[nodiscard]] auto getSpecialPieceMoveTracker(
-        std::string const &color) noexcept -> SpecialPieceMoveTracker &
+    [[nodiscard]] auto getSpecialMoveTracker(
+        std::string const &color) noexcept -> SpecialMoveTracker &
     {
       BGG_VALIDATE_COLOR(color);
       return (color == Color::WHITE) ? white_ : black_;
     }
 
-    [[nodiscard]] auto getSpecialPieceMoveTracker(
-        std::string const &color) const noexcept -> SpecialPieceMoveTracker const &
+    [[nodiscard]] auto getSpecialMoveTracker(
+        std::string const &color) const noexcept -> SpecialMoveTracker const &
     {
       BGG_VALIDATE_COLOR(color);
       return (color == Color::WHITE) ? white_ : black_;
