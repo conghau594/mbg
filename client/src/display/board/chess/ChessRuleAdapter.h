@@ -47,8 +47,8 @@ namespace bgg
 
         auto getYourColor() const -> std::string const & override;
 
-        auto getItemColor(TileCoords const &tile) const noexcept
-            -> std::optional<std::string> override;
+        // auto getItemColor(TileCoords const &tile) const noexcept
+        //     -> std::optional<std::string> override;
 
         auto getItemPlacements() -> ItemPlacementMap const & override;
         auto getSelectableTiles() const noexcept -> ItemPlacementMap override;

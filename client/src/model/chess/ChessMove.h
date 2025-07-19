@@ -18,14 +18,7 @@ namespace bgg
 
     std::list<Position> quietSquares;
     std::list<Position> captureSquares;
-    std::list<Position> specialSquares; ///< includes 'enPassantSquare' and 'castlingSquares' 
-  };
-
-  enum class KingStatus : unsigned
-  {
-    SAFE,
-    CHECK,
-    CHECKMATE
+    std::list<Position> specialMoveSquares; ///< includes 'enPassantSquare' and 'castlingSquares'
   };
 
   /////////////////////////////////////////////////////////////////////////////
@@ -60,7 +53,7 @@ namespace bgg
       Position toSquare;
 
       bool canCapture; ///< whether the piece at 'toSquare' is of enemy or not
-      KingStatus enemyKingStatus;
+      KingState enemyKingState;
     };
 
     /** \brief just for Pawns
@@ -73,7 +66,7 @@ namespace bgg
       Position toSquare;
 
       bool canCapture; ///< whether the piece at 'toSquare' is of enemy or not
-      KingStatus enemyKingStatus;
+      KingState enemyKingState;
       std::string promote; ///< the piece name, is one of: Queen, Rook, Bishop, Knight
     };
 
@@ -87,7 +80,7 @@ namespace bgg
       Position toSquare;
 
       Position enPassantSquare;
-      KingStatus enemyKingStatus;
+      KingState enemyKingState;
     };
 
     /** \brief just for Kings
@@ -101,7 +94,7 @@ namespace bgg
 
       Position rookSource;
       Position rookDestination;
-      KingStatus enemyKingStatus;
+      KingState enemyKingState;
     };
 
     using VariantAction = Variant<

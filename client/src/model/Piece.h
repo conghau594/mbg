@@ -26,6 +26,21 @@ namespace bgg
     static constexpr const char RED[] = "Red";
   };
 
+  enum class PositionStatus : unsigned
+  {
+    OUT_OF_BOARD,
+    EMPTY,
+    ALLY,
+    ENEMY
+  };
+
+  enum class KingState : unsigned
+  {
+    SAFE,
+    IN_CHECK,
+    CHECKMATED
+  };
+
   using Position = std::array<char, 3>;
 
   inline auto operator==(Position const &lhs, Position const &rhs) -> bool

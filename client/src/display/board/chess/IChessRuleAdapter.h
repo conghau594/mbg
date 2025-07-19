@@ -36,7 +36,7 @@ namespace bgg
 
     std::list<TileCoords> quietSquares;
     std::list<TileCoords> captureSquares;
-    std::list<TileCoords> specialSquares;
+    std::list<TileCoords> specialMoveSquares;
 
     // std::optional<TileCoords> checkMove;
     // bool isCheckmate;
@@ -50,9 +50,9 @@ namespace bgg
     [[nodiscard]]
     virtual auto getYourColor() const -> std::string const & = 0;
 
-    [[nodiscard]]
-    virtual auto getItemColor(TileCoords const &tile) const
-        -> std::optional<std::string> = 0;
+    // [[nodiscard]]
+    // virtual auto getItemColor(TileCoords const &tile) const
+    //     -> std::optional<std::string> = 0;
 
     [[nodiscard]]
     virtual auto getItemPlacements() -> ItemPlacementMap const & = 0;
@@ -80,8 +80,8 @@ namespace bgg
     virtual auto tileToPosition(TileCoords const &tile) const -> Position = 0;
 
     // [[nodiscard]]
-    // virtual auto tryMove(ItemMove 
-    //TODO: Need refactor
+    // virtual auto tryMove(ItemMove
+    // TODO: Need refactor
     // /**
     //  * \return the item entry of the captured piece. It should be disappeared
     //  *         after removed from this.

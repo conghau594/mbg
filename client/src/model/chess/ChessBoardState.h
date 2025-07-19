@@ -27,15 +27,12 @@ namespace bgg
 
 		[[nodiscard]] auto getYourColor() const noexcept -> std::string const &;
 
-		[[nodiscard]] auto getPieceColor(
-				Position const &square) const noexcept -> std::optional<std::string>;
-
 		[[nodiscard]] auto getPiecePlacements() const noexcept -> std::map<Position, Piece> const &;
 
 		[[nodiscard]] auto getSelectablePieces(
 				std::string const &color) const noexcept -> std::map<Position, Piece>;
 
-		[[nodiscard]] auto getCandidateMoves(
+		[[nodiscard]] auto collectCandidateMoves(
 				Position const &square) const noexcept -> CandidateChessMoveInfo;
 
 		[[nodiscard]] auto getPiece(
@@ -51,9 +48,9 @@ namespace bgg
 	private:
 		[[nodiscard]] auto getEnPassantSquare(
 				Position const &square,
-				std::string const &color) const noexcept -> std::list<Position>;
+				std::string const &color) const noexcept -> std::optional<Position>;
 
-		[[nodiscard]] auto getValidCastlingSquares(
+		[[nodiscard]] auto getKingCastlingSquares(
 				std::string const &color) const noexcept -> std::list<Position>;
 	};
 
