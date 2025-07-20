@@ -39,6 +39,9 @@ namespace bgg
         auto tileToPosition(
             TileCoords const &tile) const noexcept -> Position override;
 
+        [[nodiscard]]
+        auto tryMove(
+            ItemMove const &itemMove) const noexcept -> ChessItemMoveAction override;
         // TODO: Need refactor
         // auto commitMove(
         //     ChessMove const &move,
@@ -47,19 +50,15 @@ namespace bgg
 
         auto getYourColor() const -> std::string const & override;
 
-        // auto getItemColor(TileCoords const &tile) const noexcept
-        //     -> std::optional<std::string> override;
+        auto getItemColor(TileCoords const &tile) const noexcept
+            -> std::optional<std::string> override;
 
         auto getItemPlacements() -> ItemPlacementMap const & override;
         auto getSelectableTiles() const noexcept -> ItemPlacementMap override;
         auto getReachableTiles(TileCoords const &tile) const noexcept
             -> std::optional<ReachableTileInfo> override;
 
-        // auto getItemType(TileCoords const &tile) const noexcept
-        //     -> std::optional<int> override;
         auto getItemEntry(TileCoords const &tile) const noexcept
             -> ItemStore::Entry override;
-
-        // auto addItemEntry(TileCoords tile, ItemStore::Entry entry) noexcept -> bool override;
     };
 } // namespace bgg

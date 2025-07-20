@@ -52,6 +52,21 @@ namespace bgg
     return BoardItem(itemTextureAtlas_, textureCellRect, std::move(name), visible);
   }
 
+  auto ItemStore::findItems(
+      std::function<bool(BoardItem const &item)> const &predicate) noexcept
+      -> std::list<BoardItem *>
+  {
+    std::list<BoardItem *> result;
+    for (auto &[id, item] : boardItems_)
+    {
+      if (predicate(item))
+      {
+        result.emplace_back(&item);
+      }
+    }
+    return result;
+  }
+
   auto ItemStore::removeItem(Entry &entry) noexcept -> bool
   {
     if (entry.isNull() || (entry.itemMapPtr_ != &boardItems_))
@@ -90,13 +105,13 @@ namespace bgg
     *(entry.itemIter_) = iter;
   }
 
-  void ItemStore::changeItem(
-      Entry &entry, int textureCellIndex, std::string name, bool visible) noexcept
-  {
-    sf::IntRect &&textureCellRect = itemTextureAtlas_->getRegion(textureCellIndex);
-    entry.getItem() = BoardItem(
-        itemTextureAtlas_, textureCellRect, std::move(name), visible);
-  }
+  // void ItemStore::changeItem(
+  //     Entry &entry, int textureCellIndex, std::string name, bool visible) noexcept
+  // {
+  //   sf::IntRect &&textureCellRect = itemTextureAtlas_->getRegion(textureCellIndex);
+  //   entry.getItem() = BoardItem(
+  //       itemTextureAtlas_, textureCellRect, std::move(name), visible);
+  // }
 
   auto ItemStore::begin() noexcept -> ItemStore::Iter
   {

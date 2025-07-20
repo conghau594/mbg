@@ -26,9 +26,12 @@ namespace bgg
 
     ItemStore::Entry choiceHighlighter_; ///< choiceHighlighter_ is a dynamic highlighter
     ItemStore::Entry selectedItemEntry_;
+    ItemStore::Entry enPassantCaptureHighlighter_; ///< Notice that the staticHighlighters_ does not contain the enPassantCaptureHighlighter_
+
     int originalSelectedItemZOrder_;
 
     TileCoords selectedTile_;
+    TileCoords enPassantTile_;
     TileCoords lastHoveredTile_;
 
   public:
@@ -38,8 +41,6 @@ namespace bgg
         std::shared_ptr<TileMap> tileMap,
         std::shared_ptr<ItemStore> itemStore,
         TileCoords selectedTile) noexcept;
-
-    ~ChessPieceSelectedState();
 
   private:
     void onEnter(sf::Vector2i const &mousePos) noexcept override;

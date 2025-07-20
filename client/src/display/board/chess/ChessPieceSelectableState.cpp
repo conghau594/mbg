@@ -27,8 +27,8 @@ namespace bgg
   {
     choiceHighlighter_ = itemStore_->addItem(
         ZOrder::THIRD_LAYER,
-        ChessTextureCell::CHOICE_HIGHLIGHTER,
-        ChessTextureCell::toString(ChessTextureCell::CHOICE_HIGHLIGHTER),
+        int(ChessTextureCell::CHOICE_HIGHLIGHTER),
+        utils::toString(ChessTextureCell::CHOICE_HIGHLIGHTER),
         false);
 
     selectableTiles_ = gameRule_->getSelectableTiles();
@@ -99,8 +99,8 @@ namespace bgg
   {
     // do nothing
   }
-  
-  void ChessPieceSelectableState::onServerMessage(ServerMessage const &/*msg*/) noexcept
+
+  void ChessPieceSelectableState::onServerMessage(ServerMessage const & /*msg*/) noexcept
   {
     // do nothing
   }

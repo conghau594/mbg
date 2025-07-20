@@ -23,123 +23,128 @@
 
 namespace bgg
 {
-  class ChessRule
-  {
-  public:
-    static int constexpr PIECE_COUNT = 32;
-    static int constexpr BOARD_SIDE = 8;
+    class ChessRule
+    {
+    public:
+        static int constexpr PIECE_COUNT = 32;
+        static int constexpr BOARD_SIDE = 8;
 
-    static int constexpr FIRST_COL = int('a');
-    static int constexpr FIRST_ROW = int('1');
+        static int constexpr FIRST_COL = int('a');
+        static int constexpr FIRST_ROW = int('1');
 
-    static constexpr const char KING[] = "King";
-    static constexpr const char QUEEN[] = "Queen";
-    static constexpr const char ROOK[] = "Rook";
-    static constexpr const char BISHOP[] = "Bishop";
-    static constexpr const char KNIGHT[] = "Knight";
-    static constexpr const char PAWN[] = "Pawn";
+        static constexpr const char KING[] = "King";
+        static constexpr const char QUEEN[] = "Queen";
+        static constexpr const char ROOK[] = "Rook";
+        static constexpr const char BISHOP[] = "Bishop";
+        static constexpr const char KNIGHT[] = "Knight";
+        static constexpr const char PAWN[] = "Pawn";
 
-    static const std::initializer_list<std::pair<Position, Piece>> INITIAL_PLACEMENTS;
+        static const std::initializer_list<std::pair<Position, Piece>> INITIAL_PLACEMENTS;
 
-    [[nodiscard]] static auto getPiece(
-        std::map<Position, Piece> const &piecePlacements,
-        Position const &square) noexcept -> std::optional<Piece>;
+        [[nodiscard]] static auto getPiece(
+            std::map<Position, Piece> const &piecePlacements,
+            Position const &square) noexcept -> std::optional<Piece>;
 
-    [[nodiscard]] static auto getEnemyColor(
-        std::string const &color) noexcept -> std::string;
+        [[nodiscard]] static auto getEnemyColor(
+            std::string const &color) noexcept -> std::string;
 
-    static void commitMoveAction(
-        std::map<Position, Piece> &piecePlacements,
-        ChessMove::VariantAction const &moveAction) noexcept;
+        static void commitMoveAction(
+            std::map<Position, Piece> &piecePlacements,
+            ChessMove::VariantAction const &moveAction) noexcept;
 
-    [[nodiscard]] static auto evaluateKingState(
-        std::map<Position, Piece> const &piecePlacements,
-        std::string const &color,
-        bool checkForCheckmate) noexcept -> KingState;
+        [[nodiscard]] static auto evaluateKingState(
+            std::map<Position, Piece> const &piecePlacements,
+            std::string const &color,
+            bool checkForCheckmate) noexcept -> KingState;
 
-    [[nodiscard]] static auto isPromotionSquare(
-        Position const &square,
-        std::string const &color) noexcept -> bool;
+        [[nodiscard]] static auto isPromotionSquare(
+            Position const &square,
+            std::string const &color) noexcept -> bool;
 
-    [[nodiscard]] static auto getCastlingRookMove(
-        Position const &kingTargetSquare,
-        std::string const &color) noexcept -> std::pair<Position, Position>;
+        [[nodiscard]] static auto getCastlingRookMove(
+            Position const &kingTargetSquare,
+            std::string const &color) noexcept -> std::pair<Position, Position>;
 
-    [[nodiscard]] static auto getPositionStatus(
-        std::map<Position, Piece> const &piecePlacements,
-        Position const &square,
-        std::string const &color) noexcept -> PositionStatus;
+        [[nodiscard]] static auto getPositionStatus(
+            std::map<Position, Piece> const &piecePlacements,
+            Position const &square,
+            std::string const &color) noexcept -> PositionStatus;
 
-    [[nodiscard]] static auto isOrthogonalMovePossible(
-        std::map<Position, Piece> const &piecePlacements,
-        Position const &square,
-        std::string const &color) noexcept -> bool;
+        [[nodiscard]] static auto isOrthogonalMovePossible(
+            std::map<Position, Piece> const &piecePlacements,
+            Position const &square,
+            std::string const &color) noexcept -> bool;
 
-    [[nodiscard]] static auto isDiagonalMovePossible(
-        std::map<Position, Piece> const &piecePlacements,
-        Position const &square,
-        std::string const &color) noexcept -> bool;
+        [[nodiscard]] static auto isDiagonalMovePossible(
+            std::map<Position, Piece> const &piecePlacements,
+            Position const &square,
+            std::string const &color) noexcept -> bool;
 
-    [[nodiscard]] static auto isKnightMovePossible(
-        std::map<Position, Piece> const &piecePlacements,
-        Position const &square,
-        std::string const &color) noexcept -> bool;
+        [[nodiscard]] static auto isKnightMovePossible(
+            std::map<Position, Piece> const &piecePlacements,
+            Position const &square,
+            std::string const &color) noexcept -> bool;
 
-    [[nodiscard]] static auto isNormalPawnMovePossible(
-        std::map<Position, Piece> const &piecePlacements,
-        Position const &square,
-        std::string const &color) noexcept -> bool;
+        [[nodiscard]] static auto isPawnBasicMovePossible(
+            std::map<Position, Piece> const &piecePlacements,
+            Position const &square,
+            std::string const &color) noexcept -> bool;
 
-    static auto classifyAndCollectSquare(
-        std::map<Position, Piece> const &piecePlacements,
-        Position const &square,
-        std::string const &color,
-        std::list<Position> *quietReachableSquares = nullptr,
-        std::list<Position> *captureReachableSquares = nullptr) noexcept -> PositionStatus;
+        static void collectBasicCandidateMoves(
+            std::map<Position, Piece> const &piecePlacements,
+            Position const &square,
+            std::list<Position> *quietReachableSquares,
+            std::list<Position> *captureReachableSquares) noexcept;
 
-    static void collectOrthogonalReachableSquares(
-        std::map<Position, Piece> const &piecePlacements,
-        Position const &square,
-        std::string const &color,
-        int radius,
-        std::list<Position> *quietReachableSquares = nullptr,
-        std::list<Position> *captureReachableSquares = nullptr) noexcept;
+        static void collectOrthogonalReachableSquares(
+            std::map<Position, Piece> const &piecePlacements,
+            Position const &square,
+            std::string const &color,
+            int radius,
+            std::list<Position> *quietReachableSquares = nullptr,
+            std::list<Position> *captureReachableSquares = nullptr) noexcept;
 
-    static void collectDiagonalReachableSquares(
-        std::map<Position, Piece> const &piecePlacements,
-        Position const &square,
-        std::string const &color,
-        int radius,
-        std::list<Position> *quietReachableSquares = nullptr,
-        std::list<Position> *captureReachableSquares = nullptr) noexcept;
+        static void collectDiagonalReachableSquares(
+            std::map<Position, Piece> const &piecePlacements,
+            Position const &square,
+            std::string const &color,
+            int radius,
+            std::list<Position> *quietReachableSquares = nullptr,
+            std::list<Position> *captureReachableSquares = nullptr) noexcept;
 
-    static void collectKnightReachableSquares(
-        std::map<Position, Piece> const &piecePlacements,
-        Position const &square,
-        std::string const &color,
-        std::list<Position> *quietReachableSquares = nullptr,
-        std::list<Position> *captureReachableSquares = nullptr) noexcept;
+        static void collectKnightReachableSquares(
+            std::map<Position, Piece> const &piecePlacements,
+            Position const &square,
+            std::string const &color,
+            std::list<Position> *quietReachableSquares = nullptr,
+            std::list<Position> *captureReachableSquares = nullptr) noexcept;
 
-    static void collectPawnBasicReachableSquares(
-        std::map<Position, Piece> const &piecePlacements,
-        Position const &square,
-        std::string const &color,
-        std::list<Position> *quietReachableSquares = nullptr,
-        std::list<Position> *captureReachableSquares = nullptr) noexcept;
+        static void collectPawnBasicReachableSquares(
+            std::map<Position, Piece> const &piecePlacements,
+            Position const &square,
+            std::string const &color,
+            std::list<Position> *quietReachableSquares = nullptr,
+            std::list<Position> *captureReachableSquares = nullptr) noexcept;
 
-    static void collectBasicCandidateMoves(
-        std::map<Position, Piece> const &piecePlacements,
-        Position const &square,
-        std::list<Position> *quietReachableSquares,
-        std::list<Position> *captureReachableSquares) noexcept;
+        static auto isKingInCheck(
+            std::map<Position, Piece> const &piecePlacements,
+            std::string const &color) noexcept -> bool;
 
-  private:
-    static auto isKingInCheck(
-        std::map<Position, Piece> const &piecePlacements,
-        std::string const &color) noexcept -> bool;
+        static auto findKingSquare(
+            std::map<Position, Piece> const &piecePlacements,
+            std::string const &color) noexcept -> std::optional<Position>;
 
-    static auto getPieceSquares(
-        std::map<Position, Piece> const &piecePlacements,
-        std::string const &color) noexcept -> std::map<Position, Piece>;
-  };
+    private:
+        static auto classifyAndCollectSquare(
+            std::map<Position, Piece> const &piecePlacements,
+            Position const &square,
+            std::string const &color,
+            std::list<Position> *quietReachableSquares = nullptr,
+            std::list<Position> *captureReachableSquares = nullptr) noexcept
+            -> PositionStatus;
+
+        static auto getPieceSquares(
+            std::map<Position, Piece> const &piecePlacements,
+            std::string const &color) noexcept -> std::map<Position, Piece>;
+    };
 } // namespace bgg

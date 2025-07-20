@@ -4,13 +4,14 @@
 #include <memory>
 
 #include "display/board/IBoardState.h"
+#include "ChessItemMove.h"
+#include "display/board/ItemStore.h"
 
 namespace bgg
 {
   class IChessBoard;
   class IChessRuleAdapter;
   class TileMap;
-  class ItemStore;
   class ItemMove;
 
   class ChessPieceMovedState final : public IBoardState
@@ -21,6 +22,11 @@ namespace bgg
     std::shared_ptr<TileMap> tileMap_;
     std::shared_ptr<ItemStore> itemStore_;
 
+    ItemStore::Entry checkHighlighter_;
+    ItemStore::Entry pendingPromotionItem_;
+    BoardItem *lastMoveHighlighters_[2];
+
+    ChessItemMoveAction itemMoveAction_;
 
   public:
     ChessPieceMovedState(
@@ -28,7 +34,7 @@ namespace bgg
         std::shared_ptr<IChessRuleAdapter> gameRule,
         std::shared_ptr<TileMap> tileMap,
         std::shared_ptr<ItemStore> itemStore,
-        ItemMove const &move) noexcept;
+        std::optional<ItemMove> const &move) noexcept;
 
   private:
     void onEnter(sf::Vector2i const &mousePos) noexcept override;
@@ -37,5 +43,16 @@ namespace bgg
     void onMousePressed(sf::Vector2i const &mousePos) noexcept override;
     void onMouseReleased(sf::Vector2i const &mousePos) noexcept override;
     void onServerMessage(ServerMessage const &msg) noexcept override;
+
+    void updateBoard(ChessItemMoveAction const &itemMoveAction) noexcept;
+
+    void applyBasicMoveAction(
+        BoardItem &movedItemEntry,
+        TileCoords const &fromTile,
+        TileCoords const &toTile,
+        TileCoords const &enemyKingTile,
+        KingState const &enemyKingState) noexcept;
+
+    void revertBoardUpdate(ChessItemMoveAction const &itemMoveAction) noexcept;
   };
 } // namespace bgg

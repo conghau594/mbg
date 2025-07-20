@@ -28,17 +28,13 @@ namespace bgg
         lastBoardState_(nullptr),
         gameRule_(std::move(gameRule)),
         tileMap_(std::move(tileMap)),
-        itemStore_(std::move(itemStore)),
-        lastMoveTiles_{std::nullopt, std::nullopt},
-        pendingMove_{{-1, -1}, {-1, -1}, std::nullopt},
-        pendingPromotedItem_(),
-        lastMoveHighlighters_{},
-        requestSender_(std::move(requestSender))
+        itemStore_(std::move(itemStore))
+  // requestSender_(std::move(requestSender))
   {
     BOOST_ASSERT_MSG(gameRule_, "gameRule_ of ChessBoard cannot be null.");
     BOOST_ASSERT_MSG(tileMap_, "tileMap_ of ChessBoard cannot be null.");
     BOOST_ASSERT_MSG(itemStore_, "itemStore_ of ChessBoard cannot be null.");
-    BOOST_ASSERT_MSG(requestSender_, "requestSender_ of ChessBoard cannot be null.");
+    // BOOST_ASSERT_MSG(requestSender_, "requestSender_ of ChessBoard cannot be null.");
 
     fitRectangle(boardRect);
 
@@ -50,14 +46,14 @@ namespace bgg
 
     lastMoveHighlighters_[0] = itemStore_->addItem(
         ZOrder::FIRST_LAYER,
-        ChessTextureCell::LAST_MOVE_HIGHLIGHTER,
-        ChessTextureCell::toString(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
+        int(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
+        utils::toString(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
         false);
 
     lastMoveHighlighters_[1] = itemStore_->addItem(
         ZOrder::FIRST_LAYER,
-        ChessTextureCell::LAST_MOVE_HIGHLIGHTER,
-        ChessTextureCell::toString(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
+        int(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
+        utils::toString(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
         false);
   }
 
@@ -175,7 +171,6 @@ namespace bgg
     stateStack_.clear();
   }
 
- 
   void ChessBoard::fitRectangle(sf::IntRect const &boardRect) noexcept
   {
     sf::Vector2i const &maxBoardSize = boardRect.size;

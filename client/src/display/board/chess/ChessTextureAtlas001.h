@@ -23,12 +23,12 @@ namespace bgg
     auto getRegion(int regionIndex) const -> sf::IntRect override
     {
       sf::Vector2i scalePercents = {100, 100};
-      if (regionIndex == ChessTextureCell::CHOICE_HIGHLIGHTER)
+      if (regionIndex == int(ChessTextureCell::CHOICE_HIGHLIGHTER))
       {
         scalePercents = {95, 95};
       }
-      else if (ChessTextureCell::WHITE_KING <= regionIndex &&
-               regionIndex <= ChessTextureCell::BLACK_PAWN)
+      else if (int(ChessTextureCell::WHITE_KING) <= regionIndex &&
+               regionIndex <= int(ChessTextureCell::BLACK_PAWN))
       {
         scalePercents = {100, 100};
       }

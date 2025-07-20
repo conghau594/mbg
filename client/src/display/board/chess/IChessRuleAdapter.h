@@ -8,7 +8,7 @@
 
 #include "display/board/ItemStore.h"
 #include "model/Piece.h"
-#include "ItemMove.h"
+#include "ChessItemMove.h"
 
 namespace bgg
 {
@@ -36,7 +36,7 @@ namespace bgg
 
     std::list<TileCoords> quietSquares;
     std::list<TileCoords> captureSquares;
-    std::list<TileCoords> specialMoveSquares;
+    std::list<TileCoords> specialMoveTiles;
 
     // std::optional<TileCoords> checkMove;
     // bool isCheckmate;
@@ -50,9 +50,9 @@ namespace bgg
     [[nodiscard]]
     virtual auto getYourColor() const -> std::string const & = 0;
 
-    // [[nodiscard]]
-    // virtual auto getItemColor(TileCoords const &tile) const
-    //     -> std::optional<std::string> = 0;
+    [[nodiscard]]
+    virtual auto getItemColor(TileCoords const &tile) const
+        -> std::optional<std::string> = 0;
 
     [[nodiscard]]
     virtual auto getItemPlacements() -> ItemPlacementMap const & = 0;
@@ -79,8 +79,10 @@ namespace bgg
     [[nodiscard]]
     virtual auto tileToPosition(TileCoords const &tile) const -> Position = 0;
 
-    // [[nodiscard]]
-    // virtual auto tryMove(ItemMove
+    [[nodiscard]]
+    virtual auto tryMove(
+        ItemMove const &itemMove) const noexcept -> ChessItemMoveAction = 0;
+
     // TODO: Need refactor
     // /**
     //  * \return the item entry of the captured piece. It should be disappeared

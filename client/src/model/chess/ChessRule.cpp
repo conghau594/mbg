@@ -3,6 +3,7 @@
 #include <set>
 
 #include "ChessRule.h"
+#include "base/Logger.h"
 
 namespace bgg
 {
@@ -65,8 +66,54 @@ namespace bgg
       std::map<Position, Piece> &piecePlacements,
       ChessMove::VariantAction const &moveAction) noexcept
   {
-    // TODO: ChessRule::commitMoveAction
-    return;
+    auto moveActionVisitor = [&piecePlacements]<typename T>(T const &action)
+    {
+      if constexpr (requires {
+          { action.fromSquare } -> std::same_as<Position const &>;
+          { action.toSquare } -> std::same_as<Position const &>; })
+      {
+        auto piece = getPiece(piecePlacements, action.fromSquare);
+        piecePlacements.erase(action.fromSquare);
+        piecePlacements.erase(action.toSquare);
+
+        if constexpr (requires {
+            { action.promote } -> std::same_as<std::string const &>; }) ///< if constexpr (std::is_same_v<T, ChessMove::Promotion>)
+        {
+          piecePlacements.emplace(
+              action.toSquare, Piece{action.promote, piece->color});
+        }
+        else
+        {
+          piecePlacements.emplace(action.toSquare, *piece);
+
+          if constexpr (requires { 
+              { action.enPassantSquare } -> std::same_as<Position const &>; }) ///< if constexpr (std::is_same_v<T, ChessMove::EnPassant>)
+          {
+            piecePlacements.erase(
+                Position{action.toSquare[0], action.fromSquare[1]});
+          }
+          else if constexpr (requires {
+              { action.rookSource } -> std::same_as<Position const &>;
+              { action.rookDestination } -> std::same_as<Position const &>; }) ///< if constexpr (std::is_same_v<T, ChessMove::Castling>)
+          {
+            auto relatedRook = getPiece(piecePlacements, action.rookSource);
+            BOOST_ASSERT_MSG(relatedRook, "There must be a rook at action.rookSource");
+            piecePlacements.erase(action.rookSource);
+            piecePlacements.emplace(action.rookDestination, *relatedRook);
+          }
+        }
+      }
+      else if constexpr (std::is_same_v<T, std::monostate>)
+      {
+        SPDLOG_INFO("You have tried to commit an empty move");
+      }
+      else if constexpr (std::is_same_v<T, ChessMove::Invalid>)
+      {
+        SPDLOG_WARN("You have tryied to commit an 'ChessMove::Invalid'");
+      }
+    };
+
+    moveAction.visit(moveActionVisitor);
   }
 
   auto ChessRule::evaluateKingState(
@@ -82,37 +129,37 @@ namespace bgg
     if (checkForCheckmate)
     {
       std::map<Position, Piece> allySquares = getPieceSquares(
-          piecePlacements, getEnemyColor(color));
+          piecePlacements, color);
       std::map<Position, Piece> copiedPiecePlacements = piecePlacements;
-      for (auto &[sqr, piece] : allySquares)
+      for (auto &[allySqr, piece] : allySquares)
       {
         std::list<Position> quietReachableSquares;
         std::list<Position> captureReachableSquares;
 
         collectBasicCandidateMoves(
             copiedPiecePlacements,
-            sqr,
+            allySqr,
             &quietReachableSquares,
             &captureReachableSquares);
 
         for (auto &quietSqr : quietReachableSquares)
         {
-          copiedPiecePlacements.erase(sqr);
+          copiedPiecePlacements.erase(allySqr);
           copiedPiecePlacements.emplace(quietSqr, piece);
           if (!isKingInCheck(copiedPiecePlacements, color))
           {
             return KingState::IN_CHECK;
           }
-          else
+          else // -> revert to the previous placements
           {
             copiedPiecePlacements.erase(quietSqr);
-            copiedPiecePlacements.emplace(sqr, piece);
+            copiedPiecePlacements.emplace(allySqr, piece);
           }
         }
 
         for (auto &captureSqr : captureReachableSquares)
         {
-          copiedPiecePlacements.erase(sqr);
+          copiedPiecePlacements.erase(allySqr);
 
           auto enemyPiece = getPiece(copiedPiecePlacements, captureSqr);
           copiedPiecePlacements.erase(captureSqr);
@@ -122,17 +169,18 @@ namespace bgg
           {
             return KingState::IN_CHECK;
           }
-          else
+          else // -> revert to the previous placements
           {
             copiedPiecePlacements.erase(captureSqr);
-            copiedPiecePlacements.emplace(sqr, piece);
+            copiedPiecePlacements.emplace(allySqr, piece);
             copiedPiecePlacements.emplace(captureSqr, enemyPiece.value());
           }
         }
       }
+      return KingState::CHECKMATED;
     }
 
-    return KingState::CHECKMATED;
+    return KingState::IN_CHECK;
   }
 
   auto ChessRule::isPromotionSquare(
@@ -295,7 +343,7 @@ namespace bgg
     return false;
   }
 
-  auto ChessRule::isNormalPawnMovePossible(
+  auto ChessRule::isPawnBasicMovePossible(
       std::map<Position, Piece> const &piecePlacements,
       Position const &square,
       std::string const &color) noexcept -> bool
@@ -338,27 +386,6 @@ namespace bgg
     }
 
     return false;
-  }
-
-  auto ChessRule::classifyAndCollectSquare(
-      std::map<Position, Piece> const &piecePlacements,
-      Position const &square,
-      std::string const &color,
-      std::list<Position> *quietReachableSquares,
-      std::list<Position> *captureReachableSquares) noexcept -> PositionStatus
-  {
-    auto sqrStatus = ChessRule::getPositionStatus(piecePlacements, square, color);
-
-    if ((sqrStatus == PositionStatus::EMPTY) && quietReachableSquares)
-    {
-      quietReachableSquares->emplace_back(square);
-    }
-    else if ((sqrStatus == PositionStatus::ENEMY) && captureReachableSquares)
-    {
-      captureReachableSquares->emplace_back(square);
-    }
-
-    return sqrStatus;
   }
 
   void ChessRule::collectOrthogonalReachableSquares(
@@ -630,12 +657,6 @@ namespace bgg
       if (piecePlacements.find(front1) == piecePlacements.cend())
       {
         quietReachableSquares->emplace_back(front1);
-
-        Position front2{char(col), char(row + 2 * step), '\0'};
-        if (piecePlacements.find(front2) == piecePlacements.end())
-        {
-          quietReachableSquares->emplace_back(front2);
-        }
       }
     }
 
@@ -752,36 +773,25 @@ namespace bgg
       std::string const &color) noexcept -> bool
   {
     // collect the square of the king of color and squares the enemy pieces
-    std::list<Position> enemySquares;
-    Position kingSqr;
-    for (auto &[pos, piece] : piecePlacements)
+    auto kingSqr = findKingSquare(piecePlacements, color);
+
+    BOOST_ASSERT_MSG(
+        kingSqr, "There must be a king with 'color' on the chess board");
+
+    for (auto &[enemySqr, piece] : piecePlacements)
     {
-      if (piece.color != color)
+      if (piece.color == color)
       {
-        if (piece.type == KING)
-        {
-          kingSqr = pos;
-        }
         continue;
       }
 
-      enemySquares.emplace_back(std::move(pos));
-    }
-
-    BOOST_ASSERT_MSG(
-        kingSqr == Position(),
-        "There must be a king with 'color' on the chess board");
-
-    // collect capture squares of all enemy pieces
-    for (auto &enemySqr : enemySquares)
-    {
       std::list<Position> captureSquares;
       ChessRule::collectBasicCandidateMoves(
           piecePlacements, enemySqr, nullptr, &captureSquares);
 
       for (auto &captureSqr : captureSquares)
       {
-        if (captureSqr == kingSqr)
+        if (captureSqr == kingSqr.value())
         {
           return true;
         }
@@ -789,6 +799,45 @@ namespace bgg
     }
 
     return false;
+  }
+
+  auto ChessRule::findKingSquare(
+      std::map<Position, Piece> const &piecePlacements,
+      std::string const &color) noexcept -> std::optional<Position>
+  {
+    for (auto &[pos, piece] : piecePlacements)
+    {
+      if (piece.color == color)
+      {
+        if (piece.type == KING)
+        {
+          return pos;
+        }
+      }
+    }
+
+    return std::nullopt;
+  }
+
+  auto ChessRule::classifyAndCollectSquare(
+      std::map<Position, Piece> const &piecePlacements,
+      Position const &square,
+      std::string const &color,
+      std::list<Position> *quietReachableSquares,
+      std::list<Position> *captureReachableSquares) noexcept -> PositionStatus
+  {
+    auto sqrStatus = ChessRule::getPositionStatus(piecePlacements, square, color);
+
+    if ((sqrStatus == PositionStatus::EMPTY) && quietReachableSquares)
+    {
+      quietReachableSquares->emplace_back(square);
+    }
+    else if ((sqrStatus == PositionStatus::ENEMY) && captureReachableSquares)
+    {
+      captureReachableSquares->emplace_back(square);
+    }
+
+    return sqrStatus;
   }
 
   auto ChessRule::getPieceSquares(

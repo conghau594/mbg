@@ -43,9 +43,53 @@ namespace bgg
 
   using Position = std::array<char, 3>;
 
-  inline auto operator==(Position const &lhs, Position const &rhs) -> bool
+} // namespace bgg
+
+namespace utils
+{
+  inline auto operator==(
+      bgg::Position const &lhs, bgg::Position const &rhs) -> bool
   {
     return (lhs[0] == rhs[0]) && (lhs[1] == rhs[1]);
     //&& (lhs[2] == rhs[2]) && (lhs[2] == '\0');
   }
-} // namespace bgg
+
+  inline auto toString(bgg::PositionStatus posStatus) noexcept -> std::string
+  {
+    switch (posStatus)
+    {
+    case bgg::PositionStatus::OUT_OF_BOARD:
+      return "Out of board";
+
+    case bgg::PositionStatus::EMPTY:
+      return "Empty";
+
+    case bgg::PositionStatus::ALLY:
+      return "Ally";
+
+    case bgg::PositionStatus::ENEMY:
+      return "Enemy";
+
+    default:
+      return "";
+    }
+  }
+
+  inline auto toString(bgg::KingState kingState) noexcept -> std::string
+  {
+    switch (kingState)
+    {
+    case bgg::KingState::SAFE:
+      return "Safe";
+
+    case bgg::KingState::IN_CHECK:
+      return "In check";
+
+    case bgg::KingState::CHECKMATED:
+      return "Checkmated";
+
+    default:
+      return "";
+    }
+  }
+} // namespace utils

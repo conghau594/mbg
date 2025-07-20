@@ -74,7 +74,7 @@ namespace bgg
       }
       else if (piece.type == ChessRule::PAWN)
       {
-        if (ChessRule::isNormalPawnMovePossible(piecePlacements_, square, color) ||
+        if (ChessRule::isPawnBasicMovePossible(piecePlacements_, square, color) ||
             getEnPassantSquare(square, color))
         {
           selectablePieces.emplace(square, piece);
@@ -104,8 +104,23 @@ namespace bgg
 
     if (piece->type == ChessRule::PAWN)
     {
-      auto enPassantSqr = getEnPassantSquare(square, piece->color);
-      if (enPassantSqr)
+      auto &specialMoveTracker = moveTracker_.getSpecialMoveTracker(piece->color);
+      int firstDoubleStep = specialMoveTracker.getFirstDoubleStepOfPawn(int(square[0]));
+      if (firstDoubleStep == 0)
+      {
+        if (candidateMoves.quietSquares.empty())
+        {
+          return candidateMoves;
+        }
+
+        int step = candidateMoves.quietSquares.front()[1] - square[1];
+        Position front2{square[0], char(square[1] + 2 * step), '\0'};
+        if (piecePlacements_.find(front2) == piecePlacements_.end())
+        {
+          candidateMoves.quietSquares.emplace_back(front2);
+        }
+      }
+      else if (auto enPassantSqr = getEnPassantSquare(square, piece->color))
       {
         candidateMoves.specialMoveSquares.emplace_back(
             std::move(enPassantSqr.value()));
@@ -145,6 +160,14 @@ namespace bgg
     CandidateChessMoveInfo candidateMoves = collectCandidateMoves(move.fromSquare);
 
     ChessMove::VariantAction moveAction;
+    auto enemyKingSqr = ChessRule::findKingSquare(
+        piecePlacements_,
+        ChessRule::getEnemyColor(movedPiece->color));
+
+    BOOST_ASSERT_MSG(
+        enemyKingSqr,
+        "There must be a king of enemy of 'color' on the chess board");
+
     // --------------------
     // 1st, check if the move is a normal move
     for (auto &sqr : candidateMoves.quietSquares)
@@ -152,7 +175,7 @@ namespace bgg
       if (sqr == move.toSquare)
       {
         moveAction = ChessMove::Normal{
-            move.fromSquare, move.toSquare, false, KingState::SAFE};
+            move.fromSquare, move.toSquare, *enemyKingSqr, KingState::SAFE};
         break;
       }
     }
@@ -166,7 +189,7 @@ namespace bgg
         if (sqr == move.toSquare)
         {
           moveAction = ChessMove::Normal{
-              move.fromSquare, move.toSquare, true, KingState::SAFE};
+              move.fromSquare, move.toSquare, *enemyKingSqr, KingState::SAFE};
           break;
         }
       }
@@ -205,7 +228,7 @@ namespace bgg
               char((move.fromSquare[0] + castlingRookMove.second[0]) / 2),
               move.fromSquare[1],
               '\0'};
-          copiedPiecePlacements.emplace(midwaySquare, movedPiece.value());
+          copiedPiecePlacements.emplace(midwaySquare, *movedPiece);
 
           allyKingState = ChessRule::evaluateKingState(
               copiedPiecePlacements, movedPiece->color, false);
@@ -219,6 +242,7 @@ namespace bgg
               move.toSquare,
               castlingRookMove.first,
               castlingRookMove.second,
+              *enemyKingSqr,
               KingState::SAFE};
           break;
         }
@@ -232,7 +256,11 @@ namespace bgg
             enPassantSqr[1] == move.fromSquare[1])
         {
           moveAction = ChessMove::EnPassant{
-              move.fromSquare, move.toSquare, enPassantSqr, KingState::SAFE};
+              move.fromSquare,
+              move.toSquare,
+              enPassantSqr,
+              *enemyKingSqr,
+              KingState::SAFE};
         }
       }
     }
@@ -248,9 +276,9 @@ namespace bgg
         moveAction = ChessMove::Promotion{
             normalMove->fromSquare,
             normalMove->toSquare,
-            normalMove->canCapture,
-            normalMove->enemyKingState,
-            move.promote.value()};
+            *(move.promote),
+            *enemyKingSqr,
+            normalMove->enemyKingState};
       }
       else
       {
@@ -281,7 +309,7 @@ namespace bgg
 
     auto moveActionVisitor = [&enemyKingState]<typename T>(T &action)
     {
-      if constexpr (requires { {action.enemyKingState}->std::same_as<KingState>; })
+      if constexpr (requires { {action.enemyKingState}->std::same_as<KingState&>; })
       {
         action.enemyKingState = enemyKingState;
       }
@@ -344,7 +372,7 @@ namespace bgg
     int const col = int(square[0]);
     if (col > ChessRule::FIRST_COL)
     {
-      if (specialMoveTracker.getFirstDoubleStepMoveOfPawn(col - 1) ==
+      if (specialMoveTracker.getFirstDoubleStepOfPawn(col - 1) ==
           moveTracker_.getTotalMoveCount())
       {
         return Position{char(col - 1), square[1], '\0'};
@@ -352,7 +380,7 @@ namespace bgg
     }
     else if (col < ChessRule::FIRST_COL + ChessRule::BOARD_SIDE - 1)
     {
-      if (specialMoveTracker.getFirstDoubleStepMoveOfPawn(col + 1) ==
+      if (specialMoveTracker.getFirstDoubleStepOfPawn(col + 1) ==
           moveTracker_.getTotalMoveCount())
       {
         return Position{char(col + 1), square[1], '\0'};

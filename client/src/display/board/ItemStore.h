@@ -5,6 +5,7 @@
 #include <atomic>
 #include <string>
 #include <variant>
+#include <functional>
 #include <memory>
 
 #include <SFML/System/Vector2.hpp>
@@ -52,16 +53,20 @@ namespace bgg
         std::string name = "",
         bool visible = true) noexcept -> BoardItem;
 
+    auto findItems(
+        std::function<bool(BoardItem const &item)> const &predicate) noexcept
+        -> std::list<BoardItem *>;
+
     // auto removeItem(std::size_t itemId) noexcept -> bool;
     auto removeItem(Entry &entry) noexcept -> bool;
 
     auto getZOrder(Entry const &entry) const noexcept -> int;
     void changeZOrder(Entry &entry, int newZOrder) noexcept;
-    void changeItem(
-        Entry &entry,
-        int textureCellIndex,
-        std::string name = "",
-        bool visible = true) noexcept;
+    // void changeItem(
+    //     Entry &entry,
+    //     int textureCellIndex,
+    //     std::string name = "",
+    //     bool visible = true) noexcept;
 
     [[nodiscard]] auto begin() noexcept -> Iter;
     [[nodiscard]] auto end() noexcept -> Iter;

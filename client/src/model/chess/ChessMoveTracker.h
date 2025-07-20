@@ -27,7 +27,7 @@ namespace bgg
       return rookHMoved_;
     }
 
-    [[nodiscard]] auto getFirstDoubleStepMoveOfPawn(int col) const noexcept -> int
+    [[nodiscard]] auto getFirstDoubleStepOfPawn(int col) const noexcept -> int
     {
       BOOST_ASSERT_MSG(
           col >= ChessRule::FIRST_COL && col < ChessRule::FIRST_COL + ChessRule::BOARD_SIDE,

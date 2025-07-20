@@ -2,9 +2,12 @@
 
 #include <boost/assert.hpp>
 
+#include "base/Logger.h"
+
 #include "ChessRuleAdapter.h"
 #include "display/board/ZOrder.h"
 #include "display/board/chess/ChessTextureCell.h"
+#include "IChessRuleAdapter.h"
 
 namespace bgg
 {
@@ -22,7 +25,7 @@ namespace bgg
     {
       ItemStore::Entry itemEntry = itemStore->addItem(
           ZOrder::SECOND_LAYER,
-          ChessTextureCell::getIndex(piece),
+          int(utils::getChessTextureCellIndex(piece)),
           piece.toString());
 
       TileCoords tile = positionToTile(square);
@@ -42,6 +45,119 @@ namespace bgg
       TileCoords const &tile) const noexcept -> Position
   {
     return tileToPositionConverter_(tile);
+  }
+
+  auto ChessRuleAdapter::tryMove(
+      ItemMove const &itemMove) const noexcept -> ChessItemMoveAction
+  {
+    ChessMove chessMove{
+        tileToPosition(itemMove.fromTile),
+        tileToPosition(itemMove.toTile),
+        itemMove.promote};
+
+    SPDLOG_DEBUG(
+        "Try move from ({}, {}) to ({}, {}) (promote = {})",
+        itemMove.fromTile.x, itemMove.fromTile.y,
+        itemMove.toTile.x, itemMove.toTile.y,
+        itemMove.promote ? itemMove.promote.value() : std::string("None"));
+
+    ChessMove::VariantAction chessMoveAction = rule_.tryMove(chessMove);
+    if (auto normalChessMove = chessMoveAction.getIf<ChessMove::Normal>())
+    {
+      NormalChessItemMove normalMove{
+          positionToTile(normalChessMove->fromSquare),
+          positionToTile(normalChessMove->toSquare),
+          positionToTile(normalChessMove->enemyKingSquare),
+          normalChessMove->enemyKingState};
+
+      SPDLOG_DEBUG(
+          "Move try from ({}, {}) to ({}, {}) is a 'NormalChessItemMove': "
+          "enemykingTile = ({}, {}), enemyKingState = {}",
+          normalMove.fromTile.x, normalMove.fromTile.y,
+          normalMove.toTile.x, normalMove.toTile.y,
+          normalMove.enemyKingTile.x, normalMove.enemyKingTile.y,
+          utils::toString(normalMove.enemyKingState));
+
+      return normalMove;
+    }
+    else if (auto chessPromotionMove = chessMoveAction.getIf<ChessMove::Promotion>())
+    {
+      ChessPromotionItemMove promotionMove{
+          positionToTile(chessPromotionMove->fromSquare),
+          positionToTile(chessPromotionMove->toSquare),
+          chessPromotionMove->promote,
+          positionToTile(chessPromotionMove->enemyKingSquare),
+          chessPromotionMove->enemyKingState};
+
+      SPDLOG_DEBUG(
+          "Move try from ({}, {}) to ({}, {}) is a 'ChessPromotionItemMove': "
+          "enemykingTile = ({}, {}), enemyKingState = {}, promote = {}",
+          promotionMove.fromTile.x, promotionMove.fromTile.y,
+          promotionMove.toTile.x, promotionMove.toTile.y,
+          promotionMove.enemyKingTile.x, promotionMove.enemyKingTile.y,
+          utils::toString(promotionMove.enemyKingState),
+          promotionMove.promote);
+
+      return promotionMove;
+    }
+    else if (auto chessEnPassantMove = chessMoveAction.getIf<ChessMove::EnPassant>())
+    {
+      ChessEnPassantItemMove enPassantMove{
+          positionToTile(chessEnPassantMove->fromSquare),
+          positionToTile(chessEnPassantMove->toSquare),
+          positionToTile(chessEnPassantMove->enPassantSquare),
+          positionToTile(chessEnPassantMove->enemyKingSquare),
+          chessEnPassantMove->enemyKingState};
+
+      SPDLOG_DEBUG(
+          "Move try from ({}, {}) to ({}, {}) is a 'ChessEnPassantItemMove': "
+          "enPassantTile = ({}, {}), enemykingTile = ({}, {}), enemyKingState = {}",
+          enPassantMove.fromTile.x, enPassantMove.fromTile.y,
+          enPassantMove.toTile.x, enPassantMove.toTile.y,
+          enPassantMove.enPassantTile.x, enPassantMove.enPassantTile.y,
+          enPassantMove.enemyKingTile.x, enPassantMove.enemyKingTile.y,
+          utils::toString(enPassantMove.enemyKingState));
+
+      return enPassantMove;
+    }
+    else if (auto chessCastlingMove = chessMoveAction.getIf<ChessMove::Castling>())
+    {
+      ChessCastlingItemMove castlingMove{
+          positionToTile(chessCastlingMove->fromSquare),
+          positionToTile(chessCastlingMove->toSquare),
+          positionToTile(chessCastlingMove->rookSource),
+          positionToTile(chessCastlingMove->rookDestination),
+          positionToTile(chessCastlingMove->enemyKingSquare),
+          chessCastlingMove->enemyKingState};
+
+      SPDLOG_DEBUG(
+          "Move try from ({}, {}) to ({}, {}) is a 'ChessCastlingItemMove': "
+          "the rook move from ({}, {}) to ({}, {}), "
+          "enemykingTile = ({}, {}), enemyKingState = {}",
+          castlingMove.fromTile.x, castlingMove.fromTile.y,
+          castlingMove.toTile.x, castlingMove.toTile.y,
+          castlingMove.rookSource.x, castlingMove.rookSource.y,
+          castlingMove.rookDestination.x, castlingMove.rookDestination.y,
+          castlingMove.enemyKingTile.x, castlingMove.enemyKingTile.y,
+          utils::toString(castlingMove.enemyKingState));
+
+      return castlingMove;
+    }
+    else if (chessMoveAction.getIf<std::monostate>())
+    {
+      SPDLOG_ERROR("The move try is empty");
+    }
+    else
+    {
+      auto invalidChessMove = chessMoveAction.getIf<ChessMove::Invalid>();
+      BOOST_ASSERT_MSG(
+          invalidChessMove,
+          "The last case must be of type ChessMove::Invalid");
+
+      std::string errorMsg = utils::toString(invalidChessMove->error);
+      SPDLOG_ERROR("The move try is an error: {}", errorMsg);
+      return InvalidChessItemMove{errorMsg};
+    }
   }
 
   // TODO: Need refactor
@@ -87,16 +203,16 @@ namespace bgg
     return rule_.getYourColor();
   }
 
-  // auto ChessRuleAdapter::getItemColor(TileCoords const &tile) const noexcept
-  //     -> std::optional<std::string>
-  // {
-  //   auto piece = rule_.getPiece(tileToPosition(tile));
-  //   if (piece)
-  //   {
-  //     return piece->color;
-  //   }
-  //   return std::nullopt;
-  // }
+  auto ChessRuleAdapter::getItemColor(TileCoords const &tile) const noexcept
+      -> std::optional<std::string>
+  {
+    auto piece = rule_.getPiece(tileToPosition(tile));
+    if (piece)
+    {
+      return piece->color;
+    }
+    return std::nullopt;
+  }
 
   auto ChessRuleAdapter::getItemPlacements() -> ItemPlacementMap const &
   {
@@ -147,17 +263,17 @@ namespace bgg
       captureSquares.emplace_back(positionToTile(square));
     }
 
-    std::list<TileCoords> specialMoveSquares;
+    std::list<TileCoords> specialMoveTiles;
     for (auto &square : candidateMoveInfo.specialMoveSquares)
     {
-      specialMoveSquares.emplace_back(positionToTile(square));
+      specialMoveTiles.emplace_back(positionToTile(square));
     }
 
     return ReachableTileInfo{
         itemEntry,
         std::move(quietSquares),
         std::move(captureSquares),
-        std::move(specialMoveSquares)};
+        std::move(specialMoveTiles)};
   }
 
   // auto ChessRuleAdapter::getItemType(TileCoords const &tile) const noexcept
