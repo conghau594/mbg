@@ -24,9 +24,10 @@ namespace bgg
 
     ItemStore::Entry checkHighlighter_;
     ItemStore::Entry pendingPromotionItem_;
+    ItemStore::Entry pendingMoveHighlighters_[2];
     BoardItem *lastMoveHighlighters_[2];
 
-    ChessItemMoveAction itemMoveAction_;
+    ChessItemMoveAction pendingItemMoveAction_;
 
   public:
     ChessPieceMovedState(
@@ -53,6 +54,10 @@ namespace bgg
         TileCoords const &enemyKingTile,
         KingState const &enemyKingState) noexcept;
 
-    void revertBoardUpdate(ChessItemMoveAction const &itemMoveAction) noexcept;
+    void revertBasicMoveAction(
+        BoardItem &movedItemEntry,
+        TileCoords const &fromTile,
+        TileCoords const &toTile) noexcept;
+    void onMoveResponse(MoveResponse const &response) noexcept;
   };
 } // namespace bgg

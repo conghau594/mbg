@@ -196,7 +196,8 @@ namespace bgg
           int errCodeValue = 0;
           try
           {
-            simulateNetworkLatencyAndFailure(50);
+            int failurePercent = 100;
+            simulateNetworkLatencyAndFailure(failurePercent);
           }
           catch (std::runtime_error const &e)
           {
@@ -213,7 +214,8 @@ namespace bgg
 
           try
           {
-            simulateNetworkLatencyAndFailure(0, 1000, 2000);
+            int failurePercent = 0;
+            simulateNetworkLatencyAndFailure(failurePercent, 1000, 2000);
           }
           catch (std::runtime_error const &e)
           {
@@ -258,7 +260,7 @@ namespace bgg
     std::this_thread::sleep_for(
         std::chrono::milliseconds(utils::randomInt(minDelay, maxDelay)));
 
-    if (utils::randomInt(1, 100) < failurePercent)
+    if (utils::randomInt(0, 99) < failurePercent)
     {
       throw std::runtime_error("Failed to connect to server");
     }

@@ -37,7 +37,7 @@ namespace bgg
 
     ItemStore::Entry lastMoveHighlighters_[2];
 
-    // std::function<void(ClientRequest const &)> requestSender_;
+    std::function<void(ClientRequest const &)> requestSender_;
 
   public:
     ChessBoard(
@@ -49,7 +49,7 @@ namespace bgg
 
   private:
     void onWindowEvent(sf::Event const &event) noexcept override;
-    // void requestMove(ChessMove const &move) noexcept override;
+    void sendMoveRequest(MoveRequest const &move) noexcept override;
     void handleServerMessage(ServerMessage const &msg) noexcept override;
 
     void draw(

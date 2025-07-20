@@ -14,14 +14,14 @@ namespace sf
 namespace bgg
 {
   class IBoardState;
-  class ChessMove;
+  class MoveRequest;
   class IChessBoard : public IGameBoard
   {
   public:
     static sf::Vector2i constexpr FARTHEST_POSITION =
         {std::numeric_limits<int>::min(), std::numeric_limits<int>::min()};
 
-    //virtual void requestMove(ChessMove const &move) = 0;
+    virtual void sendMoveRequest(MoveRequest const &move) = 0;
 
     virtual void changeState(
         std::shared_ptr<IBoardState> newState,

@@ -28,13 +28,13 @@ namespace bgg
         lastBoardState_(nullptr),
         gameRule_(std::move(gameRule)),
         tileMap_(std::move(tileMap)),
-        itemStore_(std::move(itemStore))
-  // requestSender_(std::move(requestSender))
+        itemStore_(std::move(itemStore)),
+        requestSender_(std::move(requestSender))
   {
     BOOST_ASSERT_MSG(gameRule_, "gameRule_ of ChessBoard cannot be null.");
     BOOST_ASSERT_MSG(tileMap_, "tileMap_ of ChessBoard cannot be null.");
     BOOST_ASSERT_MSG(itemStore_, "itemStore_ of ChessBoard cannot be null.");
-    // BOOST_ASSERT_MSG(requestSender_, "requestSender_ of ChessBoard cannot be null.");
+    BOOST_ASSERT_MSG(requestSender_, "requestSender_ of ChessBoard cannot be null.");
 
     fitRectangle(boardRect);
 
@@ -55,6 +55,15 @@ namespace bgg
         int(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
         utils::toString(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
         false);
+
+    tileMap_->fitItemToTile(
+        lastMoveHighlighters_[0].getItem(),
+        TileCoords{0, 0},
+        sf::Vector2f{0.0f, 0.0f});
+    tileMap_->fitItemToTile(
+        lastMoveHighlighters_[1].getItem(),
+        TileCoords{0, 0},
+        sf::Vector2f{0.0f, 0.0f});
   }
 
   void ChessBoard::onWindowEvent(sf::Event const &event) noexcept
@@ -89,6 +98,11 @@ namespace bgg
         currentBoardState->onMouseReleased(mouseBtnReleased->position);
       }
     }
+  }
+
+  void ChessBoard::sendMoveRequest(MoveRequest const &move) noexcept
+  {
+    requestSender_(move);
   }
 
   void ChessBoard::handleServerMessage(ServerMessage const &msg) noexcept
