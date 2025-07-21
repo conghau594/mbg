@@ -25,7 +25,7 @@ namespace bgg
 		auto createGameApp() noexcept -> GameApp override
 		{
 			int constexpr RESIGN_REGION_HEIGHT = 40;
-			int constexpr BOARD_SIDE_LENGTH = 200;
+			int constexpr BOARD_SIDE_LENGTH = 1200;
 			int constexpr BOARD_MIN_SIDE_LENGTH = 80;
 
 			sf::Vector2u constexpr WINDOW_SIZE(
@@ -82,7 +82,7 @@ namespace bgg
 					{Position{"h7"}, Piece{ChessRule::ROOK, Color::BLACK}},
 					{Position{"b7"}, Piece{ChessRule::KNIGHT, Color::BLACK}},
 					{Position{"g8"}, Piece{ChessRule::KNIGHT, Color::BLACK}},
-					{Position{"c7"}, Piece{ChessRule::BISHOP, Color::BLACK}},
+					{Position{"e8"}, Piece{ChessRule::BISHOP, Color::BLACK}},
 					{Position{"f7"}, Piece{ChessRule::BISHOP, Color::BLACK}},
 					{Position{"g6"}, Piece{ChessRule::PAWN, Color::BLACK}},
 					{Position{"b5"}, Piece{ChessRule::PAWN, Color::BLACK}},

@@ -69,9 +69,11 @@ namespace bgg
     auto moveActionVisitor = [&piecePlacements]<typename T>(T const &action)
     {
       if constexpr (requires {
-          { action.fromSquare } -> std::same_as<Position const &>;
-          { action.toSquare } -> std::same_as<Position const &>; })
+        { action.fromSquare } -> std::same_as<Position const &>;
+        { action.toSquare } -> std::same_as<Position const &>; })
       {
+        // SPDLOG_INFO("You have committed a '{}'", typeid(T).name());
+
         auto piece = getPiece(piecePlacements, action.fromSquare);
         BOOST_ASSERT_MSG(piece, "There must be an item at the 'fromTile'");
 
@@ -108,8 +110,6 @@ namespace bgg
             piecePlacements.erase(action.rookSource);
           }
         }
-
-        SPDLOG_INFO("You have committed a '{}'", typeid(T).name());
       }
       else if constexpr (std::is_same_v<T, std::monostate>)
       {

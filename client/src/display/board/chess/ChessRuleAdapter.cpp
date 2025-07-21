@@ -420,6 +420,8 @@ namespace bgg
           { action.fromTile } -> std::same_as<TileCoords const &>;
           { action.toTile } -> std::same_as<TileCoords const &>; })
       {
+        SPDLOG_INFO("You have committed a '{}'", typeid(T).name());
+
         auto movedItemEntry = getItemEntry(action.fromTile);
         BOOST_ASSERT_MSG(
             !movedItemEntry.isNull(),
@@ -456,8 +458,6 @@ namespace bgg
           itemPlacements_.emplace(action.rookDestination, rookItemEntry);
           itemPlacements_.erase(action.rookSource);
         }
-
-        SPDLOG_INFO("You have committed a '{}'", typeid(T).name());
       }
       else if constexpr (std::is_same_v<T, std::monostate>)
       {

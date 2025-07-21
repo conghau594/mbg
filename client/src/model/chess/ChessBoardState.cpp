@@ -330,11 +330,13 @@ namespace bgg
         { action.fromSquare } -> std::same_as<Position const &>;
         { action.toSquare } -> std::same_as<Position const &>; })
       {
+        SPDLOG_INFO("You have committed a '{}'", typeid(T).name());
+
         auto piece = getPiece(action.fromSquare);
         BOOST_ASSERT_MSG(piece, "There must be an item at the 'fromTile'");
 
         updateMoveTracker(*piece, action.fromSquare, action.toSquare);
-        
+
         piecePlacements_.erase(action.toSquare);
         piecePlacements_.erase(action.fromSquare);
 
@@ -369,8 +371,6 @@ namespace bgg
             piecePlacements_.erase(action.rookSource);
           }
         }
-
-        SPDLOG_INFO("You have committed a '{}'", typeid(T).name());
       }
       else if constexpr (std::is_same_v<T, std::monostate>)
       {

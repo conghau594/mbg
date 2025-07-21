@@ -11,8 +11,8 @@
 namespace bgg
 {
   TileMap::TileMap(std::shared_ptr<const BaseTextureAtlas> mapTextureAtlas,
-                       sf::Vector2i mapSizeInTiles,
-                       std::vector<int> const &tileLayout)
+                   sf::Vector2i mapSizeInTiles,
+                   std::vector<int> const &tileLayout)
       : mapTextureAtlas_(std::move(mapTextureAtlas)),
         vertices_(),
         mapSizeInTiles_(std::move(mapSizeInTiles)),
@@ -195,20 +195,19 @@ namespace bgg
     sf::IntRect tileRect = tileToScreenRect(tile);
     sf::Vector2f tileSize = sf::Vector2f(tileRect.size).componentWiseMul(tileArea);
 
-    SPDLOG_DEBUG("item.getSize() = ({}, {})", item.getSize().x, item.getSize().y);
-
     sf::Vector2f scaleFactors = tileSize.componentWiseDiv(sf::Vector2f(item.getSize()));
     item.scale(scaleFactors);
+
     item.setPosition(tileRect.position);
     item.setVisible(true);
 
     //==========
-    SPDLOG_DEBUG(
-        "Fit item '{}' to tile ({}, {}) at position ({}, {}) with size ({}, {})",
-        item.getName(),
-        tile.x, tile.y,
-        item.getPosition().x, item.getPosition().y,
-        item.getSize().x, item.getSize().y);
+    // SPDLOG_DEBUG(
+    //     "Fit item '{}' to tile ({}, {}) at position ({}, {}) with size ({}, {})",
+    //     item.getName(),
+    //     tile.x, tile.y,
+    //     item.getPosition().x, item.getPosition().y,
+    //     item.getSize().x, item.getSize().y);
     //==========
   }
 }

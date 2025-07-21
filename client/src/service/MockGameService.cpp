@@ -132,42 +132,6 @@ namespace bgg
           emit(FindGameResponse{ErrorCode{errCodeValue, "Mock", msg}});
         });
   }
-  // void MockGameService::sendRequest(FindGameRequest const & /*findGameRqt*/) noexcept
-  // {
-  //   threadPool_.push(
-  //       [this]()
-  //       {
-  //         std::string msg;
-  //         int errCodeValue = 0;
-  //         std::string gameId;
-  //         int side = -1;
-
-  //         try
-  //         {
-  //           simulateNetworkLatencyAndFailure(10, 200, 1000);
-
-  //           // FindGameRequest successfully, then create user ID
-  //           boost::uuids::uuid id = (*uuidGenerator_)();
-  //           if (id.is_nil())
-  //           {
-  //             msg = "Failed to create UUID";
-  //             errCodeValue = -1;
-  //           }
-  //           else
-  //           {
-  //             gameId = boost::uuids::to_string(id);
-  //             side = std::abs(std::accumulate(gameId.begin(), gameId.end(), 0)) % 2;
-  //           }
-  //         }
-  //         catch (std::runtime_error const &e)
-  //         {
-  //           msg = e.what();
-  //           errCodeValue = -1;
-  //         }
-
-  //         emit(FindGameResponse{ErrorCode{errCodeValue, "Mock", msg}, gameId, side});
-  //       });
-  // }
 
   void MockGameService::sendRequest(CancelMatchmakingRequest const & /*cancelMatchmakingRqt*/) noexcept
   {

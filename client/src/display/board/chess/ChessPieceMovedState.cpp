@@ -415,7 +415,7 @@ namespace bgg
 
     SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
                 typeid(response).name(),
-                typeid(*this).name());
+                "ChessPieceMovedState");
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -431,12 +431,17 @@ namespace bgg
           { action.enemyKingTile } -> std::same_as<TileCoords const &>;
           { action.enemyKingState } -> std::same_as<KingState const &>; })
       {
+        SPDLOG_INFO("Chess board has been updated with a '{}' from server",
+                    typeid(T).name());
+
         auto movedItemEntry = gameRule_->getItemEntry(action.fromTile);
         BOOST_ASSERT_MSG(
             !movedItemEntry.isNull(),
             "There must be an item at the 'fromTile'");
 
         finalizeBasicMoveAction(action.fromTile, action.toTile);
+        // fit the moved item to 'toTile'
+        tileMap_->fitItemToTile(movedItemEntry.getItem(), action.toTile);
 
         if constexpr (requires { 
             { action.promote } -> std::same_as<std::string const &>; }) ///< if constexpr (std::is_same_v<T, ChessPromotionItemMove>)
@@ -445,13 +450,9 @@ namespace bgg
           Piece promotedPiece{action.promote, itemColor.value()};
 
           // change item of the moved item to the promoted one
-          auto &movedItem = movedItemEntry.getItem();
-          movedItem = itemStore_->createItem(
+          movedItemEntry.getItem() = itemStore_->createItem(
               int(utils::getChessTextureCellIndex(promotedPiece)),
               promotedPiece.toString());
-
-          // fit the promoted item to 'toTile'
-          tileMap_->fitItemToTile(movedItem, action.toTile);
         }
         else if constexpr (requires { 
             { action.enPassantTile } -> std::same_as<TileCoords const &>; }) ///< if constexpr (std::is_same_v<T, ChessEnPassantItemMove>)
@@ -476,16 +477,14 @@ namespace bgg
 
           tileMap_->fitItemToTile(rookItemEntry.getItem(), action.rookDestination);
         }
-
-        SPDLOG_INFO("A '{}' from server is updated", typeid(T).name());
       }
       else if constexpr (std::is_same_v<T, std::monostate>)
       {
-        SPDLOG_WARN("An empty move from server is throwed");
+        SPDLOG_WARN("An empty move from server has been throwed");
       }
       else if constexpr (std::is_same_v<T, InvalidChessItemMove>)
       {
-        SPDLOG_WARN("An 'InvalidChessItemMove' from server is throwed");
+        SPDLOG_WARN("An 'InvalidChessItemMove' from server has been throwed");
       }
     };
 
