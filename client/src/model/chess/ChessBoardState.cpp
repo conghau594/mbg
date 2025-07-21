@@ -1,6 +1,7 @@
 // ChessBoardState.cpp
 
 #include "ChessBoardState.h"
+#include "base/Logger.h"
 
 namespace bgg
 {
@@ -105,8 +106,8 @@ namespace bgg
     if (piece->type == ChessRule::PAWN)
     {
       auto &specialMoveTracker = moveTracker_.getSpecialMoveTracker(piece->color);
-      int firstDoubleStep = specialMoveTracker.getFirstDoubleStepOfPawn(int(square[0]));
-      if (firstDoubleStep == 0)
+      int firstDoubleStep = specialMoveTracker.getMoveInfoOfPawn(int(square[0]));
+      if (firstDoubleStep == 0) // the pawn has never moved
       {
         if (candidateMoves.quietSquares.empty())
         {
@@ -221,7 +222,7 @@ namespace bgg
           std::pair<Position, Position> castlingRookMove =
               ChessRule::getCastlingRookMove(move.toSquare, movedPiece->color);
 
-          // TODO: use ChessRule::commitMoveAction(ChessMove::Normal
+          // TODO: consider using ChessRule::commitMoveAction(ChessMove::Normal
           //       "King to the next left or right square") instead
           std::map<Position, Piece> copiedPiecePlacements = piecePlacements_;
           copiedPiecePlacements.erase(move.fromSquare);
@@ -321,42 +322,67 @@ namespace bgg
     return moveAction;
   }
 
-  auto ChessBoardState::commitMove(
-      ChessMove::Action const &moveAction) noexcept -> bool
+  void ChessBoardState::commitMove(ChessMove::Action const &moveAction) noexcept
   {
-    moveTracker_.increaseTotalMoveCount();
+    auto moveActionVisitor = [this]<typename T>(T const &action)
+    {
+      if constexpr (requires {
+        { action.fromSquare } -> std::same_as<Position const &>;
+        { action.toSquare } -> std::same_as<Position const &>; })
+      {
+        auto piece = getPiece(action.fromSquare);
+        BOOST_ASSERT_MSG(piece, "There must be an item at the 'fromTile'");
 
-    // void ChessBoardState::movePiece(
-    //     Position const &fromSquare,
-    //     Position const &toSquare,
-    //     std::optional<std::string> const &promote)
-    // {
-    //   // TODO: ChessBoardState::movePiece
-    //   auto movedPiece = piecePlacements_.find(fromSquare);
+        updateMoveTracker(*piece, action.fromSquare, action.toSquare);
+        
+        piecePlacements_.erase(action.toSquare);
+        piecePlacements_.erase(action.fromSquare);
 
-    //   BOOST_ASSERT_MSG(
-    //       movedPiece != piecePlacements_.end(),
-    //       "There must be a piece at the 'fromSquare'");
+        if constexpr (requires { 
+            { action.promote } -> std::same_as<std::string const &>; }) ///< if constexpr (std::is_same_v<T, ChessPromotionItemMove>)
+        {
+          BGG_VALIDATE_CHESS_PIECE(action.promote);
+          piece->type = action.promote;
+          piecePlacements_.emplace(action.toSquare, std::move(*piece));
+        }
+        else
+        {
+          piecePlacements_.emplace(action.toSquare, std::move(*piece));
 
-    //   auto targetedPiece = piecePlacements_.find(toSquare);
-    //   if (targetedPiece == piecePlacements_.end()) ///< if 'toSquare' is empty...
-    //   {
-    //     piecePlacements_.try_emplace(toSquare, movedPiece->second);
-    //   }
-    //   else
-    //   {
-    //     BOOST_ASSERT_MSG(
-    //         targetedPiece->second.color != movedPiece->second.color,
-    //         "The color of piece at the 'fromSquare' must be different from "
-    //         "the color of piece at the 'toSquare'");
+          if constexpr (requires {
+            { action.enPassantSquare } -> std::same_as<Position const &>; }) ///< if constexpr (std::is_same_v<T, ChessEnPassantItemMove>)
+          {
+            // remove en passant captured item
+            piecePlacements_.erase(
+                Position{action.toSquare[0], action.fromSquare[1]});
+          }
+          else if constexpr (requires {
+            { action.rookSource } -> std::same_as<Position const &>;
+            { action.rookDestination } -> std::same_as<Position const &>; }) ///< if constexpr (std::is_same_v<T, ChessCastlingItemMove>)
+          {
+            // move the related rook to the destination
+            auto rook = getPiece(action.rookSource);
+            BOOST_ASSERT_MSG(
+                rook, "There must be an item at the tile of action.rookSource");
 
-    //     targetedPiece->second = movedPiece->second;
-    //   }
+            piecePlacements_.emplace(action.rookDestination, std::move(*rook));
+            piecePlacements_.erase(action.rookSource);
+          }
+        }
 
-    //   piecePlacements_.erase(movedPiece);
-    // }
+        SPDLOG_INFO("You have committed a '{}'", typeid(T).name());
+      }
+      else if constexpr (std::is_same_v<T, std::monostate>)
+      {
+        SPDLOG_WARN("You have committed an empty move");
+      }
+      else if constexpr (std::is_same_v<T, ChessMove::Invalid>)
+      {
+        SPDLOG_WARN("You have committed an 'ChessMove::Invalid'");
+      }
+    };
 
-    return true;
+    moveAction.visit(moveActionVisitor);
   }
 
   auto ChessBoardState::getEnPassantSquare(
@@ -374,7 +400,7 @@ namespace bgg
     int const col = int(square[0]);
     if (col > ChessRule::FIRST_COL)
     {
-      if (specialMoveTracker.getFirstDoubleStepOfPawn(col - 1) ==
+      if (specialMoveTracker.getMoveInfoOfPawn(col - 1) ==
           moveTracker_.getTotalMoveCount())
       {
         return Position{char(col - 1), square[1], '\0'};
@@ -382,7 +408,7 @@ namespace bgg
     }
     else if (col < ChessRule::FIRST_COL + ChessRule::BOARD_SIDE - 1)
     {
-      if (specialMoveTracker.getFirstDoubleStepOfPawn(col + 1) ==
+      if (specialMoveTracker.getMoveInfoOfPawn(col + 1) ==
           moveTracker_.getTotalMoveCount())
       {
         return Position{char(col + 1), square[1], '\0'};
@@ -421,6 +447,42 @@ namespace bgg
     }
 
     return result;
+  }
+
+  void ChessBoardState::updateMoveTracker(Piece const &piece, Position const &fromSquare, Position const &toSquare) noexcept
+  {
+    moveTracker_.increaseTotalMoveCount();
+
+    auto &specialMoveTracker = moveTracker_.getSpecialMoveTracker(piece.color);
+    if (piece.type == ChessRule::KING && !specialMoveTracker.isKingMoved())
+    {
+      specialMoveTracker.markKingMoved();
+    }
+    else if (piece.type == ChessRule::ROOK)
+    {
+      if (fromSquare[0] == 'a' && !specialMoveTracker.isRookAMoved())
+      {
+        specialMoveTracker.markRookAMoved();
+      }
+      if (fromSquare[0] == 'h' && !specialMoveTracker.isRookHMoved())
+      {
+        specialMoveTracker.markRookHMoved();
+      }
+    }
+    else if (piece.type == ChessRule::PAWN &&
+             specialMoveTracker.getMoveInfoOfPawn(int(fromSquare[0])) == 0) ///< if this pawn has never moved
+    {
+      int moveStep = toSquare[1] - fromSquare[1];
+      if (moveStep == 1)
+      {
+        specialMoveTracker.markPawnMoved(int(toSquare[0]), -1);
+      }
+      else // if (moveStep == +- 2)
+      {
+        specialMoveTracker.markPawnMoved(
+            int(toSquare[0]), moveTracker_.getTotalMoveCount());
+      }
+    }
   }
 
 } // namespace bgg

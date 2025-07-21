@@ -73,14 +73,17 @@ namespace bgg
           { action.toSquare } -> std::same_as<Position const &>; })
       {
         auto piece = getPiece(piecePlacements, action.fromSquare);
+        BOOST_ASSERT_MSG(piece, "There must be an item at the 'fromTile'");
+
         piecePlacements.erase(action.fromSquare);
         piecePlacements.erase(action.toSquare);
 
         if constexpr (requires {
             { action.promote } -> std::same_as<std::string const &>; }) ///< if constexpr (std::is_same_v<T, ChessMove::Promotion>)
         {
-          piecePlacements.emplace(
-              action.toSquare, Piece{action.promote, piece->color});
+          BGG_VALIDATE_CHESS_PIECE(action.promote);
+          piece->type = action.promote;
+          piecePlacements.emplace(action.toSquare, std::move(*piece));
         }
         else
         {
@@ -89,6 +92,7 @@ namespace bgg
           if constexpr (requires { 
               { action.enPassantSquare } -> std::same_as<Position const &>; }) ///< if constexpr (std::is_same_v<T, ChessMove::EnPassant>)
           {
+            // remove en passant captured item
             piecePlacements.erase(
                 Position{action.toSquare[0], action.fromSquare[1]});
           }
@@ -96,12 +100,16 @@ namespace bgg
               { action.rookSource } -> std::same_as<Position const &>;
               { action.rookDestination } -> std::same_as<Position const &>; }) ///< if constexpr (std::is_same_v<T, ChessMove::Castling>)
           {
+            // move the related rook to the destination
             auto relatedRook = getPiece(piecePlacements, action.rookSource);
             BOOST_ASSERT_MSG(relatedRook, "There must be a rook at action.rookSource");
+
+            piecePlacements.emplace(action.rookDestination, std::move(*relatedRook));
             piecePlacements.erase(action.rookSource);
-            piecePlacements.emplace(action.rookDestination, *relatedRook);
           }
         }
+
+        SPDLOG_INFO("You have committed a '{}'", typeid(T).name());
       }
       else if constexpr (std::is_same_v<T, std::monostate>)
       {

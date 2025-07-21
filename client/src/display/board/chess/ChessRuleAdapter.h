@@ -20,7 +20,7 @@ namespace bgg
     {
         ChessBoardState rule_;
 
-        ItemPlacementMap itemPlacements_; ///< Usage: itemEntries_[ChessPiece::<ENUM>]
+        ItemPlacementMap itemPlacements_;
         std::function<TileCoords(Position const &)> const positionToTileConverter_;
         std::function<Position(TileCoords const &)> const tileToPositionConverter_;
 

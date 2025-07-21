@@ -42,8 +42,7 @@ namespace bgg
 		[[nodiscard]] auto tryMove(
 				ChessMove const &move) const noexcept -> ChessMove::Action;
 
-		auto commitMove(
-				ChessMove::Action const &moveAction) noexcept -> bool;
+		void commitMove(ChessMove::Action const &moveAction) noexcept;
 
 	private:
 		[[nodiscard]] auto getEnPassantSquare(
@@ -52,6 +51,11 @@ namespace bgg
 
 		[[nodiscard]] auto getKingCastlingSquares(
 				std::string const &color) const noexcept -> std::list<Position>;
+
+		void updateMoveTracker(
+				Piece const &piece,
+				Position const &fromSquare,
+				Position const &toSquare) noexcept;
 	};
 
 } // namespace bgg

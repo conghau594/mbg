@@ -8,8 +8,8 @@ namespace bgg
 
   class SpecialMoveTracker
   {
-    // int firstDoubleStepMoveOfPawn_[ChessRule::BOARD_SIDE]{0, 0, 0, 0, 0, 0, 0, 0};
-    int firstDoubleStepMoveOfPawn_[ChessRule::BOARD_SIDE]{1, 1, 1, 1, 1, 1, 1, 1};
+    // int moveInfoOfPawn_[ChessRule::BOARD_SIDE]{0, 0, 0, 0, 0, 0, 0, 0};
+    int moveInfoOfPawn_[ChessRule::BOARD_SIDE]{1, 1, 1, 1, 1, 1, 1, 1};
     bool kingMoved_ = false;
     bool rookAMoved_ = false;
     bool rookHMoved_ = false;
@@ -19,6 +19,7 @@ namespace bgg
     {
       return kingMoved_;
     }
+
     [[nodiscard]] auto isRookAMoved() const noexcept -> bool
     {
       return rookAMoved_;
@@ -28,12 +29,21 @@ namespace bgg
       return rookHMoved_;
     }
 
-    [[nodiscard]] auto getFirstDoubleStepOfPawn(int col) const noexcept -> int
+    /**
+     * \return  0: if the pawn has never moved
+     *
+     *          -1 or < 0: if the pawn moved but
+     *          the first move is not a double step
+     *
+     *          moveNumber > 0 at which, the pawn moved
+     *          with a double step
+     */
+    [[nodiscard]] auto getMoveInfoOfPawn(int col) const noexcept -> int
     {
       BOOST_ASSERT_MSG(
           col >= ChessRule::FIRST_COL && col < ChessRule::FIRST_COL + ChessRule::BOARD_SIDE,
           "Column of pawn must be from 'a' to 'h'");
-      return firstDoubleStepMoveOfPawn_[col - ChessRule::FIRST_COL];
+      return moveInfoOfPawn_[col - ChessRule::FIRST_COL];
     }
 
     void markKingMoved() noexcept
@@ -49,17 +59,28 @@ namespace bgg
       rookHMoved_ = true;
     }
 
-    void setFirstDoubleStepMoveOfPawn(int col, int moveNumber) noexcept
+    /**
+     * \param moveNumber  0: specifies that the pawn has never moved
+     *
+     *                    -1 or < 0: specifies that the pawn moved
+     *                    but the first move is not a double step
+     *
+     *                    > 0: specifies that the pawn moved and
+     *                    the first move is a double step at 'moveNumber'
+     *                    (a.k.a move count)
+     */
+    void markPawnMoved(int col, int moveNumber) noexcept
     {
       BOOST_ASSERT_MSG(
-          col >= ChessRule::FIRST_COL && col < ChessRule::FIRST_COL + ChessRule::BOARD_SIDE,
+          col >= ChessRule::FIRST_COL &&
+              col < ChessRule::FIRST_COL + ChessRule::BOARD_SIDE,
           "Column of pawn must be from 'a' to 'h'");
 
       BOOST_ASSERT_MSG(
-          firstDoubleStepMoveOfPawn_[col - ChessRule::FIRST_COL] == 0,
-          "You can only set value to each of 'firstDoubleStepMoveOfPawn_' once");
+          moveInfoOfPawn_[col - ChessRule::FIRST_COL] == 0,
+          "You can only set value to each of 'moveInfoOfPawn_' once");
 
-      firstDoubleStepMoveOfPawn_[int(col) - ChessRule::FIRST_COL] = moveNumber;
+      moveInfoOfPawn_[int(col) - ChessRule::FIRST_COL] = moveNumber;
     }
   };
 
