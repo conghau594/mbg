@@ -65,5 +65,8 @@ namespace bgg
     void finalizeBasicMoveAction(
         TileCoords const &fromTile,
         TileCoords const &toTile) noexcept;
+
+    void onGameUpdatedNotification(
+        GameUpdatedNotification const &notif) noexcept;
   };
 } // namespace bgg

@@ -230,9 +230,9 @@ namespace bgg
           std::string gameId = "@Test123 ";
           int side = 0; // 0: WHITE, 1: BLACK
           emit(GameUpdatedNotification{
-              Position("a7"),
+              Position("b7"),
               Position("a5"),
-              "Bishop",
+              std::nullopt,
               0,
               0});
         });

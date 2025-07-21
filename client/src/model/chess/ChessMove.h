@@ -134,11 +134,11 @@ namespace utils
       return "Invalid castling. ";
 
     case bgg::ChessMove::Error::KING_EXPOSED:
-      return "Your king are exposed. ";
+      return "The king is exposed. ";
 
     case bgg::ChessMove::Error::UNDEFINED:
     default:
-      return "Undefined";
+      return "Undefined. ";
     }
   }
 } // namespace utils
