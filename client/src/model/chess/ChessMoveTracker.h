@@ -8,7 +8,8 @@ namespace bgg
 
   class SpecialMoveTracker
   {
-    int firstDoubleStepMoveOfPawn_[ChessRule::BOARD_SIDE]{0, 0, 0, 0, 0, 0, 0, 0};
+    // int firstDoubleStepMoveOfPawn_[ChessRule::BOARD_SIDE]{0, 0, 0, 0, 0, 0, 0, 0};
+    int firstDoubleStepMoveOfPawn_[ChessRule::BOARD_SIDE]{1, 1, 1, 1, 1, 1, 1, 1};
     bool kingMoved_ = false;
     bool rookAMoved_ = false;
     bool rookHMoved_ = false;

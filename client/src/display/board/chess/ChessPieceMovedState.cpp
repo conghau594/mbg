@@ -31,9 +31,11 @@ namespace bgg
         pendingPromotionItem_(),
         pendingMoveHighlighters_{},
         lastMoveHighlighters_{nullptr, nullptr},
-        pendingItemMoveAction_{move ? gameRule_->tryMove(*move) : ChessItemMoveAction{}}
+        pendingItemMoveAction_{
+            move ? gameRule_->tryMove(*move) : ChessItemMoveAction{}}
   {
-    if (move)
+    if (!pendingItemMoveAction_.getIf<std::monostate>() &&
+        !pendingItemMoveAction_.getIf<InvalidChessItemMove>())
     {
       gameBoard_->sendMoveRequest(MoveRequest{
           "",
@@ -60,6 +62,8 @@ namespace bgg
 
     lastMoveHighlighters_[0] = lastMoveHighlighterList.front();
     lastMoveHighlighters_[1] = lastMoveHighlighterList.back();
+    lastMoveHighlighterVisibility_[0] = lastMoveHighlighters_[0]->isVisible();
+    lastMoveHighlighterVisibility_[1] = lastMoveHighlighters_[1]->isVisible();
 
     pendingMoveHighlighters_[0] = itemStore_->addItem(
         ZOrder::FIRST_LAYER,
@@ -73,8 +77,10 @@ namespace bgg
         utils::toString(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
         false);
 
-    updateBoard(pendingItemMoveAction_);
-
+    if (!pendingItemMoveAction_.isEmpty())
+    {
+      updateBoard(pendingItemMoveAction_);
+    }
     //==========
     SPDLOG_INFO("Entered '{}'", typeid(*this).name());
     //==========
@@ -131,7 +137,7 @@ namespace bgg
             !movedItemEntry.isNull(),
             "There must be an item at the 'fromTile'");
 
-        applyBasicMoveAction(
+        previewBasicMoveAction(
             movedItemEntry.getItem(),
             action.fromTile,
             action.toTile,
@@ -169,7 +175,6 @@ namespace bgg
                 { action.rookSource } -> std::same_as<TileCoords const &>;
                 { action.rookDestination } -> std::same_as<TileCoords const &>; }) ///< if constexpr (std::is_same_v<T, ChessCastlingItemMove>)
         {
-          // TODO:
           // move the related rook to the destination
           auto rookItemEntry = gameRule_->getItemEntry(action.rookSource);
           BOOST_ASSERT_MSG(
@@ -183,7 +188,7 @@ namespace bgg
       }
       else if constexpr (std::is_same_v<T, std::monostate>)
       {
-        SPDLOG_INFO("You have tried to do an empty move");
+        SPDLOG_WARN("You have tried to do an empty move");
       }
       else if constexpr (std::is_same_v<T, InvalidChessItemMove>)
       {
@@ -194,7 +199,7 @@ namespace bgg
     itemMoveAction.visit(moveActionVisitor);
   }
 
-  void ChessPieceMovedState::applyBasicMoveAction(
+  void ChessPieceMovedState::previewBasicMoveAction(
       BoardItem &movedItemEntry,
       TileCoords const &fromTile,
       TileCoords const &toTile,
@@ -219,7 +224,7 @@ namespace bgg
     if (enemyKingState == KingState::IN_CHECK)
     {
       checkHighlighter_ = itemStore_->addItem(
-          ZOrder::THIRD_LAYER,
+          ZOrder::FIRST_LAYER,
           int(ChessTextureCell::CHECK_HIGHLIGHTER),
           utils::toString(ChessTextureCell::CHECK_HIGHLIGHTER));
     }
@@ -244,8 +249,9 @@ namespace bgg
       TileCoords const &toTile) noexcept
   {
     // restore lastMoveHighlighters_ to the previous tiles
-    lastMoveHighlighters_[0]->setVisible(true);
-    lastMoveHighlighters_[1]->setVisible(true);
+    lastMoveHighlighters_[0]->setVisible(lastMoveHighlighterVisibility_[0]);
+    lastMoveHighlighters_[1]->setVisible(lastMoveHighlighterVisibility_[1]);
+
     itemStore_->removeItem(pendingMoveHighlighters_[0]);
     itemStore_->removeItem(pendingMoveHighlighters_[1]);
 
@@ -262,6 +268,26 @@ namespace bgg
     itemStore_->removeItem(checkHighlighter_);
   }
 
+  void ChessPieceMovedState::finalizeBasicMoveAction(
+      TileCoords const &fromTile,
+      TileCoords const &toTile) noexcept
+  {
+    // fit lastMoveHighlighters_ to fromTile and toTile,
+    // remove the temporary pendingMoveHighlighters_
+    tileMap_->fitItemToTile(*(lastMoveHighlighters_[0]), fromTile);
+    tileMap_->fitItemToTile(*(lastMoveHighlighters_[1]), toTile);
+
+    itemStore_->removeItem(pendingMoveHighlighters_[0]);
+    itemStore_->removeItem(pendingMoveHighlighters_[1]);
+
+    // remove captured item from itemStore_
+    auto capturedItemEntry = gameRule_->getItemEntry(toTile);
+    if (!capturedItemEntry.isNull())
+    {
+      itemStore_->removeItem(capturedItemEntry);
+    }
+  }
+
   void ChessPieceMovedState::onMoveResponse(MoveResponse const &response) noexcept
   {
     if (response.errcode.failed())
@@ -270,9 +296,7 @@ namespace bgg
       {
         if constexpr (requires {
           { action.fromTile } -> std::same_as<TileCoords const &>;
-          { action.toTile } -> std::same_as<TileCoords const &>;
-          { action.enemyKingTile } -> std::same_as<TileCoords const &>;
-          { action.enemyKingState } -> std::same_as<KingState const &>; })
+          { action.toTile } -> std::same_as<TileCoords const &>; })
         {
           auto movedItemEntry = gameRule_->getItemEntry(action.fromTile);
           BOOST_ASSERT_MSG(
@@ -287,7 +311,6 @@ namespace bgg
           if constexpr (requires { 
             { action.promote } -> std::same_as<std::string const &>; }) ///< if constexpr (std::is_same_v<T, ChessPromotionItemMove>)
           {
-
             // make the moved item visible and remove the pendingPromotionItem_
             movedItemEntry.getItem().setVisible(true);
             itemStore_->removeItem(pendingPromotionItem_);
@@ -295,7 +318,7 @@ namespace bgg
           else if constexpr (requires { 
             { action.enPassantTile } -> std::same_as<TileCoords const &>; }) ///< if constexpr (std::is_same_v<T, ChessEnPassantItemMove>)
           {
-            // make en passant captured item invisible
+            // make en passant captured item visible
             auto enPassantItemEntry = gameRule_->getItemEntry(action.enPassantTile);
             BOOST_ASSERT_MSG(
                 !enPassantItemEntry.isNull(),
@@ -307,8 +330,7 @@ namespace bgg
                 { action.rookSource } -> std::same_as<TileCoords const &>;
                 { action.rookDestination } -> std::same_as<TileCoords const &>; }) ///< if constexpr (std::is_same_v<T, ChessCastlingItemMove>)
           {
-            // TODO:
-            // move the related rook to the destination
+            // move the related rook to the source
             auto rookItemEntry = gameRule_->getItemEntry(action.rookSource);
             BOOST_ASSERT_MSG(
                 !rookItemEntry.isNull(),
@@ -321,7 +343,7 @@ namespace bgg
         }
         else if constexpr (std::is_same_v<T, std::monostate>)
         {
-          SPDLOG_INFO("You have reverted an empty move");
+          SPDLOG_WARN("You have reverted an empty move");
         }
         else if constexpr (std::is_same_v<T, InvalidChessItemMove>)
         {
@@ -335,29 +357,65 @@ namespace bgg
     }
     else
     {
-      //   // update the pending move to game rule
-      //   std::optional<BoardItem> promotedItem(std::nullopt);
-      //   if (!pendingPromotionItem_.isNull())
-      //   {
-      //     promotedItem = std::move(pendingPromotionItem_.getItem());
-      //   }
+      // update the pending move to game rule
+      auto moveActionVisitor = [this]<typename T>(T const &action)
+      {
+        if constexpr (requires {
+          { action.fromTile } -> std::same_as<TileCoords const &>;
+          { action.toTile } -> std::same_as<TileCoords const &>; })
+        {
+          finalizeBasicMoveAction(action.fromTile, action.toTile);
 
-      //   ItemStore::Entry capturedItemEntry = gameRule_->commitMove(
-      //       pendingMove_, std::move(promotedItem));
+          if constexpr (requires { 
+            { action.promote } -> std::same_as<std::string const &>; }) ///< if constexpr (std::is_same_v<T, ChessPromotionItemMove>)
+          {
+            // remove the moved item from itemStore
+            auto movedItemEntry = gameRule_->getItemEntry(action.fromTile);
+            BOOST_ASSERT_MSG(
+                !movedItemEntry.isNull(),
+                "There must be an item at the 'fromTile'");
 
-      //   // remove the captured item even if any or not
-      //   itemStore_->removeItem(capturedItemEntry);
-      // }
+            movedItemEntry.getItem() = pendingPromotionItem_.getItem();
+            itemStore_->removeItem(pendingPromotionItem_);
+          }
+          else if constexpr (requires { 
+            { action.enPassantTile } -> std::same_as<TileCoords const &>; }) ///< if constexpr (std::is_same_v<T, ChessEnPassantItemMove>)
+          {
+            // remove en passant captured item
+            auto enPassantItemEntry = gameRule_->getItemEntry(action.enPassantTile);
+            BOOST_ASSERT_MSG(
+                !enPassantItemEntry.isNull(),
+                "There must be an item at the action.enPassantTile");
 
-      // pendingMove_ = ChessMove{{-1, -1}, {-1, -1}, std::nullopt};
+            itemStore_->removeItem(enPassantItemEntry);
+          }
+          else if constexpr (requires { 
+                { action.rookSource } -> std::same_as<TileCoords const &>;
+                { action.rookDestination } -> std::same_as<TileCoords const &>; }) ///< if constexpr (std::is_same_v<T, ChessCastlingItemMove>)
+          {
+            // do nothing
+          }
 
-      // // remove the new promoted item from itemStore_ even if any or not
-      // itemStore_->removeItem(pendingPromotionItem_);
-      // pendingPromotionItem_ = ItemStore::Entry();
+          SPDLOG_INFO("You have finalized a '{}'", typeid(T).name());
+        }
+        else if constexpr (std::is_same_v<T, std::monostate>)
+        {
+          SPDLOG_WARN("You have finalized an empty move");
+        }
+        else if constexpr (std::is_same_v<T, InvalidChessItemMove>)
+        {
+          SPDLOG_WARN("You have finalized an 'InvalidChessItemMove'");
+        }
+      };
 
-      // SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
-      //             typeid(response).name(), typeid(*this).name());
+      pendingItemMoveAction_.visit(moveActionVisitor);
+      gameRule_->commitMove(pendingItemMoveAction_);
+      pendingItemMoveAction_.setEmpty();
     }
+
+    SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
+                typeid(response).name(),
+                typeid(*this).name());
   }
 
   /////////////////////////////////////////////////////////////////////////

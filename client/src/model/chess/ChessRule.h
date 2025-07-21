@@ -50,7 +50,7 @@ namespace bgg
 
         static void commitMoveAction(
             std::map<Position, Piece> &piecePlacements,
-            ChessMove::VariantAction const &moveAction) noexcept;
+            ChessMove::Action const &moveAction) noexcept;
 
         [[nodiscard]] static auto evaluateKingState(
             std::map<Position, Piece> const &piecePlacements,

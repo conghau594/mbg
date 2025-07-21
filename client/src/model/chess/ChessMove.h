@@ -89,6 +89,7 @@ namespace bgg
 
     enum class Error
     {
+      UNDEFINED = 0,
       INVALID_SOURCE_SQUARE = 1 << 0,
       INVALID_DESTINATION_SQUARE = 1 << 1,
       // INVALID_EN_PASSANT_CAPTURE = 1 << 2,
@@ -103,7 +104,7 @@ namespace bgg
       Error error;
     };
 
-    using VariantAction = Variant<
+    using Action = Variant<
         Invalid,
         Normal,
         Promotion,
@@ -135,8 +136,9 @@ namespace utils
     case bgg::ChessMove::Error::KING_EXPOSED:
       return "Your king are exposed. ";
 
+    case bgg::ChessMove::Error::UNDEFINED:
     default:
-      return "";
+      return "Undefined";
     }
   }
 } // namespace utils

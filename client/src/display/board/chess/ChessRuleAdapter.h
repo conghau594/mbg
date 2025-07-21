@@ -34,19 +34,23 @@ namespace bgg
             -> std::function<Position(TileCoords const &)>;
 
     private:
-        auto positionToTile(
+        [[nodiscard]] auto positionToTile(
             Position const &position) const noexcept -> TileCoords override;
-        auto tileToPosition(
+        [[nodiscard]] auto tileToPosition(
             TileCoords const &tile) const noexcept -> Position override;
 
-        [[nodiscard]]
-        auto tryMove(
-            ItemMove const &itemMove) const noexcept -> ChessItemMoveAction override;
-        // TODO: Need refactor
-        // auto commitMove(
-        //     ChessMove const &move,
-        //     std::optional<BoardItem> promotedItem = std::nullopt) noexcept
-        //     -> ItemStore::Entry override;
+        [[nodiscard]] auto chessMoveActionToItemMoveAction(
+            ChessMove::Action const &chessMoveAction) const noexcept
+            -> ChessItemMoveAction;
+        [[nodiscard]] auto itemMoveActionToChessMoveAction(
+            ChessItemMoveAction const &itemMoveAction) const noexcept
+            -> ChessMove::Action;
+
+        auto tryMove(ItemMove const &itemMove) const noexcept
+            -> ChessItemMoveAction override;
+
+        void commitMove(
+            ChessItemMoveAction const &itemMoveAction) noexcept override;
 
         auto getYourColor() const -> std::string const & override;
 

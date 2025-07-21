@@ -83,16 +83,7 @@ namespace bgg
     virtual auto tryMove(
         ItemMove const &itemMove) const noexcept -> ChessItemMoveAction = 0;
 
-    // TODO: Need refactor
-    // /**
-    //  * \return the item entry of the captured piece. It should be disappeared
-    //  *         after removed from this.
-    //  */
-    // [[nodiscard]]
-    // virtual auto commitMove(
-    //     ChessMove const &move,
-    //     std::optional<BoardItem> promotedItem = std::nullopt)
-    //     -> ItemStore::Entry = 0;
+    virtual void commitMove(ChessItemMoveAction const &itemMoveAction) = 0;
 
     // virtual auto addItemEntry(TileCoords tile, ItemStore::Entry entry) -> bool = 0;
   };

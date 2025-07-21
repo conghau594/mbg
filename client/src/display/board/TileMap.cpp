@@ -195,6 +195,8 @@ namespace bgg
     sf::IntRect tileRect = tileToScreenRect(tile);
     sf::Vector2f tileSize = sf::Vector2f(tileRect.size).componentWiseMul(tileArea);
 
+    SPDLOG_DEBUG("item.getSize() = ({}, {})", item.getSize().x, item.getSize().y);
+
     sf::Vector2f scaleFactors = tileSize.componentWiseDiv(sf::Vector2f(item.getSize()));
     item.scale(scaleFactors);
     item.setPosition(tileRect.position);

@@ -130,6 +130,8 @@ namespace bgg
     {
       candidateMoves.specialMoveSquares = getKingCastlingSquares(piece->color);
     }
+
+    return candidateMoves;
   }
 
   auto ChessBoardState::getPiece(
@@ -139,7 +141,7 @@ namespace bgg
   }
 
   auto ChessBoardState::tryMove(
-      ChessMove const &move) const noexcept -> ChessMove::VariantAction
+      ChessMove const &move) const noexcept -> ChessMove::Action
   {
     // ========================================
     // check simple conditions
@@ -159,7 +161,7 @@ namespace bgg
     // check the move based on the CandidateChessMoveInfo
     CandidateChessMoveInfo candidateMoves = collectCandidateMoves(move.fromSquare);
 
-    ChessMove::VariantAction moveAction;
+    ChessMove::Action moveAction;
     auto enemyKingSqr = ChessRule::findKingSquare(
         piecePlacements_,
         ChessRule::getEnemyColor(movedPiece->color));
@@ -319,8 +321,8 @@ namespace bgg
     return moveAction;
   }
 
-  auto ChessBoardState::commitMoveAction(
-      ChessMove::VariantAction const &moveAction) noexcept -> bool
+  auto ChessBoardState::commitMove(
+      ChessMove::Action const &moveAction) noexcept -> bool
   {
     moveTracker_.increaseTotalMoveCount();
 

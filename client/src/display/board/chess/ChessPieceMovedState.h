@@ -25,7 +25,9 @@ namespace bgg
     ItemStore::Entry checkHighlighter_;
     ItemStore::Entry pendingPromotionItem_;
     ItemStore::Entry pendingMoveHighlighters_[2];
+
     BoardItem *lastMoveHighlighters_[2];
+    bool lastMoveHighlighterVisibility_[2];
 
     ChessItemMoveAction pendingItemMoveAction_;
 
@@ -47,17 +49,21 @@ namespace bgg
 
     void updateBoard(ChessItemMoveAction const &itemMoveAction) noexcept;
 
-    void applyBasicMoveAction(
+    void previewBasicMoveAction(
         BoardItem &movedItemEntry,
         TileCoords const &fromTile,
         TileCoords const &toTile,
         TileCoords const &enemyKingTile,
         KingState const &enemyKingState) noexcept;
 
+    void onMoveResponse(MoveResponse const &response) noexcept;
     void revertBasicMoveAction(
         BoardItem &movedItemEntry,
         TileCoords const &fromTile,
         TileCoords const &toTile) noexcept;
-    void onMoveResponse(MoveResponse const &response) noexcept;
+
+    void finalizeBasicMoveAction(
+        TileCoords const &fromTile,
+        TileCoords const &toTile) noexcept;
   };
 } // namespace bgg

@@ -75,8 +75,7 @@ namespace bgg
     }
 
     boardItems_.erase(*(entry.itemIter_));
-    // entry.itemMapPtr_ = nullptr;
-    entry.itemIter_ = nullptr; // make sure the entry is null but it still belongs to this store
+    entry.reset();
     return true;
   }
 
@@ -223,5 +222,11 @@ namespace bgg
     BOOST_ASSERT_MSG(!isNull(), "Invalid entry. It may be removed from its map.");
 
     return (*itemIter_)->second;
+  }
+
+  void ItemStore::Entry::reset() noexcept
+  {
+    itemIter_ = nullptr;
+    itemMapPtr_ = nullptr;
   }
 } // namespace bgg

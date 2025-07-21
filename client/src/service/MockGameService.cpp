@@ -67,7 +67,8 @@ namespace bgg
           std::string userId;
           try
           {
-            simulateNetworkLatencyAndFailure(10, 500, 5000);
+            int failurePercent = 10;
+            simulateNetworkLatencyAndFailure(failurePercent, 500, 5000);
 
             // login successfully, the create user ID
             boost::uuids::uuid id = (*uuidGenerator_)();
@@ -101,7 +102,8 @@ namespace bgg
 
           try
           {
-            simulateNetworkLatencyAndFailure(10, 200, 1000);
+            int failurePercent = 10;
+            simulateNetworkLatencyAndFailure(failurePercent, 200, 1000);
           }
           catch (std::runtime_error const &e)
           {
@@ -116,7 +118,8 @@ namespace bgg
 
           try
           {
-            simulateNetworkLatencyAndFailure(10, 1000, 2000);
+            int failurePercent = 10;
+            simulateNetworkLatencyAndFailure(failurePercent, 1000, 2000);
           }
           catch (std::runtime_error const &e)
           {
@@ -175,7 +178,8 @@ namespace bgg
           std::string msg;
           try
           {
-            simulateNetworkLatencyAndFailure(100, 200, 1000);
+            int failurePercent = 100;
+            simulateNetworkLatencyAndFailure(failurePercent, 200, 1000);
           }
           catch (std::runtime_error const &e)
           {
@@ -196,7 +200,7 @@ namespace bgg
           int errCodeValue = 0;
           try
           {
-            int failurePercent = 100;
+            int failurePercent = 0;
             simulateNetworkLatencyAndFailure(failurePercent);
           }
           catch (std::runtime_error const &e)
@@ -243,7 +247,8 @@ namespace bgg
           int errCodeValue = 0;
           try
           {
-            simulateNetworkLatencyAndFailure(10);
+            int failurePercent = 10;
+            simulateNetworkLatencyAndFailure(failurePercent);
           }
           catch (std::runtime_error const &e)
           {

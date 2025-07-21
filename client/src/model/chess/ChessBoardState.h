@@ -40,10 +40,10 @@ namespace bgg
 
 		// TODO: Need refactor
 		[[nodiscard]] auto tryMove(
-				ChessMove const &move) const noexcept -> ChessMove::VariantAction;
+				ChessMove const &move) const noexcept -> ChessMove::Action;
 
-		auto commitMoveAction(
-				ChessMove::VariantAction const &moveAction) noexcept -> bool;
+		auto commitMove(
+				ChessMove::Action const &moveAction) noexcept -> bool;
 
 	private:
 		[[nodiscard]] auto getEnPassantSquare(

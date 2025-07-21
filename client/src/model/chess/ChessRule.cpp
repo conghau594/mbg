@@ -64,7 +64,7 @@ namespace bgg
 
   void ChessRule::commitMoveAction(
       std::map<Position, Piece> &piecePlacements,
-      ChessMove::VariantAction const &moveAction) noexcept
+      ChessMove::Action const &moveAction) noexcept
   {
     auto moveActionVisitor = [&piecePlacements]<typename T>(T const &action)
     {
@@ -126,61 +126,61 @@ namespace bgg
       return KingState::SAFE;
     }
 
-    if (checkForCheckmate)
+    if (!checkForCheckmate)
     {
-      std::map<Position, Piece> allySquares = getPieceSquares(
-          piecePlacements, color);
-      std::map<Position, Piece> copiedPiecePlacements = piecePlacements;
-      for (auto &[allySqr, piece] : allySquares)
-      {
-        std::list<Position> quietReachableSquares;
-        std::list<Position> captureReachableSquares;
-
-        collectBasicCandidateMoves(
-            copiedPiecePlacements,
-            allySqr,
-            &quietReachableSquares,
-            &captureReachableSquares);
-
-        for (auto &quietSqr : quietReachableSquares)
-        {
-          copiedPiecePlacements.erase(allySqr);
-          copiedPiecePlacements.emplace(quietSqr, piece);
-          if (!isKingInCheck(copiedPiecePlacements, color))
-          {
-            return KingState::IN_CHECK;
-          }
-          else // -> revert to the previous placements
-          {
-            copiedPiecePlacements.erase(quietSqr);
-            copiedPiecePlacements.emplace(allySqr, piece);
-          }
-        }
-
-        for (auto &captureSqr : captureReachableSquares)
-        {
-          copiedPiecePlacements.erase(allySqr);
-
-          auto enemyPiece = getPiece(copiedPiecePlacements, captureSqr);
-          copiedPiecePlacements.erase(captureSqr);
-
-          copiedPiecePlacements.emplace(captureSqr, piece);
-          if (!isKingInCheck(copiedPiecePlacements, color))
-          {
-            return KingState::IN_CHECK;
-          }
-          else // -> revert to the previous placements
-          {
-            copiedPiecePlacements.erase(captureSqr);
-            copiedPiecePlacements.emplace(allySqr, piece);
-            copiedPiecePlacements.emplace(captureSqr, enemyPiece.value());
-          }
-        }
-      }
-      return KingState::CHECKMATED;
+      return KingState::IN_CHECK;
     }
 
-    return KingState::IN_CHECK;
+    std::map<Position, Piece> allySquares = getPieceSquares(piecePlacements, color);
+    std::map<Position, Piece> copiedPiecePlacements = piecePlacements;
+    for (auto &[allySqr, piece] : allySquares)
+    {
+      std::list<Position> quietReachableSquares;
+      std::list<Position> captureReachableSquares;
+
+      collectBasicCandidateMoves(
+          copiedPiecePlacements,
+          allySqr,
+          &quietReachableSquares,
+          &captureReachableSquares);
+
+      for (auto &quietSqr : quietReachableSquares)
+      {
+        copiedPiecePlacements.erase(allySqr);
+        copiedPiecePlacements.emplace(quietSqr, piece);
+        if (!isKingInCheck(copiedPiecePlacements, color))
+        {
+          return KingState::IN_CHECK;
+        }
+        else // -> revert to the previous placements
+        {
+          copiedPiecePlacements.erase(quietSqr);
+          copiedPiecePlacements.emplace(allySqr, piece);
+        }
+      }
+
+      for (auto &captureSqr : captureReachableSquares)
+      {
+        copiedPiecePlacements.erase(allySqr);
+
+        auto enemyPiece = getPiece(copiedPiecePlacements, captureSqr);
+        copiedPiecePlacements.erase(captureSqr);
+
+        copiedPiecePlacements.emplace(captureSqr, piece);
+        if (!isKingInCheck(copiedPiecePlacements, color))
+        {
+          return KingState::IN_CHECK;
+        }
+        else // -> revert to the previous placements
+        {
+          copiedPiecePlacements.erase(captureSqr);
+          copiedPiecePlacements.emplace(allySqr, piece);
+          copiedPiecePlacements.emplace(captureSqr, enemyPiece.value());
+        }
+      }
+    }
+
+    return KingState::CHECKMATED;
   }
 
   auto ChessRule::isPromotionSquare(

@@ -57,13 +57,12 @@ namespace bgg
         false);
 
     tileMap_->fitItemToTile(
-        lastMoveHighlighters_[0].getItem(),
-        TileCoords{0, 0},
-        sf::Vector2f{0.0f, 0.0f});
+        lastMoveHighlighters_[0].getItem(), sf::Vector2i{0, 0});
+    lastMoveHighlighters_[0].getItem().setVisible(false);
+
     tileMap_->fitItemToTile(
-        lastMoveHighlighters_[1].getItem(),
-        TileCoords{0, 0},
-        sf::Vector2f{0.0f, 0.0f});
+        lastMoveHighlighters_[1].getItem(), sf::Vector2i{0, 0});
+    lastMoveHighlighters_[1].getItem().setVisible(false);
   }
 
   void ChessBoard::onWindowEvent(sf::Event const &event) noexcept

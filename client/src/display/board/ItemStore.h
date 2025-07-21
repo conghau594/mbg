@@ -2,6 +2,7 @@
 #pragma once
 
 #include <map>
+#include <list>
 #include <atomic>
 #include <string>
 #include <variant>
@@ -144,5 +145,7 @@ namespace bgg
      *
      */
     [[nodiscard]] auto getItem() const noexcept -> BoardItem &;
+
+    void reset() noexcept;
   };
 } // namespace bgg

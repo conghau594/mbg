@@ -25,7 +25,7 @@ namespace bgg
 		auto createGameApp() noexcept -> GameApp override
 		{
 			int constexpr RESIGN_REGION_HEIGHT = 40;
-			int constexpr BOARD_SIDE_LENGTH = 1200;
+			int constexpr BOARD_SIDE_LENGTH = 200;
 			int constexpr BOARD_MIN_SIDE_LENGTH = 80;
 
 			sf::Vector2u constexpr WINDOW_SIZE(
@@ -71,14 +71,14 @@ namespace bgg
 					{Position{"a5"}, Piece{ChessRule::PAWN, Color::WHITE}},
 					{Position{"a4"}, Piece{ChessRule::PAWN, Color::WHITE}},
 					{Position{"d2"}, Piece{ChessRule::PAWN, Color::WHITE}},
-					{Position{"d6"}, Piece{ChessRule::PAWN, Color::WHITE}},
+					{Position{"d7"}, Piece{ChessRule::PAWN, Color::WHITE}},
 					{Position{"c5"}, Piece{ChessRule::PAWN, Color::WHITE}},
 					{Position{"b4"}, Piece{ChessRule::PAWN, Color::WHITE}},
 					{Position{"e2"}, Piece{ChessRule::PAWN, Color::WHITE}},
 
 					{Position{"g5"}, Piece{ChessRule::KING, Color::BLACK}},
 					{Position{"f8"}, Piece{ChessRule::QUEEN, Color::BLACK}},
-					{Position{"a7"}, Piece{ChessRule::ROOK, Color::BLACK}},
+					{Position{"c8"}, Piece{ChessRule::ROOK, Color::BLACK}},
 					{Position{"h7"}, Piece{ChessRule::ROOK, Color::BLACK}},
 					{Position{"b7"}, Piece{ChessRule::KNIGHT, Color::BLACK}},
 					{Position{"g8"}, Piece{ChessRule::KNIGHT, Color::BLACK}},
