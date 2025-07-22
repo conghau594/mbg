@@ -48,7 +48,10 @@ namespace bgg
     virtual ~IChessRuleAdapter() = default;
 
     [[nodiscard]]
-    virtual auto getYourColor() const -> std::string const & = 0;
+    virtual auto getAllyColor() const -> std::string = 0;
+
+    [[nodiscard]]
+    virtual auto getEnemyColor() const -> std::string = 0;
 
     [[nodiscard]]
     virtual auto getItemColor(TileCoords const &tile) const
@@ -81,7 +84,8 @@ namespace bgg
 
     [[nodiscard]]
     virtual auto tryMove(
-        ItemMove const &itemMove) const noexcept -> ChessItemMoveAction = 0;
+        ItemMove const &itemMove, std::string const &color) const noexcept
+        -> ChessItemMoveAction = 0;
 
     virtual void commitMove(ChessItemMoveAction const &itemMoveAction) = 0;
 

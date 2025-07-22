@@ -2,17 +2,19 @@
 #pragma once
 
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <fstream>
 
 #include "GameAppFactory.h"
 #include "GameApp.h"
 
-#include "service/MockGameService.h"
+#include "service/ChessGameService.h"
 #include "display/GameDisplay.h"
 #include "display/screen/GamePlayScreen.h"
 #include "display/board/GameBoardFactory.h"
 
 #include "peeb/EventBus.hpp"
 #include "model/chess/ChessBoardState.h"
+#include "base/EnvUtils.h"
 namespace bgg
 {
 	class QuickAppFactory final : public GameAppFactory
@@ -25,7 +27,7 @@ namespace bgg
 		auto createGameApp() noexcept -> GameApp override
 		{
 			int constexpr RESIGN_REGION_HEIGHT = 40;
-			int constexpr BOARD_SIDE_LENGTH = 1200;
+			int constexpr BOARD_SIDE_LENGTH = 200;
 			int constexpr BOARD_MIN_SIDE_LENGTH = 80;
 
 			sf::Vector2u constexpr WINDOW_SIZE(
@@ -50,10 +52,23 @@ namespace bgg
 			window->setMinimumSize(WINDOW_MIN_SIZE);
 			window->setVerticalSyncEnabled(true);
 
+			// parse API key from an .env file
+			std::map<std::string, std::string> envMap = utils::parseEnvFile("E:/src/.env");
+			auto envIter = envMap.find("GEMINI_API_KEY");
+			std::string geminiApiKey;
+			if (envIter == envMap.end())
+			{
+				SPDLOG_ERROR("GEMINI_API_KEY is not found in the .env file!");
+			}
+			else
+			{
+				geminiApiKey = envIter->second;
+			}
 			std::shared_ptr<ClientEventBus>
 					eventBus = std::make_shared<ClientEventBus>();
 			std::shared_ptr<GameService>
-					gameService = std::make_shared<MockGameService>(eventBus);
+					gameService = std::make_shared<ChessGameService>(
+							std::move(geminiApiKey), eventBus);
 			std::shared_ptr<IDisplay>
 					gameDisplay = std::make_shared<GameDisplay>(window, eventBus);
 
@@ -96,21 +111,22 @@ namespace bgg
 
 			std::map<Position, Piece> initialPlacements(
 					TESTING_PLACEMENTS, TESTING_PLACEMENTS + ChessRule::PIECE_COUNT);
+
+			std::map<Position, Piece> standardPlacements(
+					ChessRule::INITIAL_PLACEMENTS);
+
 			FindGameResponse findGameResponse{
 					{0, "", "Mock"}, // error code
 					gameType_,
-					// 0, // playerType -> empty
-
-					std::move(initialPlacements), // initialBoard -> empty. TODO: should make this work
-					Color::WHITE,									// yourSide
-					0,														// yourTurn
-					0															// currentTurn
+					std::move(standardPlacements), // initialBoard -> empty
+					Color::WHITE,									 // yourSide
+					Color::WHITE,									 // yourTurn
+					Color::WHITE									 // currentTurn
 			};
 			//==============
 
 			sf::IntRect boardRect(
-					{0, RESIGN_REGION_HEIGHT},
-					{BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH});
+					{0, RESIGN_REGION_HEIGHT}, {BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH});
 
 			auto requestSender = [gameDisplay](ClientRequest const &request) noexcept
 			{

@@ -14,8 +14,8 @@ namespace bgg
   ChessRuleAdapter::ChessRuleAdapter(
       std::shared_ptr<ItemStore> itemStore, ChessBoardState rule) noexcept
       : rule_(std::move(rule)),
-        positionToTileConverter_(getPositionToTileConverter(rule_.getYourColor())),
-        tileToPositionConverter_(getTileToPositionConverter(rule_.getYourColor()))
+        positionToTileConverter_(getPositionToTileConverter(rule_.getAllyColor())),
+        tileToPositionConverter_(getTileToPositionConverter(rule_.getAllyColor()))
   {
     BOOST_ASSERT_MSG(itemStore, "The 'itemStore' cannot be null");
 
@@ -253,7 +253,8 @@ namespace bgg
   }
 
   auto ChessRuleAdapter::tryMove(
-      ItemMove const &itemMove) const noexcept -> ChessItemMoveAction
+      ItemMove const &itemMove, std::string const &color) const noexcept
+      -> ChessItemMoveAction
   {
     ChessMove chessMove{
         tileToPosition(itemMove.fromTile),
@@ -266,52 +267,19 @@ namespace bgg
         itemMove.toTile.x, itemMove.toTile.y,
         itemMove.promote ? itemMove.promote.value() : std::string("None"));
 
-    ChessMove::Action chessMoveAction = rule_.tryMove(chessMove);
+    ChessMove::Action chessMoveAction = rule_.tryMove(chessMove, color);
 
     return chessMoveActionToItemMoveAction(chessMoveAction);
   }
 
-  // TODO: Need refactor
-  // auto ChessRuleAdapter::commitMove(
-  //     ChessMove const &move, std::optional<BoardItem> promotedItem) noexcept
-  //     -> ItemStore::Entry
-  // {
-  //   // change item entries
-  //   auto selectedItemIter = itemPlacements_.find(move.fromTile);
-  //   BOOST_ASSERT_MSG(
-  //       selectedItemIter != itemPlacements_.end(),
-  //       "There should be one item at the 'fromTile'");
-
-  //   if (promotedItem)
-  //   {
-  //     selectedItemIter->second.getItem() = std::move(promotedItem.value());
-  //   }
-
-  //   ItemStore::Entry capturedItemEntry;
-  //   auto capturedItemIter = itemPlacements_.find(move.toTile);
-  //   if (capturedItemIter == itemPlacements_.end()) ///< if 'toSquare' is empty...
-  //   {
-  //     itemPlacements_.emplace(move.toTile, selectedItemIter->second);
-  //   }
-  //   else
-  //   {
-  //     capturedItemEntry = capturedItemIter->second;
-  //     capturedItemIter->second = std::move(selectedItemIter->second);
-  //   }
-
-  //   itemPlacements_.erase(selectedItemIter);
-
-  //   // change chess rule
-  //   Position fromSquare = tileToPosition(move.fromTile);
-  //   Position toSquare = tileToPosition(move.toTile);
-  //   rule_.movePiece(fromSquare, toSquare, move.promote);
-
-  //   return capturedItemEntry; // return captured item if any
-  // }
-
-  auto ChessRuleAdapter::getYourColor() const -> std::string const &
+  auto ChessRuleAdapter::getAllyColor() const -> std::string 
   {
-    return rule_.getYourColor();
+    return rule_.getAllyColor();
+  }
+
+  auto ChessRuleAdapter::getEnemyColor() const -> std::string 
+  {
+    return ChessRule::getEnemyColor(rule_.getAllyColor());
   }
 
   auto ChessRuleAdapter::getItemColor(TileCoords const &tile) const noexcept
@@ -333,7 +301,7 @@ namespace bgg
   auto ChessRuleAdapter::getSelectableTiles() const noexcept -> ItemPlacementMap
   {
     std::map<Position, Piece>
-        piecePlacements = rule_.getSelectablePieces(rule_.getYourColor());
+        piecePlacements = rule_.getSelectablePieces(rule_.getAllyColor());
 
     ItemPlacementMap itemPlacements;
     for (auto &[square, piece] : piecePlacements)
@@ -386,18 +354,6 @@ namespace bgg
         std::move(captureSquares),
         std::move(specialMoveTiles)};
   }
-
-  // auto ChessRuleAdapter::getItemType(TileCoords const &tile) const noexcept
-  //     -> std::optional<int>
-  // {
-  //   Position square = tileToPosition(tile);
-  //   auto piece = rule_.getPiece(square);
-  //   if(!piece)
-  //   {
-  //     return std::nullopt;
-  //   }
-  //   return int(piece->type);
-  // }
 
   auto ChessRuleAdapter::getItemEntry(TileCoords const &tile) const noexcept
       -> ItemStore::Entry

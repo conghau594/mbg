@@ -31,9 +31,12 @@ namespace bgg
         pendingPromotionItem_(),
         pendingMoveHighlighters_{},
         lastMoveHighlighters_{nullptr, nullptr},
-        pendingItemMoveAction_{
-            move ? gameRule_->tryMove(*move) : ChessItemMoveAction{}}
+        pendingItemMoveAction_{}
   {
+    if (move)
+    {
+      pendingItemMoveAction_ = gameRule_->tryMove(*move, gameRule_->getAllyColor());
+    }
     if (!pendingItemMoveAction_.getIf<std::monostate>() &&
         !pendingItemMoveAction_.getIf<InvalidChessItemMove>())
     {
@@ -488,10 +491,12 @@ namespace bgg
       }
     };
 
-    auto enemyItemMoveAction = gameRule_->tryMove(ItemMove{
+    ItemMove enemyMove{
         gameRule_->positionToTile(notif.fromSquare),
         gameRule_->positionToTile(notif.toSquare),
-        notif.promote});
+        notif.promote};
+    auto enemyItemMoveAction = gameRule_->tryMove(
+        enemyMove, gameRule_->getEnemyColor());
 
     enemyItemMoveAction.visit(moveActionVisitor);
     gameRule_->commitMove(enemyItemMoveAction);

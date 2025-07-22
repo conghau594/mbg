@@ -1,7 +1,6 @@
 // GeminiAgent.cpp
 
 #include <map>
-#include <fstream>
 #include <sstream>
 
 #include <boost/beast/core.hpp>
@@ -24,53 +23,11 @@ using tcp = net::ip::tcp;
 
 namespace bgg
 {
-
-  static auto parseEnvFile(const std::string &filename)
-      -> std::map<std::string, std::string>
-  {
-    std::map<std::string, std::string> env;
-    std::ifstream file(filename);
-    std::string line;
-
-    while (std::getline(file, line))
-    {
-      // Skip comments and empty lines
-      if (line.empty() || line[0] == '#')
-        continue;
-
-      std::istringstream iss(line);
-      std::string key, value;
-
-      if (std::getline(iss, key, '=') && std::getline(iss, value))
-      {
-        // Trim whitespace (optional)
-        key.erase(0, key.find_first_not_of(" \t"));
-        key.erase(key.find_last_not_of(" \t") + 1);
-        value.erase(0, value.find_first_not_of(" \t"));
-        value.erase(value.find_last_not_of(" \t") + 1);
-
-        env[key] = value;
-      }
-    }
-    return env;
-  }
-
   /**
    * TODO: need refactor this function using std::error_code
    */
-  auto GeminiAgent::sendPrompt(std::string_view prompt) -> std::string
-  {
-    std::map<std::string, std::string> envMap = parseEnvFile("E:/src/.env");
-
-    auto envIter = envMap.find("GEMINI_API_KEY");
-
-    if (envIter == envMap.end())
-    {
-      SPDLOG_ERROR("GEMINI_API_KEY not found in the .env file!");
-      return ""; // empty string
-    }
-
-    const std::string api_key = envIter->second; // Replace with your actual Gemini API key
+  auto GeminiAgent::sendPrompt(std::string_view prompt) const noexcept -> std::string
+  {    
     const std::string host = "generativelanguage.googleapis.com";
     const std::string port = "443";
     const std::string target = "/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
@@ -88,7 +45,10 @@ namespace bgg
 
       beast::ssl_stream<beast::tcp_stream> stream(ioc, context);
 
-      if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
+      if (SSL_ctrl(stream.native_handle(),
+                   SSL_CTRL_SET_TLSEXT_HOSTNAME,
+                   TLSEXT_NAMETYPE_host_name,
+                   const_cast<char *>(host.c_str())))
       {
         beast::error_code errcode(
             int(::ERR_get_error()), net::error::get_ssl_category());
@@ -128,7 +88,7 @@ namespace bgg
 
       // Prepare HTTP request
       http::request<http::string_body> request{
-          http::verb::post, target + "?key=" + api_key, 11};
+          http::verb::post, target + "?key=" + apiKey_, 11};
       request.set(http::field::host, host);
       // request.set("x-api-key", api_key);
       request.set(http::field::content_type, "application/json");
@@ -239,6 +199,7 @@ namespace bgg
     {
       SPDLOG_ERROR("System error: {} (code: {})", e.what(), e.code().value());
     }
+
     return responseText;
   }
 } // namespace bgg

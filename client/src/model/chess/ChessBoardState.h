@@ -25,7 +25,7 @@ namespace bgg
 		ChessBoardState(std::map<Position, Piece> piecePlacements,
 										std::string color) noexcept;
 
-		[[nodiscard]] auto getYourColor() const noexcept -> std::string const &;
+		[[nodiscard]] auto getAllyColor() const noexcept -> std::string const &;
 
 		[[nodiscard]] auto getPiecePlacements() const noexcept -> std::map<Position, Piece> const &;
 
@@ -40,7 +40,8 @@ namespace bgg
 
 		// TODO: Need refactor
 		[[nodiscard]] auto tryMove(
-				ChessMove const &move) const noexcept -> ChessMove::Action;
+				ChessMove const &move, 
+				std::string const &color) const noexcept -> ChessMove::Action;
 
 		void commitMove(ChessMove::Action const &moveAction) noexcept;
 

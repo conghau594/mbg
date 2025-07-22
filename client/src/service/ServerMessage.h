@@ -32,8 +32,8 @@ namespace bgg
 
     std::map<Position, Piece> initialBoard;
     std::string yourSide;
-    int yourTurn;
-    int currentTurn;
+    std::string yourTurn;
+    std::string currentTurn;
   };
 
   class CancelMatchmakingResponse final
@@ -48,8 +48,8 @@ namespace bgg
     // enemy move
     Position fromSquare, toSquare;
     std::optional<std::string> promote; // e.g. promote to: "Queen"
-    int yourTurn;
-    int currentTurn;
+    std::string yourTurn;
+    std::string currentTurn;
   };
 
   class GameFinishedNotification final

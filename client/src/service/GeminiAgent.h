@@ -2,29 +2,34 @@
 #pragma once
 
 #include <format>
+#include <string_view>
 
 namespace bgg
 {
   class GeminiAgent
   {
-    std::string prompt_;
+    std::string apiKey_;
+    std::string promptPattern_;
 
   public:
-    GeminiAgent(std::string prompt_)
-        : prompt_(std::move(prompt_))
+    GeminiAgent(std::string apiKey, std::string promptPattern) noexcept
+        : apiKey_(std::move(apiKey)),
+          promptPattern_(std::move(promptPattern))
     {
     }
 
-    // template <typename... ARGS>
-    // void sendPrompt(ARGS &&...args) const noexcept
-    // {
-    //   std::string formattedPrompt = std::format(
-    //       std::string_view(prompt_),
-    //       std::forward<decltype(args)>(args)...);
-    // }
+    template <typename... ARGS>
+    [[nodiscard]] auto sendPromptWithArgs(ARGS &&...args) noexcept -> std::string
+    {
+      std::string formattedPrompt = std::vformat(
+          std::string_view(promptPattern_),
+          std::make_format_args(std::forward<decltype(args)>(args)...));
 
-    // private:
-    [[nodiscard]]
-    static auto sendPrompt(std::string_view prompt) -> std::string;
+      return sendPrompt(formattedPrompt);
+    }
+
+  private:
+    [[nodiscard]] auto sendPrompt(
+        std::string_view prompt) const noexcept -> std::string;
   };
 } // namespace bgg

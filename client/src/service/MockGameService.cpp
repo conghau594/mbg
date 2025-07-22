@@ -35,7 +35,7 @@ namespace bgg
                 typeid(*this).name());
             throw(std::runtime_error(msg));
           }
-          subscriptionIdList_.emplace_back(subscriptionId.value());
+          subscriptionIdList_.emplace_back(*subscriptionId);
 
           SPDLOG_INFO("'{}' has subscribed to client requests of type '{}'",
                      typeid(*this).name(), 
@@ -46,10 +46,7 @@ namespace bgg
 
   MockGameService::~MockGameService()
   {
-    for (auto &id : subscriptionIdList_)
-    {
-      eventBus_->unsubscribe<ClientRequest>(id);
-    }
+
   }
 
   void MockGameService::emit(ServerMessage const &msg) noexcept

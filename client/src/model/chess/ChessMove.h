@@ -92,6 +92,7 @@ namespace bgg
       UNDEFINED = 0,
       INVALID_SOURCE_SQUARE = 1 << 0,
       INVALID_DESTINATION_SQUARE = 1 << 1,
+      INVALID_COLOR = 1 << 2,
       // INVALID_EN_PASSANT_CAPTURE = 1 << 2,
       INVALID_PROMOTION = 1 << 3,
       INVALID_CASTLING = 1 << 4,

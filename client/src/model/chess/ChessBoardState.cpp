@@ -22,7 +22,7 @@ namespace bgg
     BGG_VALIDATE_COLOR(yourColor_);
   }
 
-  auto ChessBoardState::getYourColor() const noexcept -> std::string const &
+  auto ChessBoardState::getAllyColor() const noexcept -> std::string const &
   {
     return yourColor_;
   }
@@ -142,7 +142,8 @@ namespace bgg
   }
 
   auto ChessBoardState::tryMove(
-      ChessMove const &move) const noexcept -> ChessMove::Action
+      ChessMove const &move,
+      std::string const &color) const noexcept -> ChessMove::Action
   {
     // ========================================
     // check simple conditions
@@ -150,6 +151,11 @@ namespace bgg
     if (!movedPiece)
     {
       return ChessMove::Invalid{ChessMove::Error::INVALID_SOURCE_SQUARE};
+    }
+
+    if (movedPiece->color != color)
+    {
+      return ChessMove::Invalid{ChessMove::Error::INVALID_COLOR};
     }
 
     std::optional<Piece> capturedPiece = getPiece(move.toSquare);

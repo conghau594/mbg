@@ -46,13 +46,15 @@ namespace bgg
             ChessItemMoveAction const &itemMoveAction) const noexcept
             -> ChessMove::Action;
 
-        auto tryMove(ItemMove const &itemMove) const noexcept
+        auto tryMove(
+            ItemMove const &itemMove, std::string const &color) const noexcept
             -> ChessItemMoveAction override;
 
         void commitMove(
             ChessItemMoveAction const &itemMoveAction) noexcept override;
 
-        auto getYourColor() const -> std::string const & override;
+        auto getAllyColor() const -> std::string override;
+        auto getEnemyColor() const -> std::string override;
 
         auto getItemColor(TileCoords const &tile) const noexcept
             -> std::optional<std::string> override;

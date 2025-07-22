@@ -34,7 +34,7 @@ namespace bgg
     selectableTiles_ = gameRule_->getSelectableTiles();
     //==========
     SPDLOG_DEBUG("There are {} selectable tiles from '{}'",
-                 selectableTiles_.size(), gameRule_->getYourColor());
+                 selectableTiles_.size(), gameRule_->getAllyColor());
     //==========
   }
 

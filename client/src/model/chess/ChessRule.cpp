@@ -7,7 +7,7 @@
 
 namespace bgg
 {
-  const std::initializer_list<std::pair<Position, Piece>>
+  const std::initializer_list<std::pair<const Position, Piece>>
       ChessRule::INITIAL_PLACEMENTS{
           {Position{"e1"}, Piece{KING, Color::WHITE}},
           {Position{"d1"}, Piece{QUEEN, Color::WHITE}},
@@ -42,6 +42,102 @@ namespace bgg
           {Position{"f7"}, Piece{PAWN, Color::BLACK}},
           {Position{"g7"}, Piece{PAWN, Color::BLACK}},
           {Position{"h7"}, Piece{PAWN, Color::BLACK}}};
+
+  auto ChessRule::toUic(ChessMove const &move) -> std::string
+  {
+    std::string result = std::string(move.fromSquare.data()) +
+                         std::string(move.toSquare.data()) +
+                         ' ';
+    if (!move.promote)
+    {
+      result.back() = '\0';
+    }
+    else if (*(move.promote) == QUEEN)
+    {
+      result.back() = 'q';
+    }
+    else if (*(move.promote) == ROOK)
+    {
+      result.back() = 'r';
+    }
+    else if (*(move.promote) == BISHOP)
+    {
+      result.back() = 'b';
+    }
+    else if (*(move.promote) == KNIGHT)
+    {
+      result.back() = 'n';
+    }
+    else
+    {
+      throw std::invalid_argument("Invalid chess move");
+    }
+
+    return result;
+  }
+
+  auto ChessRule::fromUic(const std::string &uci) -> ChessMove
+  {
+    if (uci.length() != 4 && uci.length() != 5)
+    {
+      throw std::invalid_argument("Invalid UCI move length");
+    }
+
+    ChessMove move;
+
+    move.fromSquare = {uci[0], uci[1], '\0'};
+    if (ChessRule::isValid(move.fromSquare))
+    {
+      throw std::invalid_argument("Invalid square");
+    }
+
+    move.toSquare = {uci[2], uci[3], '\0'};
+    if (ChessRule::isValid(move.toSquare))
+    {
+      throw std::invalid_argument("Invalid square");
+    }
+
+    if (uci.length() == 5)
+    {
+      move.promote = std::string(1, uci[4]);
+      if (ChessRule::isValidPieceType(*move.promote))
+      {
+        throw std::invalid_argument("Invalid promotion");
+      }
+    }
+
+    return move;
+  }
+
+  auto ChessRule::isValid(Position const &square) noexcept -> bool
+  {
+    return square[0] >= 'a' &&
+           square[0] <= 'h' &&
+           square[1] >= '1' &&
+           square[1] <= '8';
+  }
+
+  auto ChessRule::isValid(Piece const &piece) noexcept -> bool
+  {
+    return isValidPieceType(piece.type) &&
+           isValidPieceColor(piece.color);
+  }
+
+  auto ChessRule::isValidPieceType(std::string const &pieceType) noexcept -> bool
+  {
+    return (pieceType == ChessRule::KING) ||
+           (pieceType == ChessRule::QUEEN) ||
+           (pieceType == ChessRule::ROOK) ||
+           (pieceType == ChessRule::BISHOP) ||
+           (pieceType == ChessRule::KNIGHT) ||
+           (pieceType == ChessRule::PAWN);
+  }
+
+  auto ChessRule::isValidPieceColor(std::string const &pieceColor) noexcept -> bool
+  {
+    return (pieceColor == Color::WHITE) ||
+           (pieceColor == Color::BLACK);
+  }
 
   auto ChessRule::getPiece(
       std::map<Position, Piece> const &piecePlacements,

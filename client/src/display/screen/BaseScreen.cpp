@@ -14,10 +14,6 @@
 #include "BaseScreen.h"
 #include "ConfirmationScreen.h"
 
-#ifdef _DEBUG
-#include <iostream>
-
-#endif
 namespace bgg
 {
   BaseScreen::BaseScreen(std::shared_ptr<sf::RenderWindow> window) noexcept
