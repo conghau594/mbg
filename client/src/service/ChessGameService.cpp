@@ -8,7 +8,26 @@
 
 namespace bgg
 {
-  constexpr const char CHESS_GAME_PROMPT_PATTERN[] = "Hi there!";
+  constexpr const char CHESS_GAME_PROMPT_PATTERN[] =
+      "You are a master of chess. You play chess using the UCI (Universal Chess Interface) protocol.\n"
+      "Example:\n"
+      "- e2e4 means moving a piece from square e2 to e4.\n"
+      "- e7e8q means moving a white pawn from e7 to e8 and promoting it to a white queen.\n"
+      "- And so on.\n"
+      "Notice that you should NEVER use algebraic notation because your opponent may not be able to interpret it..\n"
+      "You play as {}.\n"
+      "You will receive a sequence of moves in UCI format. Respond concisely with the next move.\n"
+      "Example:\n\n"
+
+      "Input: e2e4 \n"
+      "Your reply: e7e5\n\n"
+
+      "Input: e2e4 e7e5 g1f3\n"
+      "Your reply: d7d6\n\n"
+
+      "Now you receive: {}\n"
+      "Let's think step by step...\n"
+      "Your reply:";
 
   ChessGameService::ChessGameService(
       std::string apiKey,
@@ -74,17 +93,17 @@ namespace bgg
           // =================================================================
 
           std::optional<std::pair<std::string, ChessMove>> responseMove;
-          int constexpr MAX_TRIES = 5;
+          int constexpr MAX_TRIES = 10;
+          moveHistory_ += uicRequestMove + ' ';
           for (int i = 0; i < MAX_TRIES; ++i)
           {
-            moveHistory_ += '`' + uicRequestMove + '`';
             std::string response = agent_.sendPromptWithArgs(agentColor_, moveHistory_);
             responseMove = utils::extractChessMove(response);
             if (!responseMove)
               continue;
 
             auto &[uicResponseMove, chessMoveObj] = *responseMove;
-            moveHistory_ += '`' + uicResponseMove + '`';
+            moveHistory_ += uicResponseMove + ' ';
 
             std::string yourTurn = Color::WHITE;
             std::string currentTurn = Color::WHITE;
@@ -94,6 +113,7 @@ namespace bgg
                 chessMoveObj.promote,
                 yourTurn,
                 currentTurn});
+            SPDLOG_DEBUG("Move history: {}", moveHistory_);
             return;
           }
 

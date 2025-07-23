@@ -12,7 +12,6 @@
 #include <boost/json.hpp>
 
 #include "GeminiAgent.h"
-#include "base/Logger.h"
 
 namespace beast = boost::beast;
 namespace http = beast::http;
@@ -27,7 +26,7 @@ namespace bgg
    * TODO: need refactor this function using std::error_code
    */
   auto GeminiAgent::sendPrompt(std::string_view prompt) const noexcept -> std::string
-  {    
+  {
     const std::string host = "generativelanguage.googleapis.com";
     const std::string port = "443";
     const std::string target = "/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
@@ -45,10 +44,11 @@ namespace bgg
 
       beast::ssl_stream<beast::tcp_stream> stream(ioc, context);
 
-      if (SSL_ctrl(stream.native_handle(),
-                   SSL_CTRL_SET_TLSEXT_HOSTNAME,
-                   TLSEXT_NAMETYPE_host_name,
-                   const_cast<char *>(host.c_str())))
+      // if (SSL_ctrl(stream.native_handle(),
+      //              SSL_CTRL_SET_TLSEXT_HOSTNAME,
+      //              TLSEXT_NAMETYPE_host_name,
+      //              const_cast<char *>(host.c_str())))
+      if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
       {
         beast::error_code errcode(
             int(::ERR_get_error()), net::error::get_ssl_category());
@@ -79,11 +79,11 @@ namespace bgg
 
       //=======================================================================
       // LOG_DEBUG jsonRequest
-      {
-        std::ostringstream oss;
-        oss << jsonRequest;
-        SPDLOG_DEBUG("json body string: {}", oss.str());
-      }
+      // {
+      //   std::ostringstream oss;
+      //   oss << jsonRequest;
+      //   SPDLOG_DEBUG("json body string: {}", oss.str());
+      // }
       //=======================================================================
 
       // Prepare HTTP request
@@ -131,7 +131,6 @@ namespace bgg
             if (!parts.empty())
             {
               responseText = parts[0].as_object()["text"].as_string().c_str();
-              SPDLOG_DEBUG("Responsed text from the agent: {}", responseText);
               // std::string processed_text = processResponseText(text.c_str());
               // std::cout << "BOT: " << processed_text << std::endl;
 
@@ -184,8 +183,7 @@ namespace bgg
       // Shutdown SSL
       beast::error_code ec;
       stream.shutdown(ec);
-      if (ec == net::error::eof ||
-          ec == boost::asio::ssl::error::stream_truncated)
+      if (ec == net::error::eof || ec == ssl::error::stream_truncated)
       {
         ec.assign(0, ec.category());
       }
@@ -200,6 +198,7 @@ namespace bgg
       SPDLOG_ERROR("System error: {} (code: {})", e.what(), e.code().value());
     }
 
+    SPDLOG_DEBUG("Response text from the agent: {}", responseText);
     return responseText;
   }
 } // namespace bgg

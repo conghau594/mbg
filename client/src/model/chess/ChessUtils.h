@@ -33,8 +33,17 @@ namespace utils
   inline auto extractChessMove(std::string const &input) noexcept
       -> std::optional<std::pair<std::string, bgg::ChessMove>>
   {
-    std::list<std::string> uicMoves = extractBacktickStrings(input);
-    for (auto &uicMove : uicMoves)
+    const std::regex pattern(R"(([a-h][1-8][a-h][1-8][qrbn]?))");
+
+    std::smatch match;
+    std::string uicMove;
+
+    if (std::regex_search(input, match, pattern))
+    {
+      uicMove = match.str(1);
+    }
+
+    if (!uicMove.empty())
     {
       try
       {

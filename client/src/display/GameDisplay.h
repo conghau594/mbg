@@ -62,8 +62,8 @@ namespace bgg
           std::lock_guard lock(messageMutex_);
           serverMessages_.push_back(d);
 
-          SPDLOG_INFO("A server message of type '{}' has come to '{}'",
-                      typeid(DATA).name(), typeid(*this).name());
+          // SPDLOG_INFO("A server message of type '{}' has come to '{}'",
+          //             typeid(DATA).name(), typeid(*this).name());
         });
 
     if (!id)

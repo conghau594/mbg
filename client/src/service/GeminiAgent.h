@@ -4,6 +4,8 @@
 #include <format>
 #include <string_view>
 
+#include "base/Logger.h"
+
 namespace bgg
 {
   class GeminiAgent
@@ -25,6 +27,7 @@ namespace bgg
           std::string_view(promptPattern_),
           std::make_format_args(std::forward<decltype(args)>(args)...));
 
+      // SPDLOG_DEBUG(formattedPrompt);
       return sendPrompt(formattedPrompt);
     }
 

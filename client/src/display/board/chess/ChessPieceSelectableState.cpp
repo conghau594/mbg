@@ -31,11 +31,8 @@ namespace bgg
         utils::toString(ChessTextureCell::CHOICE_HIGHLIGHTER),
         false);
 
-    selectableTiles_ = gameRule_->getSelectableTiles();
-    //==========
     SPDLOG_DEBUG("There are {} selectable tiles from '{}'",
                  selectableTiles_.size(), gameRule_->getAllyColor());
-    //==========
   }
 
   ChessPieceSelectableState::~ChessPieceSelectableState() noexcept
@@ -45,11 +42,10 @@ namespace bgg
 
   void ChessPieceSelectableState::onEnter(sf::Vector2i const &mousePos) noexcept
   {
+    selectableTiles_ = gameRule_->getSelectableTiles();
     onMouseMoved(mousePos);
 
-    //==========
     SPDLOG_INFO("Entered '{}'", typeid(*this).name());
-    //==========
   }
 
   void ChessPieceSelectableState::onExit() noexcept

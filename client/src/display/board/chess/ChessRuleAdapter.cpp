@@ -261,23 +261,23 @@ namespace bgg
         tileToPosition(itemMove.toTile),
         itemMove.promote};
 
-    SPDLOG_DEBUG(
-        "Try move from ({}, {}) to ({}, {}) (promote = {})",
-        itemMove.fromTile.x, itemMove.fromTile.y,
-        itemMove.toTile.x, itemMove.toTile.y,
-        itemMove.promote ? itemMove.promote.value() : std::string("None"));
+    // SPDLOG_DEBUG(
+    //     "Try move from ({}, {}) to ({}, {}) (promote = {})",
+    //     itemMove.fromTile.x, itemMove.fromTile.y,
+    //     itemMove.toTile.x, itemMove.toTile.y,
+    //     itemMove.promote ? itemMove.promote.value() : std::string("None"));
 
     ChessMove::Action chessMoveAction = rule_.tryMove(chessMove, color);
 
     return chessMoveActionToItemMoveAction(chessMoveAction);
   }
 
-  auto ChessRuleAdapter::getAllyColor() const -> std::string 
+  auto ChessRuleAdapter::getAllyColor() const -> std::string
   {
     return rule_.getAllyColor();
   }
 
-  auto ChessRuleAdapter::getEnemyColor() const -> std::string 
+  auto ChessRuleAdapter::getEnemyColor() const -> std::string
   {
     return ChessRule::getEnemyColor(rule_.getAllyColor());
   }
@@ -376,14 +376,14 @@ namespace bgg
           { action.fromTile } -> std::same_as<TileCoords const &>;
           { action.toTile } -> std::same_as<TileCoords const &>; })
       {
-        SPDLOG_INFO("You have committed a '{}'", typeid(T).name());
+        // SPDLOG_INFO("You have committed a '{}'", typeid(T).name());
 
         auto movedItemEntry = getItemEntry(action.fromTile);
         BOOST_ASSERT_MSG(
             !movedItemEntry.isNull(),
             "There must be an item at the 'fromTile'");
 
-        // commit basic move action
+        ///< commit basic move action
         itemPlacements_.erase(action.toTile);
         itemPlacements_.emplace(action.toTile, movedItemEntry);
         itemPlacements_.erase(action.fromTile);
@@ -391,21 +391,21 @@ namespace bgg
         if constexpr (requires { 
             { action.promote } -> std::same_as<std::string const &>; }) ///< if constexpr (std::is_same_v<T, ChessPromotionItemMove>)
         {
-          // do nothing
-          // because the appearance change of 'movedItemEntry' must be done
-          // outside this class.
+          ///< do nothing
+          ///< because the appearance change of 'movedItemEntry' must be done
+          ///< outside this class.
         }
         else if constexpr (requires { 
             { action.enPassantTile } -> std::same_as<TileCoords const &>; }) ///< if constexpr (std::is_same_v<T, ChessEnPassantItemMove>)
         {
-          // remove en passant captured item
+          ///< remove en passant captured item
           itemPlacements_.erase(action.enPassantTile);
         }
         else if constexpr (requires { 
                 { action.rookSource } -> std::same_as<TileCoords const &>;
                 { action.rookDestination } -> std::same_as<TileCoords const &>; }) ///< if constexpr (std::is_same_v<T, ChessCastlingItemMove>)
         {
-          // move the related rook to the destination
+          ///< move the related rook to the destination
           auto rookItemEntry = getItemEntry(action.rookSource);
           BOOST_ASSERT_MSG(
               !rookItemEntry.isNull(),
@@ -427,7 +427,7 @@ namespace bgg
 
     itemMoveAction.visit(moveActionVisitor);
 
-    // commit move to chess rule
+    ///< commit move to chess rule
     rule_.commitMove(itemMoveActionToChessMoveAction(itemMoveAction));
   }
 

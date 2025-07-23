@@ -187,7 +187,7 @@ namespace bgg
           tileMap_->fitItemToTile(rookItemEntry.getItem(), action.rookDestination);
         }
 
-        SPDLOG_INFO("You have tried to do a '{}'", typeid(T).name());
+        // SPDLOG_INFO("You have tried to do a '{}'", typeid(T).name());
       }
       else if constexpr (std::is_same_v<T, std::monostate>)
       {
@@ -399,7 +399,7 @@ namespace bgg
             // do nothing
           }
 
-          SPDLOG_INFO("You have finalized a '{}'", typeid(T).name());
+          // SPDLOG_INFO("You have finalized a '{}'", typeid(T).name());
         }
         else if constexpr (std::is_same_v<T, std::monostate>)
         {
@@ -434,8 +434,8 @@ namespace bgg
           { action.enemyKingTile } -> std::same_as<TileCoords const &>;
           { action.enemyKingState } -> std::same_as<KingState const &>; })
       {
-        SPDLOG_INFO("Chess board has been updated with a '{}' from server",
-                    typeid(T).name());
+        // SPDLOG_INFO("Chess board has been updated with a '{}' from server",
+        //             typeid(T).name());
 
         auto movedItemEntry = gameRule_->getItemEntry(action.fromTile);
         BOOST_ASSERT_MSG(
@@ -480,6 +480,9 @@ namespace bgg
 
           tileMap_->fitItemToTile(rookItemEntry.getItem(), action.rookDestination);
         }
+
+        gameRule_->commitMove(action);
+        gameBoard_->popState();
       }
       else if constexpr (std::is_same_v<T, std::monostate>)
       {
@@ -499,7 +502,6 @@ namespace bgg
         enemyMove, gameRule_->getEnemyColor());
 
     enemyItemMoveAction.visit(moveActionVisitor);
-    gameRule_->commitMove(enemyItemMoveAction);
 
     SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
                 typeid(notif).name(),
