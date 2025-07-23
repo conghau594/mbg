@@ -20,6 +20,8 @@ namespace bgg
 		std::string yourColor_;
 		ChessMoveTracker moveTracker_;
 
+		std::list<ChessMove::Action> moveHistory_;
+
 	public:
 		ChessBoardState(std::string color) noexcept;
 		ChessBoardState(std::map<Position, Piece> piecePlacements,
@@ -38,9 +40,13 @@ namespace bgg
 		[[nodiscard]] auto getPiece(
 				Position const &square) const noexcept -> std::optional<Piece>;
 
-		// TODO: Need refactor
+		/**
+		 * \return std::nullopt if the move history is empty.
+		 */
+		[[nodiscard]] auto getLastMove() const noexcept -> std::optional<ChessMove>;
+
 		[[nodiscard]] auto tryMove(
-				ChessMove const &move, 
+				ChessMove const &move,
 				std::string const &color) const noexcept -> ChessMove::Action;
 
 		void commitMove(ChessMove::Action const &moveAction) noexcept;

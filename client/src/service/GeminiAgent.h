@@ -11,17 +11,17 @@ namespace bgg
   class GeminiAgent
   {
     std::string apiKey_;
+    std::string systemInstruction_;
     std::string promptPattern_;
 
   public:
-    GeminiAgent(std::string apiKey, std::string promptPattern) noexcept
-        : apiKey_(std::move(apiKey)),
-          promptPattern_(std::move(promptPattern))
-    {
-    }
+    GeminiAgent(
+        std::string apiKey,
+        std::string systemInstruction,
+        std::string promptPattern) noexcept;
 
     template <typename... ARGS>
-    [[nodiscard]] auto sendPromptWithArgs(ARGS &&...args) noexcept -> std::string
+    [[nodiscard]] auto sendPromptWithArgs(ARGS &&...args) noexcept -> std::optional<std::string>
     {
       std::string formattedPrompt = std::vformat(
           std::string_view(promptPattern_),
@@ -33,6 +33,6 @@ namespace bgg
 
   private:
     [[nodiscard]] auto sendPrompt(
-        std::string_view prompt) const noexcept -> std::string;
+        std::string_view prompt) const noexcept -> std::optional<std::string>;
   };
 } // namespace bgg

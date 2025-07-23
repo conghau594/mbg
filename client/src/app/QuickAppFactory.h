@@ -26,8 +26,8 @@ namespace bgg
 
 		auto createGameApp() noexcept -> GameApp override
 		{
-			int constexpr RESIGN_REGION_HEIGHT = 80;
-			int constexpr BOARD_SIDE_LENGTH = 1000;
+			int constexpr RESIGN_REGION_HEIGHT = 20;
+			int constexpr BOARD_SIDE_LENGTH = 200;
 			int constexpr BOARD_MIN_SIDE_LENGTH = 80;
 
 			sf::Vector2u constexpr WINDOW_SIZE(
@@ -53,7 +53,7 @@ namespace bgg
 			window->setVerticalSyncEnabled(true);
 
 			// parse API key from an .env file
-			std::map<std::string, std::string> envMap = utils::parseEnvFile("E:/src/.env");
+			std::map<std::string, std::string> envMap = utils::parseEnvFile("D:/src/.env");
 			auto envIter = envMap.find("GEMINI_API_KEY");
 			std::string geminiApiKey;
 			if (envIter == envMap.end())
@@ -66,9 +66,6 @@ namespace bgg
 			}
 			std::shared_ptr<ClientEventBus>
 					eventBus = std::make_shared<ClientEventBus>();
-			std::shared_ptr<GameService>
-					gameService = std::make_shared<ChessGameService>(
-							std::move(geminiApiKey), eventBus);
 			std::shared_ptr<IDisplay>
 					gameDisplay = std::make_shared<GameDisplay>(window, eventBus);
 
@@ -119,11 +116,18 @@ namespace bgg
 					{0, "", "Mock"}, // error code
 					gameType_,
 					std::move(standardPlacements), // initialBoard -> empty
-					Color::WHITE,									 // yourSide
+					Color::WHITE,									 // yourColor
 					Color::WHITE,									 // yourTurn
 					Color::WHITE									 // currentTurn
 			};
 			//==============
+
+			auto chessRuleAtServer = std::make_shared<ChessBoardState>(
+					findGameResponse.initialBoard, findGameResponse.yourColor);
+
+			std::shared_ptr<GameService>
+					gameService = std::make_shared<ChessGameService>(
+							std::move(geminiApiKey), chessRuleAtServer, eventBus);
 
 			sf::IntRect boardRect(
 					{0, RESIGN_REGION_HEIGHT}, {BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH});
@@ -133,8 +137,14 @@ namespace bgg
 				gameDisplay->send(request);
 			};
 
-			std::shared_ptr<IGameBoard> chessBoard = GameBoardFactory().create(
-					findGameResponse, boardRect, std::move(requestSender));
+			//============================
+			auto chessRuleAtClient = std::make_shared<ChessBoardState>(*chessRuleAtServer);
+
+			std::shared_ptr<IGameBoard> chessBoard = GameBoardFactory().createChessBoard(
+					std::move(chessRuleAtClient),
+					boardRect,
+					std::move(requestSender),
+					findGameResponse.yourTurn == findGameResponse.currentTurn);
 
 			std::shared_ptr<IScreen> chessScreen = std::make_shared<GamePlayScreen>(
 					window, gameDisplay, chessBoard, RESIGN_REGION_HEIGHT);

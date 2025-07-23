@@ -12,15 +12,18 @@
 namespace bgg
 {
   ChessRuleAdapter::ChessRuleAdapter(
-      std::shared_ptr<ItemStore> itemStore, ChessBoardState rule) noexcept
-      : rule_(std::move(rule)),
-        positionToTileConverter_(getPositionToTileConverter(rule_.getAllyColor())),
-        tileToPositionConverter_(getTileToPositionConverter(rule_.getAllyColor()))
+      std::shared_ptr<ItemStore> itemStore,
+      std::shared_ptr<ChessBoardState> chessRule) noexcept
+      : chessRule_(std::move(chessRule)),
+        positionToTileConverter_(
+            getPositionToTileConverter(chessRule_->getAllyColor())),
+        tileToPositionConverter_(
+            getTileToPositionConverter(chessRule_->getAllyColor()))
   {
     BOOST_ASSERT_MSG(itemStore, "The 'itemStore' cannot be null");
 
     // add piece items to itemStore, also assign the returned entry
-    std::map<Position, Piece> const &initialBoard = rule_.getPiecePlacements();
+    std::map<Position, Piece> const &initialBoard = chessRule_->getPiecePlacements();
     for (auto &[square, piece] : initialBoard)
     {
       ItemStore::Entry itemEntry = itemStore->addItem(
@@ -59,13 +62,13 @@ namespace bgg
           positionToTile(normalChessMove->enemyKingSquare),
           normalChessMove->enemyKingState};
 
-      SPDLOG_DEBUG(
-          "The move is from ({}, {}) to ({}, {}) and is a 'NormalChessItemMove': "
-          "enemykingTile = ({}, {}), enemyKingState = {}",
-          normalMove.fromTile.x, normalMove.fromTile.y,
-          normalMove.toTile.x, normalMove.toTile.y,
-          normalMove.enemyKingTile.x, normalMove.enemyKingTile.y,
-          utils::toString(normalMove.enemyKingState));
+      // SPDLOG_DEBUG(
+      //     "The move is from ({}, {}) to ({}, {}) and is a 'NormalChessItemMove': "
+      //     "enemykingTile = ({}, {}), enemyKingState = {}",
+      //     normalMove.fromTile.x, normalMove.fromTile.y,
+      //     normalMove.toTile.x, normalMove.toTile.y,
+      //     normalMove.enemyKingTile.x, normalMove.enemyKingTile.y,
+      //     utils::toString(normalMove.enemyKingState));
 
       return normalMove;
     }
@@ -78,14 +81,14 @@ namespace bgg
           positionToTile(chessPromotionMove->enemyKingSquare),
           chessPromotionMove->enemyKingState};
 
-      SPDLOG_DEBUG(
-          "The move is from ({}, {}) to ({}, {}) and is a 'ChessPromotionItemMove': "
-          "promote = {}, enemykingTile = ({}, {}), enemyKingState = {}",
-          promotionMove.fromTile.x, promotionMove.fromTile.y,
-          promotionMove.toTile.x, promotionMove.toTile.y,
-          promotionMove.promote,
-          promotionMove.enemyKingTile.x, promotionMove.enemyKingTile.y,
-          utils::toString(promotionMove.enemyKingState));
+      // SPDLOG_DEBUG(
+      //     "The move is from ({}, {}) to ({}, {}) and is a 'ChessPromotionItemMove': "
+      //     "promote = {}, enemykingTile = ({}, {}), enemyKingState = {}",
+      //     promotionMove.fromTile.x, promotionMove.fromTile.y,
+      //     promotionMove.toTile.x, promotionMove.toTile.y,
+      //     promotionMove.promote,
+      //     promotionMove.enemyKingTile.x, promotionMove.enemyKingTile.y,
+      //     utils::toString(promotionMove.enemyKingState));
 
       return promotionMove;
     }
@@ -98,14 +101,14 @@ namespace bgg
           positionToTile(chessEnPassantMove->enemyKingSquare),
           chessEnPassantMove->enemyKingState};
 
-      SPDLOG_DEBUG(
-          "The move is from ({}, {}) to ({}, {}) and is a 'ChessEnPassantItemMove': "
-          "enPassantTile = ({}, {}), enemykingTile = ({}, {}), enemyKingState = {}",
-          enPassantMove.fromTile.x, enPassantMove.fromTile.y,
-          enPassantMove.toTile.x, enPassantMove.toTile.y,
-          enPassantMove.enPassantTile.x, enPassantMove.enPassantTile.y,
-          enPassantMove.enemyKingTile.x, enPassantMove.enemyKingTile.y,
-          utils::toString(enPassantMove.enemyKingState));
+      // SPDLOG_DEBUG(
+      //     "The move is from ({}, {}) to ({}, {}) and is a 'ChessEnPassantItemMove': "
+      //     "enPassantTile = ({}, {}), enemykingTile = ({}, {}), enemyKingState = {}",
+      //     enPassantMove.fromTile.x, enPassantMove.fromTile.y,
+      //     enPassantMove.toTile.x, enPassantMove.toTile.y,
+      //     enPassantMove.enPassantTile.x, enPassantMove.enPassantTile.y,
+      //     enPassantMove.enemyKingTile.x, enPassantMove.enemyKingTile.y,
+      //     utils::toString(enPassantMove.enemyKingState));
 
       return enPassantMove;
     }
@@ -119,22 +122,22 @@ namespace bgg
           positionToTile(chessCastlingMove->enemyKingSquare),
           chessCastlingMove->enemyKingState};
 
-      SPDLOG_DEBUG(
-          "The move is from ({}, {}) to ({}, {}) and is a 'ChessCastlingItemMove': "
-          "the rook move from ({}, {}) to ({}, {}), "
-          "enemykingTile = ({}, {}), enemyKingState = {}",
-          castlingMove.fromTile.x, castlingMove.fromTile.y,
-          castlingMove.toTile.x, castlingMove.toTile.y,
-          castlingMove.rookSource.x, castlingMove.rookSource.y,
-          castlingMove.rookDestination.x, castlingMove.rookDestination.y,
-          castlingMove.enemyKingTile.x, castlingMove.enemyKingTile.y,
-          utils::toString(castlingMove.enemyKingState));
+      // SPDLOG_DEBUG(
+      //     "The move is from ({}, {}) to ({}, {}) and is a 'ChessCastlingItemMove': "
+      //     "the rook move from ({}, {}) to ({}, {}), "
+      //     "enemykingTile = ({}, {}), enemyKingState = {}",
+      //     castlingMove.fromTile.x, castlingMove.fromTile.y,
+      //     castlingMove.toTile.x, castlingMove.toTile.y,
+      //     castlingMove.rookSource.x, castlingMove.rookSource.y,
+      //     castlingMove.rookDestination.x, castlingMove.rookDestination.y,
+      //     castlingMove.enemyKingTile.x, castlingMove.enemyKingTile.y,
+      //     utils::toString(castlingMove.enemyKingState));
 
       return castlingMove;
     }
     else if (chessMoveAction.getIf<std::monostate>())
     {
-      SPDLOG_DEBUG("The move is empty");
+      // SPDLOG_DEBUG("The move is empty");
       return std::monostate{};
     }
     else
@@ -145,7 +148,7 @@ namespace bgg
           "The last case of this 'chessMoveAction' should be of type ChessMove::Invalid");
 
       std::string errorMsg = utils::toString(invalidChessMove->error);
-      SPDLOG_DEBUG("The move is invalid: {}", errorMsg);
+      // SPDLOG_DEBUG("The move is invalid: {}", errorMsg);
       return InvalidChessItemMove{errorMsg};
     }
   }
@@ -162,13 +165,13 @@ namespace bgg
           tileToPosition(normalItemMove->enemyKingTile),
           normalItemMove->enemyKingState};
 
-      SPDLOG_DEBUG(
-          "The move is from '{}{}' to '{}{}' and is a 'ChessMove::Normal': "
-          "enemykingSquare = {}{}, enemyKingState = {}",
-          normalMove.fromSquare[0], normalMove.fromSquare[1],
-          normalMove.toSquare[0], normalMove.toSquare[1],
-          normalMove.enemyKingSquare[0], normalMove.enemyKingSquare[1],
-          utils::toString(normalMove.enemyKingState));
+      // SPDLOG_DEBUG(
+      //     "The move is from '{}{}' to '{}{}' and is a 'ChessMove::Normal': "
+      //     "enemykingSquare = {}{}, enemyKingState = {}",
+      //     normalMove.fromSquare[0], normalMove.fromSquare[1],
+      //     normalMove.toSquare[0], normalMove.toSquare[1],
+      //     normalMove.enemyKingSquare[0], normalMove.enemyKingSquare[1],
+      //     utils::toString(normalMove.enemyKingState));
 
       return normalMove;
     }
@@ -181,14 +184,14 @@ namespace bgg
           tileToPosition(promotionItemMove->enemyKingTile),
           promotionItemMove->enemyKingState};
 
-      SPDLOG_DEBUG(
-          "The move is from '{}{}' to '{}{}' and is a 'ChessMove::Promotion': "
-          "promote = {}, enemykingSquare = {}{}, enemyKingState = {}",
-          promotionMove.fromSquare[0], promotionMove.fromSquare[1],
-          promotionMove.toSquare[0], promotionMove.toSquare[1],
-          promotionMove.promote,
-          promotionMove.enemyKingSquare[0], promotionMove.enemyKingSquare[1],
-          utils::toString(promotionMove.enemyKingState));
+      // SPDLOG_DEBUG(
+      //     "The move is from '{}{}' to '{}{}' and is a 'ChessMove::Promotion': "
+      //     "promote = {}, enemykingSquare = {}{}, enemyKingState = {}",
+      //     promotionMove.fromSquare[0], promotionMove.fromSquare[1],
+      //     promotionMove.toSquare[0], promotionMove.toSquare[1],
+      //     promotionMove.promote,
+      //     promotionMove.enemyKingSquare[0], promotionMove.enemyKingSquare[1],
+      //     utils::toString(promotionMove.enemyKingState));
 
       return promotionMove;
     }
@@ -201,14 +204,14 @@ namespace bgg
           tileToPosition(chessEnPassantMove->enemyKingTile),
           chessEnPassantMove->enemyKingState};
 
-      SPDLOG_DEBUG(
-          "The move is from '{}{}' to '{}{}' and is a 'ChessMove::EnPassant': "
-          "enPassantSquare = {}{}, enemykingSquare = {}{}, enemyKingState = {}",
-          enPassantMove.fromSquare[0], enPassantMove.fromSquare[1],
-          enPassantMove.toSquare[0], enPassantMove.toSquare[1],
-          enPassantMove.enPassantSquare[0], enPassantMove.enPassantSquare[1],
-          enPassantMove.enemyKingSquare[0], enPassantMove.enemyKingSquare[1],
-          utils::toString(enPassantMove.enemyKingState));
+      // SPDLOG_DEBUG(
+      //     "The move is from '{}{}' to '{}{}' and is a 'ChessMove::EnPassant': "
+      //     "enPassantSquare = {}{}, enemykingSquare = {}{}, enemyKingState = {}",
+      //     enPassantMove.fromSquare[0], enPassantMove.fromSquare[1],
+      //     enPassantMove.toSquare[0], enPassantMove.toSquare[1],
+      //     enPassantMove.enPassantSquare[0], enPassantMove.enPassantSquare[1],
+      //     enPassantMove.enemyKingSquare[0], enPassantMove.enemyKingSquare[1],
+      //     utils::toString(enPassantMove.enemyKingState));
 
       return enPassantMove;
     }
@@ -222,16 +225,16 @@ namespace bgg
           tileToPosition(chessCastlingMove->enemyKingTile),
           chessCastlingMove->enemyKingState};
 
-      SPDLOG_DEBUG(
-          "The move is from '{}{}' to '{}{}' and is a 'ChessMove::Castling': "
-          "the rook move from '{}{}' to '{}{}', "
-          "enemykingSquare = {}{}, enemyKingState = {}",
-          castlingMove.fromSquare[0], castlingMove.fromSquare[1],
-          castlingMove.toSquare[0], castlingMove.toSquare[1],
-          castlingMove.rookSource[0], castlingMove.rookSource[1],
-          castlingMove.rookDestination[0], castlingMove.rookDestination[1],
-          castlingMove.enemyKingSquare[0], castlingMove.enemyKingSquare[1],
-          utils::toString(castlingMove.enemyKingState));
+      // SPDLOG_DEBUG(
+      //     "The move is from '{}{}' to '{}{}' and is a 'ChessMove::Castling': "
+      //     "the rook move from '{}{}' to '{}{}', "
+      //     "enemykingSquare = {}{}, enemyKingState = {}",
+      //     castlingMove.fromSquare[0], castlingMove.fromSquare[1],
+      //     castlingMove.toSquare[0], castlingMove.toSquare[1],
+      //     castlingMove.rookSource[0], castlingMove.rookSource[1],
+      //     castlingMove.rookDestination[0], castlingMove.rookDestination[1],
+      //     castlingMove.enemyKingSquare[0], castlingMove.enemyKingSquare[1],
+      //     utils::toString(castlingMove.enemyKingState));
 
       return castlingMove;
     }
@@ -267,28 +270,39 @@ namespace bgg
     //     itemMove.toTile.x, itemMove.toTile.y,
     //     itemMove.promote ? itemMove.promote.value() : std::string("None"));
 
-    ChessMove::Action chessMoveAction = rule_.tryMove(chessMove, color);
+    ChessMove::Action chessMoveAction = chessRule_->tryMove(chessMove, color);
 
     return chessMoveActionToItemMoveAction(chessMoveAction);
   }
 
   auto ChessRuleAdapter::getAllyColor() const -> std::string
   {
-    return rule_.getAllyColor();
+    return chessRule_->getAllyColor();
   }
 
   auto ChessRuleAdapter::getEnemyColor() const -> std::string
   {
-    return ChessRule::getEnemyColor(rule_.getAllyColor());
+    return ChessRule::getEnemyColor(chessRule_->getAllyColor());
   }
 
   auto ChessRuleAdapter::getItemColor(TileCoords const &tile) const noexcept
       -> std::optional<std::string>
   {
-    auto piece = rule_.getPiece(tileToPosition(tile));
+    auto piece = chessRule_->getPiece(tileToPosition(tile));
     if (piece)
     {
       return piece->color;
+    }
+    return std::nullopt;
+  }
+
+  auto ChessRuleAdapter::getItemType(TileCoords const &tile) const noexcept
+      -> std::optional<std::string>
+  {
+    auto piece = chessRule_->getPiece(tileToPosition(tile));
+    if (piece)
+    {
+      return piece->type;
     }
     return std::nullopt;
   }
@@ -301,7 +315,7 @@ namespace bgg
   auto ChessRuleAdapter::getSelectableTiles() const noexcept -> ItemPlacementMap
   {
     std::map<Position, Piece>
-        piecePlacements = rule_.getSelectablePieces(rule_.getAllyColor());
+        piecePlacements = chessRule_->getSelectablePieces(chessRule_->getAllyColor());
 
     ItemPlacementMap itemPlacements;
     for (auto &[square, piece] : piecePlacements)
@@ -328,7 +342,7 @@ namespace bgg
 
     Position originSquare = tileToPosition(tile);
 
-    CandidateChessMoveInfo candidateMoveInfo = rule_.collectCandidateMoves(originSquare);
+    CandidateChessMoveInfo candidateMoveInfo = chessRule_->collectCandidateMoves(originSquare);
 
     std::list<TileCoords> quietSquares;
     for (auto &square : candidateMoveInfo.quietSquares)
@@ -428,7 +442,7 @@ namespace bgg
     itemMoveAction.visit(moveActionVisitor);
 
     ///< commit move to chess rule
-    rule_.commitMove(itemMoveActionToChessMoveAction(itemMoveAction));
+    chessRule_->commitMove(itemMoveActionToChessMoveAction(itemMoveAction));
   }
 
   // auto ChessRuleAdapter::addItemEntry(

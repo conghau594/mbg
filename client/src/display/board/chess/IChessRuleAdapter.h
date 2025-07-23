@@ -56,6 +56,9 @@ namespace bgg
     [[nodiscard]]
     virtual auto getItemColor(TileCoords const &tile) const
         -> std::optional<std::string> = 0;
+    [[nodiscard]]
+    virtual auto getItemType(TileCoords const &tile) const
+        -> std::optional<std::string> = 0;
 
     [[nodiscard]]
     virtual auto getItemPlacements() -> ItemPlacementMap const & = 0;

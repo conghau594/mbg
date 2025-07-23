@@ -58,7 +58,6 @@ namespace bgg
       addHighlighters(reachableTileInfo.value());
       somethingWrong = false;
 
-      //==========
       SPDLOG_DEBUG(
           "There are {} reachable tiles from tile ({}, {}) obtained by '{}'",
           reachableTileInfo->quietSquares.size() +
@@ -66,7 +65,6 @@ namespace bgg
               reachableTileInfo->specialMoveTiles.size(),
           selectedTile_.x, selectedTile_.y,
           "?" /*ChessPiece::toString(gameRule_->getItemT Entry(selectedTile_).value())*/);
-      //==========
     }
 
     BOOST_ASSERT_MSG(!somethingWrong,
@@ -78,9 +76,7 @@ namespace bgg
   {
     onMouseMoved(mousePos);
 
-    //==========
-    SPDLOG_INFO("Entered '{}'", typeid(*this).name());
-    //==========
+    // SPDLOG_INFO("Entered '{}'", typeid(*this).name());
   }
 
   void ChessPieceSelectedState::onExit() noexcept
@@ -140,7 +136,7 @@ namespace bgg
   void ChessPieceSelectedState::onMousePressed(
       sf::Vector2i const & /*mousePos*/) noexcept
   {
-    // do nothing
+    ///< do nothing
   }
 
   void ChessPieceSelectedState::onMouseReleased(
@@ -157,7 +153,8 @@ namespace bgg
     // choiceHighlighter_.getItem().setVisible(false);
 
     std::optional<std::string> promotedPiece(std::nullopt);
-    if (targetedTile.y == 0)
+    if (targetedTile.y == 0 &&
+        gameRule_->getItemType(selectedTile_) == ChessRule::PAWN)
     {
       // TODO: make 'promotedPiece' choosable instead fixed "Queen" like this
       promotedPiece = "Queen";
@@ -174,7 +171,7 @@ namespace bgg
   void ChessPieceSelectedState::onServerMessage(
       ServerMessage const & /*msg*/) noexcept
   {
-    // do nothing
+    ///< do nothing
   }
 
   void ChessPieceSelectedState::addHighlighters(
@@ -258,7 +255,7 @@ namespace bgg
     }
     else
     {
-      // handle castling move
+      ///< handle castling move
       for (auto &tile : reachableTileInfo.specialMoveTiles)
       {
         ItemStore::Entry quietMoveHighlighter = itemStore_->addItem(

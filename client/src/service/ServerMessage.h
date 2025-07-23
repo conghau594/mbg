@@ -31,7 +31,7 @@ namespace bgg
     int gameType;
 
     std::map<Position, Piece> initialBoard;
-    std::string yourSide;
+    std::string yourColor;
     std::string yourTurn;
     std::string currentTurn;
   };

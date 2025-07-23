@@ -20,29 +20,24 @@ namespace bgg
   class GameBoardFactory final
   {
   public:
-    [[nodiscard]]
-    auto create(
-        FindGameResponse const &findGameResponse,
-        sf::IntRect const &boardRect,
-        std::function<void(ClientRequest const &)> requestSender) const
-        -> std::shared_ptr<IGameBoard>
-    {
-      switch (findGameResponse.gameType)
-      {
-      case GameType::CHESS:
-        return createChessBoard(findGameResponse, boardRect, std::move(requestSender));
-      case GameType::GOMOKU:
-      default:
-        return nullptr;
-      }
-    }
+    //   [[nodiscard]] auto create(
+    //       std::shared_ptr<ChessBoardState> chessRule,
+    //       sf::IntRect const &boardRect,
+    //       std::function<void(ClientRequest const &)> requestSender,
+    //       bool isYourTurn) const
+    //       -> std::shared_ptr<IGameBoard>
+    //   {
 
-  private:
-    [[nodiscard]]
-    auto createChessBoard(
-        FindGameResponse const &findGameResponse,
+    //     return createChessBoard(
+    //         chessRule, boardRect, std::move(requestSender), isYourTurn);
+    //   }
+
+    // private:
+    [[nodiscard]] auto createChessBoard(
+        std::shared_ptr<ChessBoardState> chessRule,
         sf::IntRect const &boardRect,
-        std::function<void(ClientRequest const &)> &&requestSender) const
+        std::function<void(ClientRequest const &)> requestSender,
+        bool isYourTurn) const
         -> std::shared_ptr<IGameBoard>
     {
       sf::Vector2i constexpr mapSizeInTiles{8, 8};
@@ -66,21 +61,19 @@ namespace bgg
 
       auto itemStore = std::make_shared<ItemStore>(chessTextureAtlas);
 
-      ChessBoardState chessRule(findGameResponse.initialBoard, findGameResponse.yourSide);
-      // TODO: need to consider how to initiate the IChessRuleAdapter with
-      //       findGameResponse.initialBoard
       std::shared_ptr<IChessRuleAdapter>
-          gameRuleAdapter = std::make_shared<ChessRuleAdapter>(itemStore, std::move(chessRule));
+          gameRuleAdapter = std::make_shared<ChessRuleAdapter>(
+              itemStore, std::move(chessRule));
 
       // create chessBoard with the loaded texture atlas
       std::shared_ptr<IChessBoard>
           chessBoard = std::make_shared<ChessBoard>(
-              boardRect, gameRuleAdapter, tileMap, itemStore, requestSender);
+              boardRect, gameRuleAdapter, tileMap, itemStore, std::move(requestSender));
 
       // assign the initial state of the board
       std::shared_ptr<IBoardState> initialBoardState;
 
-      if (findGameResponse.yourTurn == findGameResponse.currentTurn)
+      if (isYourTurn)
       {
         initialBoardState = std::make_shared<ChessPieceSelectableState>(
             chessBoard,

@@ -141,6 +141,37 @@ namespace bgg
     return ChessRule::getPiece(piecePlacements_, square);
   }
 
+  auto ChessBoardState::getLastMove() const noexcept -> std::optional<ChessMove>
+  {
+    if (moveHistory_.empty())
+    {
+      return std::nullopt;
+    }
+
+    auto moveActionVisitor = [this]<typename T>(T const &action) -> ChessMove
+    {
+      if constexpr (requires { 
+        { action.fromSquare } -> std::same_as<Position const &>;
+        { action.toSquare } -> std::same_as<Position const &>; })
+      {
+        ChessMove move{action.fromSquare, action.toSquare, std::nullopt};
+        if constexpr (requires { 
+          { action.promote }->std::same_as<std::optional<std::string> const &>; })
+        {
+          move.promote = action.promote;
+        }
+        return move;
+      }
+      else
+      {
+        BOOST_ASSERT_MSG(false, "The move action cannot be invalid in this case.");
+        return ChessMove{};
+      }
+    };
+    
+    return moveHistory_.back().visit(moveActionVisitor);
+  }
+
   auto ChessBoardState::tryMove(
       ChessMove const &move,
       std::string const &color) const noexcept -> ChessMove::Action
@@ -377,6 +408,8 @@ namespace bgg
             piecePlacements_.erase(action.rookSource);
           }
         }
+
+        moveHistory_.emplace_back(action);
       }
       else if constexpr (std::is_same_v<T, std::monostate>)
       {
@@ -429,12 +462,6 @@ namespace bgg
   {
     BGG_VALIDATE_COLOR(color);
 
-    Position kingSquare{"e1"}; // if (color == Color::WHITE)
-    if (color == Color::BLACK)
-    {
-      kingSquare = Position{"e8"};
-    }
-
     std::list<Position> result;
     auto const &specialMoveTracker = moveTracker_.getSpecialMoveTracker(color);
     if (specialMoveTracker.isKingMoved())
@@ -442,14 +469,30 @@ namespace bgg
       return result;
     }
 
+    Position kingSquare{"e1"}; // if (color == Color::WHITE)
+    if (color == Color::BLACK)
+    {
+      kingSquare = Position{"e8"};
+    }
+
     if (!specialMoveTracker.isRookAMoved())
     {
-      result.emplace_back(Position{char(kingSquare[0] - 2), kingSquare[1], '\0'});
+      Position rookDestination{char(kingSquare[0] - 2), kingSquare[1], '\0'};
+      Position midwaySquare{char(kingSquare[0] - 1), kingSquare[1], '\0'};
+      if (!getPiece(rookDestination) && !getPiece(midwaySquare))
+      {
+        result.emplace_back(rookDestination);
+      }
     }
 
     if (!specialMoveTracker.isRookHMoved())
     {
-      result.emplace_back(Position{char(kingSquare[0] + 2), kingSquare[1], '\0'});
+      Position rookDestination{char(kingSquare[0] + 2), kingSquare[1], '\0'};
+      Position midwaySquare{char(kingSquare[0] + 1), kingSquare[1], '\0'};
+      if (!getPiece(rookDestination) && !getPiece(midwaySquare))
+      {
+        result.emplace_back(rookDestination);
+      }
     }
 
     return result;
@@ -466,11 +509,11 @@ namespace bgg
     }
     else if (piece.type == ChessRule::ROOK)
     {
-      if (fromSquare[0] == 'a' && !specialMoveTracker.isRookAMoved())
+      if (!specialMoveTracker.isRookAMoved() && fromSquare[0] == 'a')
       {
         specialMoveTracker.markRookAMoved();
       }
-      if (fromSquare[0] == 'h' && !specialMoveTracker.isRookHMoved())
+      if (!specialMoveTracker.isRookHMoved() && fromSquare[0] == 'h')
       {
         specialMoveTracker.markRookHMoved();
       }

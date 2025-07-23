@@ -12,6 +12,7 @@
 
 namespace bgg
 {
+  class ChessBoardState;
   class ChessGameService : public GameService
   {
     utils::ThreadPool threadPool_;
@@ -19,12 +20,17 @@ namespace bgg
     std::vector<std::size_t> subscriptionIdList_;
 
     GeminiAgent agent_;
-    std::string agentColor_ = "Black";
-    std::string moveHistory_;
+
+    std::shared_ptr<ChessBoardState> chessRule_;
+    std::string agentColor_;
+    std::string moveHistoryStr_;
+
 
   public:
     ChessGameService(
-        std::string apiKey, std::shared_ptr<ClientEventBus> eventBus);
+        std::string apiKey,
+        std::shared_ptr<ChessBoardState> chessRule,
+        std::shared_ptr<ClientEventBus> eventBus);
 
     ~ChessGameService();
 

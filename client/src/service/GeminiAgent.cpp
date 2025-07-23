@@ -12,6 +12,7 @@
 #include <boost/json.hpp>
 
 #include "GeminiAgent.h"
+#include "base/JsonUtils.h"
 
 namespace beast = boost::beast;
 namespace http = beast::http;
@@ -22,10 +23,20 @@ using tcp = net::ip::tcp;
 
 namespace bgg
 {
+  GeminiAgent::GeminiAgent(
+      std::string apiKey,
+      std::string systemInstruction,
+      std::string promptPattern) noexcept
+      : apiKey_(std::move(apiKey)),
+        systemInstruction_(std::move(systemInstruction)),
+        promptPattern_(std::move(promptPattern))
+  {
+  }
+
   /**
    * TODO: need refactor this function using std::error_code
    */
-  auto GeminiAgent::sendPrompt(std::string_view prompt) const noexcept -> std::string
+  auto GeminiAgent::sendPrompt(std::string_view prompt) const noexcept -> std::optional<std::string>
   {
     const std::string host = "generativelanguage.googleapis.com";
     const std::string port = "443";
@@ -34,7 +45,7 @@ namespace bgg
     // const std::string target = "/v1beta/models/gemini-2.5-pro-preview-06-05:generateContent";
     // const std::string target = "/v1beta/models/gemini-1.5-pro:generateContent";
 
-    std::string responseText;
+    std::optional<std::string> responseText{std::nullopt};
     try
     {
       // prepare connection objects
@@ -61,7 +72,36 @@ namespace bgg
       beast::get_lowest_layer(stream).connect(results);
       stream.handshake(ssl::stream_base::client);
 
-      // Build correct JSON request body according to Gemini API spec
+      ///< Build correct JSON request body according to Gemini API spec
+      /************************************************************************
+        {
+          "contents": {
+            "role": "ROLE",
+            "parts": { "text": "TEXT" }
+          },
+          "system_instruction":
+          {
+            "parts": [
+              {
+                "text": "SYSTEM_INSTRUCTION"
+              }
+            ]
+          },
+          "safety_settings": {
+            "category": "SAFETY_CATEGORY",
+            "threshold": "THRESHOLD"
+          },
+          "generation_config": {
+            "temperature": TEMPERATURE,
+            "topP": TOP_P,
+            "topK": TOP_K,
+            "candidateCount": 1,
+            "maxOutputTokens": MAX_OUTPUT_TOKENS,
+            "stopSequences": STOP_SEQUENCES
+          }
+        }
+      ************************************************************************/
+      ///< "contents":
       json::object userPart;
       userPart["text"] = prompt;
 
@@ -69,26 +109,33 @@ namespace bgg
       userContent["role"] = "user";
       userContent["parts"] = json::array{userPart};
 
+      ///< "system_instruction":
+      json::object systemPart;
+      systemPart["text"] = systemInstruction_;
+      json::object systemInstruction;
+      systemInstruction["parts"] = json::array{systemPart};
+      
+      ///< json request      
       // json::array conversationHistory;
       // conversationHistory.push_back(userContent);
 
       json::object jsonRequest;
       jsonRequest["contents"] = json::array{userContent};
-
-      // SPDLOG_DEBUG("json body: {}", body);
+      jsonRequest["system_instruction"] = systemInstruction;
 
       //=======================================================================
-      // LOG_DEBUG jsonRequest
-      // {
-      //   std::ostringstream oss;
-      //   oss << jsonRequest;
-      //   SPDLOG_DEBUG("json body string: {}", oss.str());
-      // }
+      // LOG_DEBUG userContent
+      {
+        std::ostringstream oss;
+        utils::printPrettyJson(oss, userContent);
+        SPDLOG_DEBUG("User content: {}", oss.str());
+      }
       //=======================================================================
 
       // Prepare HTTP request
-      http::request<http::string_body> request{
-          http::verb::post, target + "?key=" + apiKey_, 11};
+      http::request<http::string_body>
+          request{
+              http::verb::post, target + "?key=" + apiKey_, 11};
       request.set(http::field::host, host);
       // request.set("x-api-key", api_key);
       request.set(http::field::content_type, "application/json");
@@ -109,14 +156,14 @@ namespace bgg
       std::string responseBody = beast::buffers_to_string(response.body().data());
       json::value jsonResponse = json::parse(responseBody);
 
-      //=======================================================================
+      // //=======================================================================
       // LOG_DEBUG jsonResponse
       {
         std::ostringstream oss;
-        oss << jsonResponse;
-        SPDLOG_DEBUG("jsonResponse: {}", oss.str());
+        utils::printPrettyJson(oss, jsonResponse);
+        SPDLOG_DEBUG("Json response: {}", oss.str());
       }
-      //=======================================================================
+      // //=======================================================================
 
       if (jsonResponse.is_object())
       {
@@ -198,7 +245,10 @@ namespace bgg
       SPDLOG_ERROR("System error: {} (code: {})", e.what(), e.code().value());
     }
 
-    SPDLOG_DEBUG("Response text from the agent: {}", responseText);
+    if (responseText)
+    {
+      SPDLOG_DEBUG("Response text from the agent: {}", *responseText);
+    }
     return responseText;
   }
 } // namespace bgg

@@ -45,7 +45,7 @@ namespace bgg
     selectableTiles_ = gameRule_->getSelectableTiles();
     onMouseMoved(mousePos);
 
-    SPDLOG_INFO("Entered '{}'", typeid(*this).name());
+    // SPDLOG_INFO("Entered '{}'", typeid(*this).name());
   }
 
   void ChessPieceSelectableState::onExit() noexcept
@@ -93,11 +93,11 @@ namespace bgg
 
   void ChessPieceSelectableState::onMouseReleased(sf::Vector2i const & /*mousePos*/) noexcept
   {
-    // do nothing
+    ///< do nothing
   }
 
   void ChessPieceSelectableState::onServerMessage(ServerMessage const & /*msg*/) noexcept
   {
-    // do nothing
+    ///< do nothing
   }
 } // namespace bgg
