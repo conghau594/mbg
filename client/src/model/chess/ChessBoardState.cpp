@@ -189,6 +189,11 @@ namespace bgg
       return ChessMove::Invalid{ChessMove::Error::INVALID_COLOR};
     }
 
+    if (move.promote && movedPiece->type != ChessRule::PAWN)
+    {
+      return ChessMove::Invalid{ChessMove::Error::INVALID_PROMOTION};
+    }
+
     std::optional<Piece> capturedPiece = getPiece(move.toSquare);
     if (capturedPiece && (movedPiece->color == capturedPiece->color))
     {

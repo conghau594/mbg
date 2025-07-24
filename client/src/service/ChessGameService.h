@@ -38,6 +38,14 @@ namespace bgg
     void emit(ServerMessage const &msg) noexcept override;
 
     void handleMoveRequest(MoveRequest const &moveRqt) noexcept;
+  
+    /**
+     * \brief Validates the move request
+     * If the agent's response is valid, it commits the move to the chess rule.
+     *
+     */
+    void validateMoveRequest(MoveRequest const &moveRqt);
+    void sendChessGamePromptToAgent();
   };
 
 } // namespace bgg

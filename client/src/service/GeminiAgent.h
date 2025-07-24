@@ -3,6 +3,7 @@
 
 #include <format>
 #include <string_view>
+#include <boost/json.hpp>
 
 #include "base/Logger.h"
 
@@ -13,7 +14,7 @@ namespace bgg
     std::string apiKey_;
     std::string systemInstruction_;
     std::string promptPattern_;
-    std::string responseSchema_;
+    boost::json::object responseSchema_;
 
   public:
     GeminiAgent(
@@ -23,7 +24,8 @@ namespace bgg
         std::string promptPattern) noexcept;
 
     template <typename... ARGS>
-    [[nodiscard]] auto sendPromptWithArgs(ARGS &&...args) noexcept -> std::optional<std::string>
+    [[nodiscard]] auto sendPromptWithArgs(ARGS &&...args)
+        -> std::optional<std::string>
     {
       std::string formattedPrompt = std::vformat(
           std::string_view(promptPattern_),
@@ -34,7 +36,9 @@ namespace bgg
     }
 
   private:
-    [[nodiscard]] auto sendPrompt(
-        std::string_view prompt) const noexcept -> std::optional<std::string>;
-  };
+    [[nodiscard]] auto sendPrompt(std::string_view prompt) const noexcept
+        -> std::optional<std::string>;
+  
+    static void printTokenUsage(boost::json::object const &jsonObj);
+      };
 } // namespace bgg

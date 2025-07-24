@@ -30,18 +30,27 @@ namespace bgg
       std::string promptPattern) noexcept
       : apiKey_(std::move(apiKey)),
         systemInstruction_(std::move(systemInstruction)),
-        responseSchema_(std::move(responseSchema)),
-        promptPattern_(std::move(promptPattern))
+        promptPattern_(std::move(promptPattern)),
+        responseSchema_{}
   {
+    boost::json::value jsonValue = boost::json::parse(responseSchema);
+    BOOST_ASSERT_MSG(
+        jsonValue.is_object(),
+        "GeminiAgent: responseSchema must be a valid JSON object");
+
+    responseSchema_ = std::move(jsonValue.as_object());
   }
 
   /**
    * TODO: need refactor this function using std::error_code
    */
-  auto GeminiAgent::sendPrompt(std::string_view prompt) const noexcept -> std::optional<std::string>
+  auto GeminiAgent::sendPrompt(std::string_view prompt) const noexcept
+      -> std::optional<std::string>
   {
     const std::string host = "generativelanguage.googleapis.com";
     const std::string port = "443";
+
+    // TODO: make this configurable
     const std::string target = "/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
     // const std::string target = "/v1beta/models/gemini-2.0-flash:generateContent";
     // const std::string target = "/v1beta/models/gemini-2.5-pro-preview-06-05:generateContent";
@@ -139,14 +148,14 @@ namespace bgg
       jsonRequest["systemInstruction"] = systemInstruction;
       jsonRequest["generationConfig"] = generationConfig;
 
-      //=======================================================================
-      // LOG_DEBUG jsonRequest
-      {
-        std::ostringstream oss;
-        utils::printPrettyJson(oss, jsonRequest);
-        SPDLOG_DEBUG("jsonRequest: {}", oss.str());
-      }
-      //=======================================================================
+      // //=======================================================================
+      // // LOG_DEBUG jsonRequest
+      // {
+      //   std::ostringstream oss;
+      //   utils::printPrettyJson(oss, jsonRequest);
+      //   SPDLOG_DEBUG("jsonRequest: {}", oss.str());
+      // }
+      // //=======================================================================
 
       // Prepare HTTP request
       http::request<http::string_body>
@@ -173,12 +182,12 @@ namespace bgg
       json::value jsonResponse = json::parse(responseBody);
 
       // //=======================================================================
-      // LOG_DEBUG jsonResponse
-      {
-        std::ostringstream oss;
-        utils::printPrettyJson(oss, jsonResponse);
-        SPDLOG_DEBUG("Json response: {}", oss.str());
-      }
+      // // LOG_DEBUG jsonResponse
+      // {
+      //   std::ostringstream oss;
+      //   utils::printPrettyJson(oss, jsonResponse);
+      //   SPDLOG_DEBUG("Json response: {}", oss.str());
+      // }
       // //=======================================================================
 
       if (jsonResponse.is_object())
@@ -186,6 +195,15 @@ namespace bgg
         auto jsonObj = jsonResponse.as_object();
         if (jsonObj.contains("candidates"))
         {
+          try
+          {
+            printTokenUsage(jsonObj);
+          }
+          catch (const std::exception &e)
+          {
+            SPDLOG_ERROR("Error printing token usage: {}", e.what());
+          }
+          
           auto candidates = jsonObj["candidates"].as_array();
           if (!candidates.empty())
           {
@@ -263,8 +281,29 @@ namespace bgg
 
     if (responseText)
     {
-      SPDLOG_DEBUG("Response text from the agent: {}", *responseText);
+      SPDLOG_DEBUG("Gemini responses: {}", *responseText);
     }
     return responseText;
+  }
+
+  void GeminiAgent::printTokenUsage(boost::json::object const &jsonObj)
+  {
+    auto usageMetadata = jsonObj.at("usageMetadata").as_object();
+
+    SPDLOG_DEBUG(
+        "Prompt tokens: {}",
+        usageMetadata["promptTokenCount"].as_int64());
+
+    SPDLOG_DEBUG(
+        "Response tokens: {}",
+        usageMetadata["candidatesTokenCount"].as_int64());
+
+    SPDLOG_DEBUG(
+        "Thoughts tokens: {}",
+        usageMetadata["thoughtsTokenCount"].as_int64());
+
+    SPDLOG_DEBUG(
+        "Total tokens: {}",
+        usageMetadata["totalTokenCount"].as_int64());
   }
 } // namespace bgg

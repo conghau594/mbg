@@ -123,10 +123,13 @@ namespace utils
     switch (error)
     {
     case bgg::ChessMove::Error::INVALID_SOURCE_SQUARE:
-      return "Invalid source tile. ";
+      return "Invalid source square. ";
 
     case bgg::ChessMove::Error::INVALID_DESTINATION_SQUARE:
-      return "Invalid destination tile. ";
+      return "Invalid destination square. ";
+
+    case bgg::ChessMove::Error::INVALID_COLOR:
+      return "Cannot move enemy piece. ";
 
     case bgg::ChessMove::Error::INVALID_PROMOTION:
       return "Invalid promotion. ";
@@ -135,7 +138,7 @@ namespace utils
       return "Invalid castling. ";
 
     case bgg::ChessMove::Error::KING_EXPOSED:
-      return "The king is exposed. ";
+      return "Your king is in check. ";
 
     case bgg::ChessMove::Error::UNDEFINED:
     default:

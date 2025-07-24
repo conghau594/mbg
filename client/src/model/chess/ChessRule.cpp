@@ -43,36 +43,6 @@ namespace bgg
           {Position{"g7"}, Piece{PAWN, Color::BLACK}},
           {Position{"h7"}, Piece{PAWN, Color::BLACK}}};
 
-  auto ChessRule::isValid(Position const &square) noexcept -> bool
-  {
-    return square[0] >= 'a' &&
-           square[0] <= 'h' &&
-           square[1] >= '1' &&
-           square[1] <= '8';
-  }
-
-  auto ChessRule::isValid(Piece const &piece) noexcept -> bool
-  {
-    return isValidPieceType(piece.type) &&
-           isValidPieceColor(piece.color);
-  }
-
-  auto ChessRule::isValidPieceType(std::string const &pieceType) noexcept -> bool
-  {
-    return (pieceType == ChessRule::KING) ||
-           (pieceType == ChessRule::QUEEN) ||
-           (pieceType == ChessRule::ROOK) ||
-           (pieceType == ChessRule::BISHOP) ||
-           (pieceType == ChessRule::KNIGHT) ||
-           (pieceType == ChessRule::PAWN);
-  }
-
-  auto ChessRule::isValidPieceColor(std::string const &pieceColor) noexcept -> bool
-  {
-    return (pieceColor == Color::WHITE) ||
-           (pieceColor == Color::BLACK);
-  }
-
   auto ChessRule::getPiece(
       std::map<Position, Piece> const &piecePlacements,
       Position const &square) noexcept -> std::optional<Piece>
