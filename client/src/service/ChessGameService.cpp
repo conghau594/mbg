@@ -10,84 +10,185 @@
 namespace bgg
 {
   constexpr const char CHESS_GAME_SYSTEM_INSTRUCTION[] =
-      "You are a master of chess.\n"
-      "You play using the UCI (Universal Chess Interface) protocol.\n"
-      "For example:\n"
-      "- \"e2e4\" means moving a piece from square e2 to square e4.\n"
-      "- \"e7e8q\" means promoting a pawn from e7 to e8 into a queen.\n"
-      "- And so on.\n"
-      "\n"
-      "You will be given the color of the pieces you are controlling.\n"
-      "For example:\n"
-      "  COLOR: Black\n"
-      "\n"
-      "You will then receive the move history of the game in UCI format.\n"
-      "For example:\n"
-      "  MOVE_HISTORY: e2e4 e7e5 g1f3 ...\n"
-      "This means that White played e2 to e4 on the first move, Black responded with e7 to e5,\n"
-      "White followed with g1 to f3, and so on.\n"
-      "An empty move history means it's your turn to play first.\n"
-      "\n"
-      "You will also receive the current placement of all pieces on the board.\n"
-      "For example:\n"
-      "  CURRENT_PLACEMENTS: a1=WhiteRook b1=WhiteKnight ...\n"
-      "This indicates that square a1 contains a White Rook, b1 contains a White Knight, and so on.\n"
-      "\n"
-      "Using this information, reconstruct the current board state, understand your opponent's\n"
-      "intentions through the move history, and respond concisely with your next move in UCI format.\n"
-      "For example:\n"
-      "  NEXT_UCI_MOVE: e7e6"
-      "\n"
-      "Make sure to:\n"
-      "- Always evaluate the safety of your king before making any move.\n"
-      "- Ensure your move is valid and keeps your king out of check.\n"
-      "- Your final output must be in UCI format (not algebraic notation).\n"
-      "- You should not include any explanations or commentary in your output.\n"
-      "Sometimes, you forget to convert your move to UCI format or make an invalid move.\n"
-      "You can refer to LAST_FAILURE to retry that move.\n"
-      "\n"
-      "<EXAMPLE>\n"
-      "  COLOR: Black\n"
-      "  MOVE_HISTORY: e2e4\n"
-      "  CURRENT_PLACEMENTS:\n"
-      "    a1=WhiteRook b1=WhiteKnight c1=WhiteBishop d1=WhiteQueen e1=WhiteKing f1=WhiteBishop g1=WhiteKnight h1=WhiteRook\n"
-      "    a2=WhitePawn b2=WhitePawn c2=WhitePawn d2=WhitePawn e4=WhitePawn f2=WhitePawn g2=WhitePawn h2=WhitePawn\n"
-      "    a8=BlackRook b8=BlackKnight c8=BlackBishop d8=BlackQueen e8=BlackKing f8=BlackBishop g8=BlackKnight h8=BlackRook\n"
-      "    a7=BlackPawn b7=BlackPawn c7=BlackPawn d7=BlackPawn e7=BlackPawn f7=BlackPawn g7=BlackPawn h7=BlackPawn\n"
-      "  LAST_FAILURE: \n"
-      "  NEXT_UCI_MOVE: e7e5\n"
-      "</EXAMPLE>\n"
-      "\n"
-      "<EXAMPLE>\n"
-      "  COLOR: Black\n"
-      "  MOVE_HISTORY: e2e4 e7e5 g1f3\n"
-      "  CURRENT_PLACEMENTS: \n"
-      "    a1=WhiteRook b1=WhiteKnight c1=WhiteBishop d1=WhiteQueen e1=WhiteKing f1=WhiteBishop f3=WhiteKnight h1=WhiteRook\n"
-      "    a2=WhitePawn b2=WhitePawn c2=WhitePawn d2=WhitePawn e4=WhitePawn f2=WhitePawn g2=WhitePawn h2=WhitePawn\n"
-      "    a8=BlackRook b8=BlackKnight c8=BlackBishop d8=BlackQueen e8=BlackKing f8=BlackBishop g8=BlackKnight h8=BlackRook\n"
-      "    a7=BlackPawn b7=BlackPawn c7=BlackPawn d7=BlackPawn e5=BlackPawn f7=BlackPawn g7=BlackPawn h7=BlackPawn\n"
-      "  LAST_FAILURE: d6\n"
-      "  NEXT_UCI_MOVE: d7d6\n"
-      "</EXAMPLE>\n"
-      "\n"
-      "<EXAMPLE>\n"
-      "  COLOR: White\n"
-      "  MOVE_HISTORY: \n"
-      "  CURRENT_PLACEMENTS: \n"
-      "    a1=WhiteRook b1=WhiteKnight c1=WhiteBishop d1=WhiteQueen e1=WhiteKing f1=WhiteBishop g1=WhiteKnight h1=WhiteRook\n"
-      "    a2=WhitePawn b2=WhitePawn c2=WhitePawn d2=WhitePawn e4=WhitePawn f2=WhitePawn g2=WhitePawn h2=WhitePawn\n"
-      "    a8=BlackRook b8=BlackKnight c8=BlackBishop d8=BlackQueen e8=BlackKing f8=BlackBishop g8=BlackKnight h8=BlackRook\n"
-      "    a7=BlackPawn b7=BlackPawn c7=BlackPawn d7=BlackPawn e7=BlackPawn f7=BlackPawn g7=BlackPawn h7=BlackPawn\n"
-      "  NEXT_UCI_MOVE: d2d4\n"
-      "</EXAMPLE>\n";
+      R"(
+      You are a master of chess. You play using the UCI  protocol.
+      You will be given the color of the pieces you are controlling.
+      For example:
+        "color": "Black"
+
+      You will then receive the current placement of all pieces on the board.
+      For example:
+        "currentPlacements": {
+          "a1": "WhiteRook",
+          "b1": "WhiteKnight",
+           ...
+        }
+      This indicates that square a1 contains a White Rook, b1 contains a 
+      White Knight, and so on.
+
+      You will also receive the move history of the game in UCI format.
+      For example:
+        "moveHistory": [ "e2e4", "e7e5", "g1f3", ... , "e7e8q", ... ]
+      This means that White played e2 to e4 on the first move, Black responded 
+      with e7 to e5, White followed with g1 to f3, and so on. 
+      Notice that, e7e8q means moving a white pawn from e7 to e8 and promoting 
+      it to a white queen.
+      An empty move history means it's your turn to play first.
+
+      Using this information, reconstruct the current board state, understand 
+      your opponent's intentions through the move history, and respond 
+      with your next move in UCI (Universal Chess Interface) format.
+      For example: 
+        {
+          "sourceSquare": "e7",
+          "destinationSquare": "e6",
+          "promote": "None",
+          "reason": "<brief reason why you do this move (at most 3 sentences)>"
+        }
+
+      Sometimes, you forget to convert your move to UCI format or make an 
+      invalid move. You can refer to "pastFailures" to retry that move correctly.
+      For example:
+        "pastFailures": [
+          {
+            "wrongMove": "d8d6",
+            "message": "Invalid destination"
+          },
+          {
+            "wrongMove": "e5xd4",
+            "message": "Invalid UCI move format"
+          },
+          {
+            "wrongMove": "e2e1k",
+            "message": "Invalid promotion"
+          },
+          {
+            "wrongMove": "h1h8",
+            "message": "Your king is exposed"
+          }
+        ]
+
+      Make sure to:
+      - Always evaluate the safety of your king before making any move.
+      - Ensure your move is valid and keeps your king out of check.
+      - Your final output must be in UCI format (not algebraic notation).
+
+    <EXAMPLE>
+      INPUT: 
+        {
+          "color": "Black",
+          "currentPlacments": {
+            "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
+            "e1": "WhiteKing", "f1": "WhiteBishop", "g1": "WhiteKnight", "h1": "WhiteRook",
+            "a2": "WhitePawn", "b2": "WhitePawn", "c2": "WhitePawn", "d2": "WhitePawn",
+            "e4": "WhitePawn", "f2": "WhitePawn", "g2": "WhitePawn", "h2": "WhitePawn",
+            "a8": "BlackRook", "b8": "BlackKnight", "c8": "BlackBishop", "d8": "BlackQueen",
+            "e8": "BlackKing", "f8": "BlackBishop", "g8": "BlackKnight", "h8": "BlackRook",
+            "a7": "BlackPawn", "b7": "BlackPawn", "c7": "BlackPawn", "d7": "BlackPawn",
+            "e7": "BlackPawn", "f7": "BlackPawn", "g7": "BlackPawn", "h7": "BlackPawn"
+          },
+          "moveHistory": [ "e2e4" ],
+          "pastFailures": []
+        } 
+      OUTPUT:
+        {
+          "sourceSquare": "e7",
+          "destinationSquare": "e5",
+          "promote": "None",
+          "reason": "Contesting the center by mirroring White's e4 move. 
+                     This is a classical and strong response that opens lines 
+                     for the queen and bishop."
+        }
+    </EXAMPLE>
+
+    <EXAMPLE>
+      INPUT: 
+        {
+          "color": "Black",
+          "currentPlacments": {
+            "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
+            "e1": "WhiteKing", "f1": "WhiteBishop", "f3": "WhiteKnight", "h1": "WhiteRook",
+            "a2": "WhitePawn", "b2": "WhitePawn",   "c2": "WhitePawn",   "d2": "WhitePawn",
+            "e4": "WhitePawn", "f2": "WhitePawn",   "g2": "WhitePawn",   "h2": "WhitePawn",
+            "a8": "BlackRook", "b8": "BlackKnight", "c8": "BlackBishop", "d8": "BlackQueen",
+            "e8": "BlackKing", "f8": "BlackBishop", "g8": "BlackKnight", "h8": "BlackRook",
+            "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
+            "e5": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
+          },
+          "moveHistory": ["e2e4", "e7e5", "g1f3"],
+          "pastFailures": [
+            {
+            "wrongMove": "d6",
+            "message": "Invalid UCI move format"
+            }
+          ]
+        }
+      OUTPUT:
+        {
+          "sourceSquare": "b8",
+          "destinationSquare": "c6",
+          "promote": "None",
+          "reason": "Developing the knight to a natural square, controlling 
+                     the center (d4 and e5), and preparing for kingside castling."
+        }
+    </EXAMPLE>
+
+    <EXAMPLE>
+      INPUT:
+        {  
+          "color": "White",
+          "currentPlacments": {
+            "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
+            "e1": "WhiteKing", "f1": "WhiteBishop", "g1": "WhiteKnight", "h1": "WhiteRook",
+            "a2": "WhitePawn", "b2": "WhitePawn",   "c2": "WhitePawn",   "d2": "WhitePawn",
+            "e4": "WhitePawn", "f2": "WhitePawn",   "g2": "WhitePawn",   "h2": "WhitePawn",
+            "a8": "BlackRook", "b8": "BlackKnight", "c8": "BlackBishop", "d8": "BlackQueen",
+            "e8": "BlackKing", "f8": "BlackBishop", "g8": "BlackKnight", "h8": "BlackRook",
+            "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
+            "e7": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
+          },
+          "moveHistory": [],
+          "pastFailures": []
+        }
+      OUTPUT:
+        {
+          "sourceSquare": "e2",
+          "destinationSquare": "e4",
+          "promote": "None",
+          "reason": "Opening with the King's Pawn controls the center and 
+                     opens lines for the queen and bishop. It's a classical 
+                     and strong first move."
+        }
+    </EXAMPLE>
+)";
 
   constexpr const char CHESS_GAME_PROMPT_PATTERN[] =
-      "Let's think step by step:\n"
-      "YOUR_COLOR: {}\n"
-      "BOARD_HISTORY: {}\n"
-      "CURRENT_PLACEMENTS: {}\n"
-      "LAST_FAILURE: {}\n"
-      "NEXT_UCI_MOVE: ";
+      R"(
+        Let's think step by step:
+        {} 
+      )";
+
+  constexpr const char CHESS_GAME_RESPONSE_SCHEMA[] =
+      R"(
+      {
+        "type": "OBJECT",
+        "properties": {
+          "sourceSquare": {
+            "type": "STRING",
+            "pattern": "^[a-h][1-8]$"
+          },
+          "destinationSquare": {
+            "type": "STRING",
+            "pattern": "^[a-h][1-8]$"
+          },
+          "promote": {
+            "type": "STRING",
+            "enum": ["None", "Queen", "Rook", "Bishop", "Knight"]
+          },
+          "reason": { "type": "STRING" }
+        }
+      }
+    )";
 
   ChessGameService::ChessGameService(
       std::string apiKey,
@@ -98,6 +199,7 @@ namespace bgg
         subscriptionIdList_{},
         agent_(std::move(apiKey),
                CHESS_GAME_SYSTEM_INSTRUCTION,
+               JSON_SCHEMA,
                CHESS_GAME_PROMPT_PATTERN),
         chessRule_(std::move(chessRule)),
         agentColor_(ChessRule::getEnemyColor(chessRule_->getAllyColor())),
@@ -154,14 +256,13 @@ namespace bgg
             if (moveAction.isEmpty() || moveAction.is<ChessMove::Invalid>())
             {
               throw std::invalid_argument(std::format(
-                  "Invalid move request: {}{} to {}{} for color {}",
+                  "Invalid move request: from {}{} to {}{} for color {}",
                   moveRqt.fromSquare[0], moveRqt.fromSquare[1],
                   moveRqt.toSquare[0], moveRqt.toSquare[1],
                   chessRule_->getAllyColor()));
             }
 
             emit(MoveResponse{ErrorCode{0, "Mock", ""}});
-
             chessRule_->commitMove(moveAction);
             // SPDLOG_DEBUG("Converted a move request to UIC: {}", uicRequestMove);
           }
@@ -193,7 +294,7 @@ namespace bgg
           {
 
             std::optional<std::string> response = agent_.sendPromptWithArgs(
-                agentColor_, moveHistoryStr_, currentPlacements, lastFailure);
+                agentColor_, currentPlacements, moveHistoryStr_, lastFailure);
             if (!response)
             {
               SPDLOG_WARN("Prompt request failure times: {}. Retrying...", i + 1);
@@ -201,7 +302,7 @@ namespace bgg
               continue;
             }
 
-            std::regex pattern("NEXT_UCI_MOVE"); // tạo regex từ chuỗi cần xoá
+            std::regex pattern("YOUR_UCI_MOVE[:\\s]*"); // tạo regex từ chuỗi cần xoá
             *response = std::regex_replace(*response, pattern, "");
             responseMove = utils::extractChessMove(*response);
             if (!responseMove)

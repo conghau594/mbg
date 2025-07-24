@@ -222,7 +222,7 @@ namespace bgg
       return;
     }
 
-    // handle castling
+    // handle special moves
 
     if (reachableTileInfo.specialMoveTiles.size() == 1)
     {

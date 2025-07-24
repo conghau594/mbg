@@ -13,11 +13,13 @@ namespace bgg
     std::string apiKey_;
     std::string systemInstruction_;
     std::string promptPattern_;
+    std::string responseSchema_;
 
   public:
     GeminiAgent(
         std::string apiKey,
         std::string systemInstruction,
+        std::string responseSchema,
         std::string promptPattern) noexcept;
 
     template <typename... ARGS>

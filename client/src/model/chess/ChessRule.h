@@ -5,7 +5,7 @@
 #include <boost/assert.hpp>
 
 #include "model/Piece.h"
-#include "model/chess/ChessMove.h"
+#include "ChessMove.h"
 
 #define BGG_VALIDATE_CHESS_PIECE(type) BOOST_ASSERT_MSG(            \
 		(type == ChessRule::KING) || (type == ChessRule::QUEEN) ||      \
@@ -40,9 +40,6 @@ namespace bgg
 		static constexpr const char PAWN[] = "Pawn";
 
 		static const std::initializer_list<std::pair<const Position, Piece>> INITIAL_PLACEMENTS;
-
-		[[nodiscard]] static auto toUic(ChessMove const &move) -> std::string;
-		[[nodiscard]] static auto fromUic(const std::string &uci) -> ChessMove;
 
 		[[nodiscard]] static auto isValid(Position const &square) noexcept -> bool;
 		[[nodiscard]] static auto isValid(Piece const &piece) noexcept -> bool;

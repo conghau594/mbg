@@ -168,7 +168,7 @@ namespace bgg
         return ChessMove{};
       }
     };
-    
+
     return moveHistory_.back().visit(moveActionVisitor);
   }
 
@@ -367,7 +367,7 @@ namespace bgg
         { action.fromSquare } -> std::same_as<Position const &>;
         { action.toSquare } -> std::same_as<Position const &>; })
       {
-        SPDLOG_INFO("You have committed a '{}'", typeid(T).name());
+        // SPDLOG_INFO("You have committed a '{}'", typeid(T).name());
 
         auto piece = getPiece(action.fromSquare);
         BOOST_ASSERT_MSG(piece, "There must be an item at the 'fromTile'");

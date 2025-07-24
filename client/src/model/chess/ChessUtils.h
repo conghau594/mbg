@@ -2,7 +2,7 @@
 #pragma once
 
 #include <regex>
-#include "model/chess/ChessRule.h"
+#include "ChessRule.h"
 
 namespace utils
 {
@@ -24,6 +24,76 @@ namespace utils
       }
       return resultList;
     }
+  }
+
+  inline auto toUic(ChessMove const &move) -> std::string
+  {
+    std::string result = std::string(move.fromSquare.data()) +
+                         std::string(move.toSquare.data()) +
+                         ' ';
+    if (move.promote)
+    {
+      if (*(move.promote) == QUEEN)
+      {
+        result.back() = 'q';
+      }
+      else if (*(move.promote) == ROOK)
+      {
+        result.back() = 'r';
+      }
+      else if (*(move.promote) == BISHOP)
+      {
+        result.back() = 'b';
+      }
+      else if (*(move.promote) == KNIGHT)
+      {
+        result.back() = 'n';
+      }
+      else
+      {
+        throw std::invalid_argument("Invalid chess move");
+      }
+    }
+    else
+    {
+      int constexpr MIN_CHARS = 4;
+      result.resize(MIN_CHARS);
+    }
+
+    return result;
+  }
+
+  inline auto fromUic(const std::string &uci) -> ChessMove
+  {
+    if (uci.length() != 4 && uci.length() != 5)
+    {
+      throw std::invalid_argument("Invalid UCI move length");
+    }
+
+    ChessMove move;
+
+    move.fromSquare = {uci[0], uci[1], '\0'};
+    if (!ChessRule::isValid(move.fromSquare))
+    {
+      throw std::invalid_argument("Invalid square");
+    }
+
+    move.toSquare = {uci[2], uci[3], '\0'};
+    if (!ChessRule::isValid(move.toSquare))
+    {
+      throw std::invalid_argument("Invalid square");
+    }
+
+    if (uci.length() == 5)
+    {
+      move.promote = std::string(1, uci[4]);
+      if (!ChessRule::isValidPieceType(*move.promote))
+      {
+        throw std::invalid_argument("Invalid promotion");
+      }
+    }
+
+    return move;
   }
 
   /**

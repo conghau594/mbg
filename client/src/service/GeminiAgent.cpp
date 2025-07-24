@@ -26,9 +26,11 @@ namespace bgg
   GeminiAgent::GeminiAgent(
       std::string apiKey,
       std::string systemInstruction,
+      std::string responseSchema,
       std::string promptPattern) noexcept
       : apiKey_(std::move(apiKey)),
         systemInstruction_(std::move(systemInstruction)),
+        responseSchema_(std::move(responseSchema)),
         promptPattern_(std::move(promptPattern))
   {
   }
@@ -92,7 +94,13 @@ namespace bgg
             "threshold": "THRESHOLD"
           },
           "generation_config": {
-            "temperature": TEMPERATURE,
+            "responseMimeType": "application/json",
+            "responseSchema": "JSON_SCHEMA",
+            "temperature": 0.0,
+            "thinkingConfig": {
+            }
+
+
             "topP": TOP_P,
             "topK": TOP_K,
             "candidateCount": 1,
@@ -114,21 +122,29 @@ namespace bgg
       systemPart["text"] = systemInstruction_;
       json::object systemInstruction;
       systemInstruction["parts"] = json::array{systemPart};
-      
-      ///< json request      
+
+      ///< "generation_config"
+      json::object generationConfig;
+      generationConfig["temperature"] = 0.0;
+      generationConfig["responseMimeType"] = "application/json";
+      generationConfig["responseSchema"] = responseSchema_;
+      // generationConfig["includeThoughts"] = true;
+
+      ///< json request
       // json::array conversationHistory;
       // conversationHistory.push_back(userContent);
 
       json::object jsonRequest;
       jsonRequest["contents"] = json::array{userContent};
-      jsonRequest["system_instruction"] = systemInstruction;
+      jsonRequest["systemInstruction"] = systemInstruction;
+      jsonRequest["generationConfig"] = generationConfig;
 
       //=======================================================================
-      // LOG_DEBUG userContent
+      // LOG_DEBUG jsonRequest
       {
         std::ostringstream oss;
-        utils::printPrettyJson(oss, userContent);
-        SPDLOG_DEBUG("User content: {}", oss.str());
+        utils::printPrettyJson(oss, jsonRequest);
+        SPDLOG_DEBUG("jsonRequest: {}", oss.str());
       }
       //=======================================================================
 
