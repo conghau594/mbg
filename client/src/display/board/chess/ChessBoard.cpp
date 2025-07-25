@@ -44,25 +44,35 @@ namespace bgg
       tileMap_->fitItemToTile(entry.getItem(), tile);
     }
 
-    lastMoveHighlighters_[0] = itemStore_->addItem(
+    persistentHighlighters_[0] = itemStore_->addItem(
         ZOrder::FIRST_LAYER,
         int(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
         utils::toString(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
         false);
 
-    lastMoveHighlighters_[1] = itemStore_->addItem(
+    persistentHighlighters_[1] = itemStore_->addItem(
         ZOrder::FIRST_LAYER,
         int(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
         utils::toString(ChessTextureCell::LAST_MOVE_HIGHLIGHTER),
         false);
 
-    tileMap_->fitItemToTile(
-        lastMoveHighlighters_[0].getItem(), sf::Vector2i{0, 0});
-    lastMoveHighlighters_[0].getItem().setVisible(false);
+    persistentHighlighters_[2] = itemStore_->addItem(
+        ZOrder::FIRST_LAYER,
+        int(ChessTextureCell::CHECK_HIGHLIGHTER),
+        utils::toString(ChessTextureCell::CHECK_HIGHLIGHTER),
+        false);
 
     tileMap_->fitItemToTile(
-        lastMoveHighlighters_[1].getItem(), sf::Vector2i{0, 0});
-    lastMoveHighlighters_[1].getItem().setVisible(false);
+        persistentHighlighters_[0].getItem(), sf::Vector2i{0, 0});
+    persistentHighlighters_[0].getItem().setVisible(false);
+
+    tileMap_->fitItemToTile(
+        persistentHighlighters_[1].getItem(), sf::Vector2i{0, 0});
+    persistentHighlighters_[1].getItem().setVisible(false);
+
+    tileMap_->fitItemToTile(
+        persistentHighlighters_[2].getItem(), sf::Vector2i{0, 0});
+    persistentHighlighters_[2].getItem().setVisible(false);
   }
 
   void ChessBoard::onWindowEvent(sf::Event const &event) noexcept
@@ -106,14 +116,7 @@ namespace bgg
 
   void ChessBoard::handleServerMessage(ServerMessage const &msg) noexcept
   {
-    if (auto gameFinishedNotif = msg.getIf<GameFinishedNotification>())
-    {
-      onGameFinishedNotification(*gameFinishedNotif);
-    }
-    else // if (msg.getIf<MoveResponse>() || msg.getIf<GameUpdatedNotification>())
-    {
-      stateStack_.back()->onServerMessage(msg);
-    }
+    stateStack_.back()->onServerMessage(msg);
   }
 
   void ChessBoard::draw(
@@ -218,13 +221,13 @@ namespace bgg
     tileMap_->scale(sf::Vector2f{scaleFactor, scaleFactor});
   }
 
-  void ChessBoard::onGameFinishedNotification(
-      GameFinishedNotification const &notif) noexcept
-  {
-    // TODO: ChessBoard::onGameFinishedNotification()
+  // void ChessBoard::onGameFinishedNotification(
+  //     GameFinishedNotification const &notif) noexcept
+  // {
+  //   // TODO: ChessBoard::onGameFinishedNotification()
 
-    SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
-                typeid(notif).name(), typeid(*this).name());
-  }
+  //   SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
+  //               typeid(notif).name(), typeid(*this).name());
+  // }
 
 } // namespace bgg

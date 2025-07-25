@@ -55,9 +55,10 @@ namespace bgg
   class GameFinishedNotification final
   {
   public:
-    std::map<Position, Piece> currentBoard;
-    int yourRank;
-    int playerCount;
+    std::string result;  // "Win", "Lose", "Draw", "Error"
+    
+    // int yourRank;
+    // int playerCount;
   };
 
   class MoveResponse final

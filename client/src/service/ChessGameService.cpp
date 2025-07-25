@@ -106,7 +106,6 @@ namespace bgg
           INPUT: 
             {
               "yourColor": "Black",
-              "pastFailures": [],
               "currentPlacments": {
                 "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
                 "e1": "WhiteKing", "f1": "WhiteBishop", "g1": "WhiteKnight", "h1": "WhiteRook",
@@ -117,6 +116,7 @@ namespace bgg
                 "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
                 "e7": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
               },
+              "pastFailures": [],
               "opponentLastMove": {
                 "type": "Normal",
                 "piece": "White Pawn",
@@ -140,12 +140,6 @@ namespace bgg
           INPUT: 
             {
               "yourColor": "Black",
-              "pastFailures": [
-                {
-                  "wrongMove": "d6",
-                  "message": "Invalid UCI move format"
-                }
-              ],
               "currentPlacments": {
                 "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
                 "e1": "WhiteKing", "f1": "WhiteBishop", "f3": "WhiteKnight", "h1": "WhiteRook",
@@ -156,6 +150,15 @@ namespace bgg
                 "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
                 "e5": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
               },
+              "pastFailures": [
+                {
+                  "wrongMove": {
+                    "fromSquare": "b8",
+                    "toSquare": "c5"
+                  },
+                  "message": "Invalid destination square"
+                }
+              ],
               "opponentLastMove": {
                 "type": "Normal",
                 "piece": "White Pawn",
@@ -179,7 +182,6 @@ namespace bgg
           INPUT:
             {  
               "yourColor": "White",
-              "pastFailures": [],
               "currentPlacments": {
                 "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
                 "e1": "WhiteKing", "f1": "WhiteBishop", "g1": "WhiteKnight", "h1": "WhiteRook",
@@ -190,6 +192,16 @@ namespace bgg
                 "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
                 "e7": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
               },
+              "pastFailures": [
+                {
+                  "wrongMove": {
+                    "fromSquare": "e3",
+                    "toSquare": "e4",
+                    "promote": null
+                  },
+                  "message": "Invalid source square"
+                }
+              ],
               "opponentLastMove": null
             }
           OUTPUT:
@@ -244,8 +256,7 @@ namespace bgg
                CHESS_GAME_SYSTEM_INSTRUCTION,
                CHESS_MOVE_JSON_SCHEMA,
                CHESS_GAME_PROMPT_PATTERN),
-        chessRule_(std::move(chessRule)),
-        agentColor_(ChessRule::getEnemyColor(chessRule_->getAllyColor()))
+        chessRule_(std::move(chessRule))
   // moveHistoryStr_{}
   {
     auto subscriptionId = eventBus_->subscribe<ClientRequest, MoveRequest>(
@@ -306,6 +317,12 @@ namespace bgg
 
             emit(MoveResponse{ErrorCode{0, "Mock", ""}});
             chessRule_->commitMove(yourMoveAction);
+
+            if (utils::getEnemyKingState(yourMoveAction) == KingState::CHECKMATED)
+            {
+              emit(GameFinishedNotification{"Win"});
+              return;
+            }
           }
           catch (std::exception const &e)
           {
@@ -342,16 +359,18 @@ namespace bgg
     std::string pastFailures;
     std::string opponentLastMove = chessMoveActionToJsonString(
         chessRule_->getLastMoveAction());
+    std::string agentColor = ChessRule::getEnemyColor(chessRule_->getAllyColor());
     for (int i = 0; i < MAX_TRIES; ++i)
     {
       std::string input = std::format(
-          R"({{
+          R"(
+          {{
             "yourColor": "{}",
             "pastFailures": [ {} ],
             "currentPlacements": {{ {} }},
             "opponentLastMove": {}
           }})",
-          agentColor_, pastFailures, currentPlacements, opponentLastMove);
+          agentColor, pastFailures, currentPlacements, opponentLastMove);
 
       SPDLOG_DEBUG("Sending prompt to agent: {}", input);
 
@@ -372,13 +391,16 @@ namespace bgg
         responseMove = utils::jsonToChessMoveObject(*response);
         // uicResponseMove = utils::chessMoveObjectToUic(responseMove);
 
-        ChessMove::Action moveAction =
-            chessRule_->tryMove(responseMove, agentColor_);
+        ChessMove::Action enemyMoveAction =
+            chessRule_->tryMove(responseMove, agentColor);
         // handle the error case when 'responseMove' is invalid
-        if (auto invalidAction = moveAction.getIf<ChessMove::Invalid>())
+        if (auto invalidAction = enemyMoveAction.getIf<ChessMove::Invalid>())
         {
           throw std::runtime_error(utils::toString(invalidAction->error));
         }
+
+        // moveHistoryStr_ += ",\"" + uicResponseMove + "\"";
+        chessRule_->commitMove(enemyMoveAction);
 
         std::string currentTurn = Color::WHITE;
         emit(GameUpdatedNotification{
@@ -388,9 +410,10 @@ namespace bgg
             chessRule_->getAllyColor(),
             currentTurn});
 
-        // moveHistoryStr_ += ",\"" + uicResponseMove + "\"";
-        chessRule_->commitMove(moveAction);
-
+        if (utils::getEnemyKingState(enemyMoveAction) == KingState::CHECKMATED)
+        {
+          emit(GameFinishedNotification{"Lose"});
+        }
         return;
       }
       catch (std::exception const &e)
@@ -399,13 +422,14 @@ namespace bgg
                                        ? "\"" + *(responseMove.promote) + "\""
                                        : std::string("null");
         std::string failure = std::format(
-            R"({{
-                "wrongMove": {{
-                  "fromSquare": "{}{}",
-                  "toSquare": "{}{}",
-                  "promote": {}
-                }}, 
-                "message": "{}"
+            R"(
+            {{
+              "wrongMove": {{
+                "fromSquare": "{}{}",
+                "toSquare": "{}{}",
+                "promote": {}
+              }}, 
+              "message": "{}"
             }})",
             responseMove.fromSquare[0], responseMove.fromSquare[1],
             responseMove.toSquare[0], responseMove.toSquare[1],
@@ -511,13 +535,13 @@ namespace bgg
           R"(
           {{
             "type": "Invalid",
-            "code": "{}",
+            "errorCode": "{}",
             "message": "{}"
           }})",
           int(invalidAction->error),
           utils::toString(invalidAction->error));
     }
-    else if (auto emptyAction = moveAction.getIf<ChessMove::Invalid>())
+    else // if (auto emptyAction moveAction.getIf<ChessMove::Invalid>())
     {
       return "null";
     }

@@ -104,6 +104,43 @@ namespace bgg
     }
   }
 
+  void GamePlayScreen::onGameFinishedNotification(GameFinishedNotification const &notif) noexcept
+  {
+    std::string msg;
+    if (notif.result == "Win")
+    {
+      msg = "You won! Would you like a new game?";
+    }
+    else if (notif.result == "Lose")
+    {
+      msg = "You lost! Would you like a new game?";
+    }
+    else if (notif.result == "Draw")
+    {
+      msg = "It's a draw! Would you like a new game?";
+    }
+    else if (notif.result == "Error")
+    {
+      msg = "An error occurred! Would you like a new game?";
+    }
+
+    std::vector<std::string> &&buttonLabels{"Yes", "No"};
+    std::vector<std::function<void()>> &&buttonCallbacks{
+        [this]()
+        {
+          // TODO: implement a new game request
+        },
+        [this]()
+        {
+          gameDisplay_->popScreen();
+        }};
+
+    std::shared_ptr<IScreenInternal> resultScreen(new ConfirmationScreen(
+        getWindow(), msg, buttonLabels, buttonCallbacks));
+
+    changeSubscreen(resultScreen);
+  }
+
   void GamePlayScreen::doEnter() noexcept
   {
     getServerMsgHandler().setHandler<GameUpdatedNotification>(
@@ -116,7 +153,7 @@ namespace bgg
     getServerMsgHandler().setHandler<GameFinishedNotification>(
         [this](GameFinishedNotification const &notif) -> bool
         {
-          gameBoard_->handleServerMessage(notif);
+          onGameFinishedNotification(notif);
           return true;
         });
 

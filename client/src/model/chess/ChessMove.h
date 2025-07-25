@@ -142,4 +142,23 @@ namespace utils
       return "Undefined. ";
     }
   }
+
+  inline auto getEnemyKingState(
+      bgg::ChessMove::Action const &moveAction) noexcept -> bgg::KingState
+  {
+    auto kingStateVisitor = []<typename T>(T const &action)
+    {
+      if constexpr (requires { 
+          { action.enemyKingState } -> std::same_as<bgg::KingState const &>; })
+      {
+        return action.enemyKingState;
+      }
+
+      BOOST_ASSERT_MSG(
+          false, "The action must have an 'enemyKingState' member");
+      return bgg::KingState(-1); // undefined state
+    };
+
+    return moveAction.visit(kingStateVisitor);
+  }
 } // namespace utils

@@ -35,7 +35,7 @@ namespace bgg
     std::shared_ptr<TileMap> tileMap_;
     std::shared_ptr<ItemStore> itemStore_;
 
-    ItemStore::Entry lastMoveHighlighters_[2];
+    ItemStore::Entry persistentHighlighters_[3]; ///< includes 2 last move highlighters ([0], [1]) and check highlighter ([2])
 
     std::function<void(ClientRequest const &)> requestSender_;
 
@@ -67,8 +67,8 @@ namespace bgg
     void clearStates() noexcept override;
 
     void fitRectangle(sf::IntRect const &boardRect) noexcept;
-    void onGameFinishedNotification(
-        GameFinishedNotification const &notif) noexcept;
+    // void onGameFinishedNotification(
+    //     GameFinishedNotification const &notif) noexcept;
 
     // void onGameUpdatedNotification(GameUpdatedNotification const &notif) noexcept;
     // void onMoveResponse(MoveResponse const &response) noexcept;

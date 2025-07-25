@@ -23,7 +23,6 @@ namespace bgg
     GeminiAgent agent_;
 
     std::shared_ptr<ChessBoardState> chessRule_;
-    std::string agentColor_;
     // std::string moveHistoryStr_;
 
   public:

@@ -22,12 +22,15 @@ namespace bgg
     std::shared_ptr<TileMap> tileMap_;
     std::shared_ptr<ItemStore> itemStore_;
 
-    ItemStore::Entry checkHighlighter_;
     ItemStore::Entry pendingPromotionItem_;
     ItemStore::Entry pendingMoveHighlighters_[2];
+    ItemStore::Entry enemyCheckHighlighter_;
 
     BoardItem *lastMoveHighlighters_[2];
     bool lastMoveHighlighterVisibility_[2];
+    
+    BoardItem *allyCheckHighlighter_;
+    bool allyCheckHighlighterVisibility_;
 
     ChessItemMoveAction pendingItemMoveAction_;
 
@@ -57,14 +60,12 @@ namespace bgg
         KingState const &enemyKingState) noexcept;
 
     void onMoveResponse(MoveResponse const &response) noexcept;
-    void revertBasicMoveAction(
-        BoardItem &movedItemEntry,
-        TileCoords const &fromTile,
-        TileCoords const &toTile) noexcept;
 
+    void revertMoveAction() noexcept;
+    void finalizeMoveAction() noexcept;
+    
     void finalizeBasicMoveAction(
-        TileCoords const &fromTile,
-        TileCoords const &toTile) noexcept;
+        TileCoords const &fromTile, TileCoords const &toTile) noexcept;
 
     void onGameUpdatedNotification(
         GameUpdatedNotification const &notif) noexcept;
