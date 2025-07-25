@@ -2,6 +2,7 @@
 
 #include <map>
 #include <sstream>
+#include <chrono>
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/ssl.hpp>
@@ -51,11 +52,12 @@ namespace bgg
     const std::string port = "443";
 
     // TODO: make this configurable
-    const std::string target = "/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
-    // const std::string target = "/v1beta/models/gemini-2.0-flash:generateContent";
+    // const std::string target = "/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
+    const std::string target = "/v1beta/models/gemini-2.0-flash:generateContent";
     // const std::string target = "/v1beta/models/gemini-2.5-pro-preview-06-05:generateContent";
     // const std::string target = "/v1beta/models/gemini-1.5-pro:generateContent";
 
+    json::value jsonResponse;
     std::optional<std::string> responseText{std::nullopt};
     try
     {
@@ -175,11 +177,20 @@ namespace bgg
       // Read response
       beast::flat_buffer buffer;
       http::response<http::dynamic_body> response;
+
+      //=======================================================================
+      // measure time to read response:
+      auto start = std::chrono::steady_clock::now();
       http::read(stream, buffer, response);
+      auto duration = std::chrono::steady_clock::now() - start;
+      SPDLOG_INFO(
+          "Time to read response: {}s",
+          std::chrono::duration<double>(duration).count());
+      //=======================================================================
 
       // Parse JSON response and extract "text" from "parts" in "content"
       std::string responseBody = beast::buffers_to_string(response.body().data());
-      json::value jsonResponse = json::parse(responseBody);
+      jsonResponse = json::parse(responseBody);
 
       // //=======================================================================
       // // LOG_DEBUG jsonResponse
@@ -203,7 +214,7 @@ namespace bgg
           {
             SPDLOG_ERROR("Error printing token usage: {}", e.what());
           }
-          
+
           auto candidates = jsonObj["candidates"].as_array();
           if (!candidates.empty())
           {
@@ -277,6 +288,12 @@ namespace bgg
     catch (const beast::system_error &e)
     {
       SPDLOG_ERROR("System error: {} (code: {})", e.what(), e.code().value());
+      // LOG_DEBUG jsonResponse
+      {
+        std::ostringstream oss;
+        utils::printPrettyJson(oss, jsonResponse);
+        SPDLOG_DEBUG("Json response on error: {}", oss.str());
+      }
     }
 
     if (responseText)
@@ -290,19 +307,19 @@ namespace bgg
   {
     auto usageMetadata = jsonObj.at("usageMetadata").as_object();
 
-    SPDLOG_DEBUG(
+    SPDLOG_INFO(
         "Prompt tokens: {}",
         usageMetadata["promptTokenCount"].as_int64());
 
-    SPDLOG_DEBUG(
+    SPDLOG_INFO(
         "Response tokens: {}",
         usageMetadata["candidatesTokenCount"].as_int64());
 
-    SPDLOG_DEBUG(
+    SPDLOG_INFO(
         "Thoughts tokens: {}",
         usageMetadata["thoughtsTokenCount"].as_int64());
 
-    SPDLOG_DEBUG(
+    SPDLOG_INFO(
         "Total tokens: {}",
         usageMetadata["totalTokenCount"].as_int64());
   }

@@ -230,13 +230,13 @@ namespace utils
     if (jsonObj.contains("promote"))
     {
       boost::json::value promoteValue = jsonObj.at("promote");
-      
+
       if (!promoteValue.is_null())
       {
         move.promote = std::string{jsonObj.at("promote").as_string().c_str()};
       }
     }
-    
+
     validateChessMove(move);
 
     return move;

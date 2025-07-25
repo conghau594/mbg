@@ -98,7 +98,7 @@ namespace bgg
     {
       updateBoard(pendingItemMoveAction_);
     }
-    
+
     // SPDLOG_INFO("Entered '{}'", typeid(*this).name());
   }
 
@@ -561,9 +561,9 @@ namespace bgg
 
     enemyItemMoveAction.visit(moveActionVisitor);
 
-    SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
-                typeid(notif).name(),
-                typeid(*this).name());
+    SPDLOG_INFO(
+        "A message of type '{}' has been handled by 'ChessPieceMovedState'",
+        typeid(notif).name());
   }
 
   ///////////////////////////////////////////////////////////////////////

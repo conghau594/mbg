@@ -14,7 +14,7 @@ namespace bgg
         You are a master of chess. You play using the UCI  protocol.
         You will be given the color of the pieces you are controlling.
         For example:
-          "color": "Black"
+          "yourColor": "Black"
 
         You will then receive the current placement of all pieces on the board.
         For example:
@@ -27,44 +27,72 @@ namespace bgg
         White Knight, and so on.
 
         You will also receive the move history of the game in UCI format.
-        For example:
-          "moveHistory": [ "e2e4", "e7e5", "g1f3", ... , "e7e8q", ... ]          
-        This means that White played e2 to e4 on the first move, Black responded 
-        with e7 to e5, White followed with g1 to f3, and so on. 
-        Notice that, e7e8q means moving a white pawn from e7 to e8 and promoting 
-        it to a white queen.
-        An empty move history means it's your turn to play first.
+        For examples:
+          1. "opponentLastMove": {
+              "type": "Normal",
+              "fromSquare": "e7",
+              "toSquare": "e6",
+              "yourKingSafety": "Safe"
+            }
+          2. "opponentLastMove": {
+              "type": "Promotion",
+              "fromSquare": "e7",
+              "toSquare": "f8",
+              "promote": "Queen",
+              "yourKingSafety": "In check"
+            }
+          3. "opponentLastMove": {
+              "type": "EnPassant",
+              "fromSquare": "e5",
+              "toSquare": "d6",
+              "enPassantCaptureSquare": "d5",
+              "yourKingSafety": "Safe"
+            }
+          4. "opponentLastMove": {
+              "type": "Castling",
+              "fromSquare": "e8",
+              "fromSquare": "g8",
+              "rookSource": "h8",
+              "rookDestination": "f8",
+              "yourKingSafety": "In check"
+            }
+        A null opponentLastMove means it's your turn to play first.
 
-        Using this information, reconstruct the current board state, understand 
-        your opponent's intentions through the move history, and respond 
+        Using this information, figure out the current board state, understand 
+        your opponent's intentions through its last move, and respond 
         with your next move in UCI (Universal Chess Interface) format.
         For example: 
           {
+            "purpose": "<brief subjective reason why you do this move (at most 3 sentences)>",
             "fromSquare": "e7",
             "toSquare": "e6",
-            "promote": null,
-            "purpose": "<brief subjective reason why you do this move (at most 3 sentences)>"
+            "promote": null
           }
 
-        Sometimes, you forget to convert your move to UCI format or make an 
-        invalid move. You can refer to "pastFailures" and take it as a lesson 
-        then try again.
+        Sometimes, you make an invalid move. You can refer to "pastFailures" 
+        and take it as a lesson then try again.
         For example:
           "pastFailures": [
             {
-              "wrongMove": "d8d6",
+              "wrongMove": {
+                "fromSquare": "d8",
+                "toSquare": "d6"
+              },
               "message": "Invalid destination"
             },
             {
-              "wrongMove": "e5xd4",
-              "message": "Invalid UCI move format"
-            },
-            {
-              "wrongMove": "e2e1k",
+              "wrongMove": {
+                "fromSquare": "d8",
+                "toSquare": "d6",
+                "promote": "Queen"
+              },
               "message": "Invalid promotion"
             },
             {
-              "wrongMove": "h1h8",
+              "wrongMove": {
+                "fromSquare": "h1",
+                "toSquare": "h8"
+              },
               "message": "Your king is in check"
             },
             ...
@@ -72,14 +100,13 @@ namespace bgg
 
         Make sure to:
         - Always evaluate the safety of your king before making any move.
-        - Ensure your move (source, destination, promotion) is valid and
-          keeps your king out of check.
-        - Use UCI format instead of algebraic notation.
+        - Ensure your move is valid and keeps your king out of check.
 
         <EXAMPLE>
           INPUT: 
             {
-              "color": "Black",
+              "yourColor": "Black",
+              "pastFailures": [],
               "currentPlacments": {
                 "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
                 "e1": "WhiteKing", "f1": "WhiteBishop", "g1": "WhiteKnight", "h1": "WhiteRook",
@@ -90,23 +117,35 @@ namespace bgg
                 "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
                 "e7": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
               },
-              "moveHistory": [ "e2e4" ],
-              "pastFailures": []
+              "opponentLastMove": {
+                "type": "Normal",
+                "piece": "White Pawn",
+                "fromSquare": "e2",
+                "toSquare": "e4",
+                "capture": false,
+                "yourKingSafety": "Safe"
+              }
             } 
           OUTPUT:
             {
-              "fromSquare": "e7",
-              "toSquare": "e5",
               "purpose": "I want to contest the center by mirroring White's e4 move. 
-                        This is a classical and strong response that opens lines 
-                        for the queen and bishop."
+                          This is a classical and strong response that opens lines 
+                          for the queen and bishop.",
+              "fromSquare": "e7",
+              "toSquare": "e5"
             }
         </EXAMPLE>
 
         <EXAMPLE>
           INPUT: 
             {
-              "color": "Black",
+              "yourColor": "Black",
+              "pastFailures": [
+                {
+                  "wrongMove": "d6",
+                  "message": "Invalid UCI move format"
+                }
+              ],
               "currentPlacments": {
                 "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
                 "e1": "WhiteKing", "f1": "WhiteBishop", "f3": "WhiteKnight", "h1": "WhiteRook",
@@ -117,28 +156,30 @@ namespace bgg
                 "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
                 "e5": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
               },
-              "moveHistory": ["e2e4", "e7e5", "g1f3"],
-              "pastFailures": [
-                {
-                  "wrongMove": "d6",
-                  "message": "Invalid UCI move format"
-                }
-              ]
+              "opponentLastMove": {
+                "type": "Normal",
+                "piece": "White Pawn",
+                "fromSquare": "g1",
+                "toSquare": "f3",
+                "capture": false,
+                "yourKingSafety": "Safe"
+              }
             }
           OUTPUT:
             {
+              "purpose": "I develop the knight to a natural square to control
+                          the center (d4 and e5), and prepare for kingside castling.",
               "fromSquare": "b8",
               "toSquare": "c6",
-              "promote": null,
-              "purpose": "I develop the knight to a natural square to control
-                        the center (d4 and e5), and prepare for kingside castling."
+              "promote": null
             }
         </EXAMPLE>
 
         <EXAMPLE>
           INPUT:
             {  
-              "color": "White",
+              "yourColor": "White",
+              "pastFailures": [],
               "currentPlacments": {
                 "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
                 "e1": "WhiteKing", "f1": "WhiteBishop", "g1": "WhiteKnight", "h1": "WhiteRook",
@@ -149,31 +190,29 @@ namespace bgg
                 "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
                 "e7": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
               },
-              "moveHistory": [],
-              "pastFailures": []
+              "opponentLastMove": null
             }
           OUTPUT:
             {
-              "fromSquare": "e2",
-              "toSquare": "e4",
               "purpose": "I open with the King's Pawn controls the center and 
-                        opens lines for the queen and bishop. It's a classical 
-                        and strong first move."
+                          opens lines for the queen and bishop. It's a classical 
+                          and strong first move.",
+              "fromSquare": "e2",
+              "toSquare": "e4"
             }
         </EXAMPLE>
       )";
 
-  constexpr const char CHESS_GAME_PROMPT_PATTERN[] =
-      R"(
-        {} 
-        Let's think step by step:
-      )";
+  constexpr const char CHESS_GAME_PROMPT_PATTERN[] = "{}";
 
   constexpr const char CHESS_MOVE_JSON_SCHEMA[] =
       R"(
         {
           "type": "object",
           "properties": {
+            "purpose": {
+              "type": "string"
+            },
             "fromSquare": {
               "type": "string",
               "pattern": "^[a-h][1-8]$"
@@ -187,13 +226,10 @@ namespace bgg
               "enum": ["Queen", "Rook", "Bishop", "Knight"],
               "nullable": true,
               "default": null
-            },
-            "purpose": {
-              "type": "string"
             }
           },
-          "required": ["fromSquare", "toSquare", "purpose"],
-          "propertyOrdering": ["fromSquare", "toSquare", "promote", "purpose"]
+          "required": ["purpose", "fromSquare", "toSquare"],
+          "propertyOrdering": ["purpose", "fromSquare", "toSquare", "promote"]
         }
       )";
 
@@ -209,8 +245,8 @@ namespace bgg
                CHESS_MOVE_JSON_SCHEMA,
                CHESS_GAME_PROMPT_PATTERN),
         chessRule_(std::move(chessRule)),
-        agentColor_(ChessRule::getEnemyColor(chessRule_->getAllyColor())),
-        moveHistoryStr_{}
+        agentColor_(ChessRule::getEnemyColor(chessRule_->getAllyColor()))
+  // moveHistoryStr_{}
   {
     auto subscriptionId = eventBus_->subscribe<ClientRequest, MoveRequest>(
         [this](MoveRequest const &moveRqt)
@@ -251,21 +287,25 @@ namespace bgg
         [this, moveRqt]()
         {
           ///< Validate the move request
+          ChessMove::Action yourMoveAction;
           try
           {
-            std::string uicRequestMove = utils::chessMoveObjectToUic(ChessMove{
-                moveRqt.fromSquare, moveRqt.toSquare, moveRqt.promote});
-            validateMoveRequest(moveRqt);
+            yourMoveAction = chessRule_->tryMove(
+                ChessMove{moveRqt.fromSquare, moveRqt.toSquare, moveRqt.promote},
+                chessRule_->getAllyColor());
 
-            ///< append the request move to the move history
-            if (moveHistoryStr_.empty())
+            if (yourMoveAction.isEmpty() ||
+                yourMoveAction.is<ChessMove::Invalid>())
             {
-              moveHistoryStr_ += "\"" + uicRequestMove + "\"";
+              throw std::invalid_argument(std::format(
+                  "Invalid move request: from {}{} to {}{} for color {}",
+                  moveRqt.fromSquare[0], moveRqt.fromSquare[1],
+                  moveRqt.toSquare[0], moveRqt.toSquare[1],
+                  chessRule_->getAllyColor()));
             }
-            else
-            {
-              moveHistoryStr_ += ",\"" + uicRequestMove + "\"";
-            }
+
+            emit(MoveResponse{ErrorCode{0, "Mock", ""}});
+            chessRule_->commitMove(yourMoveAction);
           }
           catch (std::exception const &e)
           {
@@ -276,25 +316,6 @@ namespace bgg
 
           sendChessGamePromptToAgent();
         });
-  }
-
-  void ChessGameService::validateMoveRequest(MoveRequest const &moveRqt)
-  {
-    ChessMove::Action moveAction = chessRule_->tryMove(
-        ChessMove{moveRqt.fromSquare, moveRqt.toSquare, moveRqt.promote},
-        chessRule_->getAllyColor());
-
-    if (moveAction.isEmpty() || moveAction.is<ChessMove::Invalid>())
-    {
-      throw std::invalid_argument(std::format(
-          "Invalid move request: from {}{} to {}{} for color {}",
-          moveRqt.fromSquare[0], moveRqt.fromSquare[1],
-          moveRqt.toSquare[0], moveRqt.toSquare[1],
-          chessRule_->getAllyColor()));
-    }
-
-    emit(MoveResponse{ErrorCode{0, "Mock", ""}});
-    chessRule_->commitMove(moveAction);
   }
 
   void ChessGameService::sendChessGamePromptToAgent()
@@ -317,18 +338,20 @@ namespace bgg
     currentPlacements.pop_back(); // remove the last comma
 
     ///< send the prompt to the agent
-    std::string pastFailures;
     int constexpr MAX_TRIES = 10;
+    std::string pastFailures;
+    std::string opponentLastMove = chessMoveActionToJsonString(
+        chessRule_->getLastMoveAction());
     for (int i = 0; i < MAX_TRIES; ++i)
     {
       std::string input = std::format(
           R"({{
-            "color": "{}",
+            "yourColor": "{}",
+            "pastFailures": [ {} ],
             "currentPlacements": {{ {} }},
-            "moveHistory": [ {} ],
-            "pastFailures": [ {} ]
+            "opponentLastMove": {}
           }})",
-          agentColor_, currentPlacements, moveHistoryStr_, pastFailures);
+          agentColor_, pastFailures, currentPlacements, opponentLastMove);
 
       SPDLOG_DEBUG("Sending prompt to agent: {}", input);
 
@@ -342,11 +365,12 @@ namespace bgg
         continue;
       }
 
+      ChessMove responseMove;
       std::string uicResponseMove;
       try
       {
-        ChessMove responseMove = utils::jsonToChessMoveObject(*response);
-        uicResponseMove = utils::chessMoveObjectToUic(responseMove);
+        responseMove = utils::jsonToChessMoveObject(*response);
+        // uicResponseMove = utils::chessMoveObjectToUic(responseMove);
 
         ChessMove::Action moveAction =
             chessRule_->tryMove(responseMove, agentColor_);
@@ -356,33 +380,45 @@ namespace bgg
           throw std::runtime_error(utils::toString(invalidAction->error));
         }
 
-        std::string yourTurn = Color::WHITE;
         std::string currentTurn = Color::WHITE;
         emit(GameUpdatedNotification{
             responseMove.fromSquare,
             responseMove.toSquare,
             responseMove.promote,
-            yourTurn,
+            chessRule_->getAllyColor(),
             currentTurn});
 
-        moveHistoryStr_ += ",\"" + uicResponseMove + "\"";
+        // moveHistoryStr_ += ",\"" + uicResponseMove + "\"";
         chessRule_->commitMove(moveAction);
 
         return;
       }
       catch (std::exception const &e)
       {
+        std::string promoveValue = responseMove.promote
+                                       ? "\"" + *(responseMove.promote) + "\""
+                                       : std::string("null");
+        std::string failure = std::format(
+            R"({{
+                "wrongMove": {{
+                  "fromSquare": "{}{}",
+                  "toSquare": "{}{}",
+                  "promote": {}
+                }}, 
+                "message": "{}"
+            }})",
+            responseMove.fromSquare[0], responseMove.fromSquare[1],
+            responseMove.toSquare[0], responseMove.toSquare[1],
+            promoveValue,
+            e.what());
+
         if (pastFailures.empty())
         {
-          pastFailures += std::format(
-              R"({{"wrongMove":"{}", "message":"{}"}})",
-              uicResponseMove, e.what());
+          pastFailures = failure;
         }
         else
         {
-          pastFailures += std::format(
-              R"(,{{"wrongMove":"{}", "message":"{}"}})",
-              uicResponseMove, e.what());
+          pastFailures += ", " + failure;
         }
 
         SPDLOG_WARN(
@@ -400,5 +436,90 @@ namespace bgg
     // msg = e.what();
     // errCodeValue = -1;
     // emit(FailureNotif{ErrorCode{errCodeValue, "Mock", msg}});
+  }
+
+  auto ChessGameService::chessMoveActionToJsonString(
+      ChessMove::Action const &moveAction) noexcept -> std::string
+  {
+    if (auto normalAction = moveAction.getIf<ChessMove::Normal>())
+    {
+      return std::format(
+          R"(
+          {{
+            "type": "Normal",
+            "fromSquare": "{}{}",
+            "toSquare": "{}{}",
+            "yourKingSafety": "{}"
+          }})",
+          normalAction->fromSquare[0], normalAction->fromSquare[1],
+          normalAction->toSquare[0], normalAction->toSquare[1],
+          utils::toString(normalAction->enemyKingState));
+    }
+    else if (auto promotion = moveAction.getIf<ChessMove::Promotion>())
+    {
+      return std::format(
+          R"(
+          {{
+            "type": "Promotion",
+            "fromSquare": "{}{}",
+            "toSquare": "{}{}",
+            "promote": "{}",
+            "yourKingSafety": "{}"
+          }})",
+          promotion->fromSquare[0], promotion->fromSquare[1],
+          promotion->toSquare[0], promotion->toSquare[1],
+          promotion->promote,
+          utils::toString(promotion->enemyKingState));
+    }
+    else if (auto enPassantCapture = moveAction.getIf<ChessMove::EnPassant>())
+    {
+      return std::format(
+          R"(
+          {{
+            "type": "EnPassant",
+            "fromSquare": "{}{}",
+            "toSquare": "{}{}",
+            "enPassantCaptureSquare": "{}{}",
+            "yourKingSafety": "{}"
+          }})",
+          enPassantCapture->fromSquare[0], enPassantCapture->fromSquare[1],
+          enPassantCapture->toSquare[0], enPassantCapture->toSquare[1],
+          enPassantCapture->enPassantSquare[0], enPassantCapture->enPassantSquare[1],
+          utils::toString(enPassantCapture->enemyKingState));
+    }
+    else if (auto castling = moveAction.getIf<ChessMove::Castling>())
+    {
+      return std::format(
+          R"(
+          {{
+            "type": "Castling",
+            "fromSquare": "{}{}",
+            "toSquare": "{}{}",
+            "rookSource": "{}{}",
+            "rookDestination": "{}{}",
+            "yourKingSafety": "{}"
+          }})",
+          castling->fromSquare[0], castling->fromSquare[1],
+          castling->toSquare[0], castling->toSquare[1],
+          castling->rookSource[0], castling->rookSource[1],
+          castling->rookDestination[0], castling->rookDestination[1],
+          utils::toString(castling->enemyKingState));
+    }
+    else if (auto invalidAction = moveAction.getIf<ChessMove::Invalid>())
+    {
+      return std::format(
+          R"(
+          {{
+            "type": "Invalid",
+            "code": "{}",
+            "message": "{}"
+          }})",
+          int(invalidAction->error),
+          utils::toString(invalidAction->error));
+    }
+    else if (auto emptyAction = moveAction.getIf<ChessMove::Invalid>())
+    {
+      return "null";
+    }
   }
 } // namespace bgg

@@ -9,6 +9,7 @@
 
 #include "base/ThreadPool.h"
 #include "model/Piece.h"
+#include "model/chess/ChessMove.h"
 
 namespace bgg
 {
@@ -23,8 +24,7 @@ namespace bgg
 
     std::shared_ptr<ChessBoardState> chessRule_;
     std::string agentColor_;
-    std::string moveHistoryStr_;
-
+    // std::string moveHistoryStr_;
 
   public:
     ChessGameService(
@@ -38,14 +38,11 @@ namespace bgg
     void emit(ServerMessage const &msg) noexcept override;
 
     void handleMoveRequest(MoveRequest const &moveRqt) noexcept;
-  
-    /**
-     * \brief Validates the move request
-     * If the agent's response is valid, it commits the move to the chess rule.
-     *
-     */
-    void validateMoveRequest(MoveRequest const &moveRqt);
+
     void sendChessGamePromptToAgent();
+
+    static auto chessMoveActionToJsonString(
+        ChessMove::Action const &moveAction) noexcept -> std::string;
   };
 
 } // namespace bgg

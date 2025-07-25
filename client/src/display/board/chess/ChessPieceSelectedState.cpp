@@ -58,13 +58,13 @@ namespace bgg
       addHighlighters(reachableTileInfo.value());
       somethingWrong = false;
 
-      SPDLOG_DEBUG(
-          "There are {} reachable tiles from tile ({}, {}) obtained by '{}'",
-          reachableTileInfo->quietSquares.size() +
-              reachableTileInfo->captureSquares.size() +
-              reachableTileInfo->specialMoveTiles.size(),
-          selectedTile_.x, selectedTile_.y,
-          "?" /*ChessPiece::toString(gameRule_->getItemT Entry(selectedTile_).value())*/);
+      // SPDLOG_DEBUG(
+      //     "There are {} reachable tiles from tile ({}, {}) obtained by '{}'",
+      //     reachableTileInfo->quietSquares.size() +
+      //         reachableTileInfo->captureSquares.size() +
+      //         reachableTileInfo->specialMoveTiles.size(),
+      //     selectedTile_.x, selectedTile_.y,
+      //     "?" /*ChessPiece::toString(gameRule_->getItemT Entry(selectedTile_).value())*/);
     }
 
     BOOST_ASSERT_MSG(!somethingWrong,

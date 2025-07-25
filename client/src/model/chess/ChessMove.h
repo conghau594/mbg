@@ -123,13 +123,10 @@ namespace utils
     switch (error)
     {
     case bgg::ChessMove::Error::INVALID_SOURCE_SQUARE:
-      return "Invalid source square. ";
+      return "Invalid source tile. ";
 
     case bgg::ChessMove::Error::INVALID_DESTINATION_SQUARE:
-      return "Invalid destination square. ";
-
-    case bgg::ChessMove::Error::INVALID_COLOR:
-      return "Cannot move enemy piece. ";
+      return "Invalid destination tile. ";
 
     case bgg::ChessMove::Error::INVALID_PROMOTION:
       return "Invalid promotion. ";

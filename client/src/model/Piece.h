@@ -14,7 +14,7 @@ namespace bgg
 
     [[nodiscard]] auto toString() const noexcept -> std::string
     {
-      return color + type;
+      return color + " " + type;
     }
   };
 

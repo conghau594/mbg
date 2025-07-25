@@ -141,35 +141,37 @@ namespace bgg
     return ChessRule::getPiece(piecePlacements_, square);
   }
 
-  auto ChessBoardState::getLastMove() const noexcept -> std::optional<ChessMove>
+  auto ChessBoardState::getLastMoveAction() const noexcept -> ChessMove::Action
   {
     if (moveHistory_.empty())
     {
-      return std::nullopt;
+      return std::monostate{};
     }
 
-    auto moveActionVisitor = [this]<typename T>(T const &action) -> ChessMove
-    {
-      if constexpr (requires { 
-        { action.fromSquare } -> std::same_as<Position const &>;
-        { action.toSquare } -> std::same_as<Position const &>; })
-      {
-        ChessMove move{action.fromSquare, action.toSquare, std::nullopt};
-        if constexpr (requires { 
-          { action.promote }->std::same_as<std::optional<std::string> const &>; })
-        {
-          move.promote = action.promote;
-        }
-        return move;
-      }
-      else
-      {
-        BOOST_ASSERT_MSG(false, "The move action cannot be invalid in this case.");
-        return ChessMove{};
-      }
-    };
+    // auto moveActionVisitor = [this]<typename T>(T const &action) -> ChessMove
+    // {
+    //   if constexpr (requires {
+    //     { action.fromSquare } -> std::same_as<Position const &>;
+    //     { action.toSquare } -> std::same_as<Position const &>; })
+    //   {
+    //     ChessMove move{action.fromSquare, action.toSquare, std::nullopt};
+    //     if constexpr (requires {
+    //       { action.promote }->std::same_as<std::optional<std::string> const &>; })
+    //     {
+    //       move.promote = action.promote;
+    //     }
+    //     return move;
+    //   }
+    //   else
+    //   {
+    //     BOOST_ASSERT_MSG(false, "The move action cannot be invalid in this case.");
+    //     return ChessMove{};
+    //   }
+    // };
 
-    return moveHistory_.back().visit(moveActionVisitor);
+    // return moveHistory_.back().visit(moveActionVisitor);
+
+    return moveHistory_.back();
   }
 
   auto ChessBoardState::tryMove(

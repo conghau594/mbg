@@ -157,6 +157,9 @@ namespace bgg
       ChessItemMoveAction const &itemMoveAction) const noexcept
       -> ChessMove::Action
   {
+    auto itemMoveVisitor = [this]<typename T>(T const &action) {
+
+    };
     if (auto normalItemMove = itemMoveAction.getIf<NormalChessItemMove>())
     {
       ChessMove::Normal normalMove{

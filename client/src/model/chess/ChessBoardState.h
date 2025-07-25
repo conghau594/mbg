@@ -43,7 +43,7 @@ namespace bgg
 		/**
 		 * \return std::nullopt if the move history is empty.
 		 */
-		[[nodiscard]] auto getLastMove() const noexcept -> std::optional<ChessMove>;
+		[[nodiscard]] auto getLastMoveAction() const noexcept -> ChessMove::Action;
 
 		[[nodiscard]] auto tryMove(
 				ChessMove const &move,
