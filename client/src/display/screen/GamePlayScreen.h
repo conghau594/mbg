@@ -11,8 +11,12 @@ namespace bgg
   {
     std::shared_ptr<IDisplay> gameDisplay_;
     std::shared_ptr<IGameBoard> gameBoard_;
+
+    std::string buttonLabel_;
     int resignRegionHeight_;
     int pressedButtonIndex_;
+
+    bool gameFinished_;
 
   public:
     GamePlayScreen(

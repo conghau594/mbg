@@ -53,8 +53,8 @@ namespace bgg
 
     // TODO: make this configurable
     // const std::string target = "/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
-    // const std::string target = "/v1beta/models/gemini-2.0-flash:generateContent";
-    const std::string target = "/v1beta/models/gemini-2.5-pro-preview-06-05:generateContent";
+    const std::string target = "/v1beta/models/gemini-2.0-flash:generateContent";
+    // const std::string target = "/v1beta/models/gemini-2.5-pro-preview-06-05:generateContent";
     // const std::string target = "/v1beta/models/gemini-1.5-pro:generateContent";
 
     json::value jsonResponse;
@@ -67,7 +67,8 @@ namespace bgg
       context.set_default_verify_paths();
 
       beast::ssl_stream<beast::tcp_stream> stream(ioc, context);
-
+      int constexpr TIME_OUT_IN_SEC = 60;
+      stream.next_layer().expires_after(std::chrono::seconds(TIME_OUT_IN_SEC));
       // if (SSL_ctrl(stream.native_handle(),
       //              SSL_CTRL_SET_TLSEXT_HOSTNAME,
       //              TLSEXT_NAMETYPE_host_name,
@@ -139,7 +140,10 @@ namespace bgg
       generationConfig["temperature"] = 0.0;
       generationConfig["responseMimeType"] = "application/json";
       generationConfig["responseSchema"] = responseSchema_;
-      // generationConfig["includeThoughts"] = true;
+
+      json::object thinkingConfig;
+      thinkingConfig["thinkingBudget"] = 8192;
+      generationConfig["thinkingConfig"] = thinkingConfig;
 
       ///< json request
       // json::array conversationHistory;

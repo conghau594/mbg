@@ -12,91 +12,16 @@ namespace bgg
   constexpr const char CHESS_GAME_SYSTEM_INSTRUCTION[] =
       R"(
         You are a master of chess. You play using the UCI  protocol.
-        You will be given the color of the pieces you are controlling.
-        For example:
-          "yourColor": "Black"
-
-        You will then receive the current placement of all pieces on the board.
-        For example:
-          "currentPlacements": {
-            "a1": "WhiteRook",
-            "b1": "WhiteKnight",
-            ...
-          }
-        This indicates that square a1 contains a White Rook, b1 contains a 
-        White Knight, and so on.
-
-        You will also receive the move history of the game in UCI format.
-        For examples:
-          1. "opponentLastMove": {
-              "type": "Normal",
-              "fromSquare": "e7",
-              "toSquare": "e6",
-              "yourKingSafety": "Safe"
-            }
-          2. "opponentLastMove": {
-              "type": "Promotion",
-              "fromSquare": "e7",
-              "toSquare": "f8",
-              "promote": "Queen",
-              "yourKingSafety": "In check"
-            }
-          3. "opponentLastMove": {
-              "type": "EnPassant",
-              "fromSquare": "e5",
-              "toSquare": "d6",
-              "enPassantCaptureSquare": "d5",
-              "yourKingSafety": "Safe"
-            }
-          4. "opponentLastMove": {
-              "type": "Castling",
-              "fromSquare": "e8",
-              "fromSquare": "g8",
-              "rookSource": "h8",
-              "rookDestination": "f8",
-              "yourKingSafety": "In check"
-            }
-        A null opponentLastMove means it's your turn to play first.
-
+        You will be given the `color` of the pieces you are controlling.
+        You will then receive the `currentPlacements` of all pieces on the board.
+        You will also receive the `opponentLastMove`.
+        
         Using this information, figure out the current board state, understand 
         your opponent's intentions through its last move, and respond 
         with your next move in UCI (Universal Chess Interface) format.
-        For example: 
-          {
-            "purpose": "<brief subjective reason why you do this move (at most 3 sentences)>",
-            "fromSquare": "e7",
-            "toSquare": "e6",
-            "promote": null
-          }
 
-        Sometimes, you make an invalid move. You can refer to "pastFailures" 
+        Sometimes, you make an invalid move. You can refer to `pastFailures` 
         and take it as a lesson then try again.
-        For example:
-          "pastFailures": [
-            {
-              "wrongMove": {
-                "fromSquare": "d8",
-                "toSquare": "d6"
-              },
-              "message": "Invalid destination"
-            },
-            {
-              "wrongMove": {
-                "fromSquare": "d8",
-                "toSquare": "d6",
-                "promote": "Queen"
-              },
-              "message": "Invalid promotion"
-            },
-            {
-              "wrongMove": {
-                "fromSquare": "h1",
-                "toSquare": "h8"
-              },
-              "message": "Your king is in check"
-            },
-            ...
-          ]
 
         Make sure to:
         - Always evaluate the safety of your king before making any move.
@@ -152,7 +77,7 @@ namespace bgg
               },
               "pastFailures": [
                 {
-                  "wrongMove": {
+                  "illegalMove": {
                     "fromSquare": "b8",
                     "toSquare": "c5"
                   },
@@ -194,7 +119,7 @@ namespace bgg
               },
               "pastFailures": [
                 {
-                  "wrongMove": {
+                  "illegalMove": {
                     "fromSquare": "e3",
                     "toSquare": "e4",
                     "promote": null
@@ -252,17 +177,41 @@ namespace bgg
       : threadPool_(2),
         eventBus_(std::move(eventBus)),
         subscriptionIdList_{},
-        agent_(std::move(apiKey),
-               CHESS_GAME_SYSTEM_INSTRUCTION,
-               CHESS_MOVE_JSON_SCHEMA,
-               CHESS_GAME_PROMPT_PATTERN),
+        agent_(std::make_shared<GeminiAgent>(
+            std::move(apiKey),
+            CHESS_GAME_SYSTEM_INSTRUCTION,
+            CHESS_MOVE_JSON_SCHEMA,
+            CHESS_GAME_PROMPT_PATTERN)),
+        maxPromptRetries_(10),
         chessRule_(std::move(chessRule))
   // moveHistoryStr_{}
   {
     auto subscriptionId = eventBus_->subscribe<ClientRequest, MoveRequest>(
         [this](MoveRequest const &moveRqt)
         {
-          handleMoveRequest(moveRqt);
+          threadPool_.push(
+              [this, moveRqt]()
+              {
+                std::lock_guard<std::mutex> lock(mutexForThis_);
+                ///< Validate the move request
+                bool gameFinished;
+                try
+                {
+                  validateMoveRequest(moveRqt, gameFinished);
+                }
+                catch (std::exception const &e)
+                {
+                  int errCodeValue = -1;
+                  emit(MoveResponse{ErrorCode{errCodeValue, "Mock", e.what()}});
+                  return;
+                }
+
+                if (gameFinished)
+                {
+                  return; // Game is finished, no need to send prompt to agent
+                }
+                sendChessGamePromptToAgent();
+              });
         });
 
     if (!subscriptionId)
@@ -280,10 +229,12 @@ namespace bgg
 
   ChessGameService::~ChessGameService()
   {
+    maxPromptRetries_ = 0; // stop any further attempts to send prompts
     for (auto &id : subscriptionIdList_)
     {
       eventBus_->unsubscribe<ClientRequest>(id);
     }
+    std::lock_guard<std::mutex> lock(mutexForThis_);
   }
 
   void ChessGameService::emit(ServerMessage const &msg) noexcept
@@ -291,48 +242,33 @@ namespace bgg
     eventBus_->emit<ServerMessage>(msg);
   }
 
-  void ChessGameService::handleMoveRequest(
-      MoveRequest const &moveRqt) noexcept
+  void ChessGameService::validateMoveRequest(MoveRequest const &moveRqt, bool &gameFinished) noexcept
   {
-    threadPool_.push(
-        [this, moveRqt]()
-        {
-          ///< Validate the move request
-          ChessMove::Action yourMoveAction;
-          try
-          {
-            yourMoveAction = chessRule_->tryMove(
-                ChessMove{moveRqt.fromSquare, moveRqt.toSquare, moveRqt.promote},
-                chessRule_->getAllyColor());
+    ChessMove::Action yourMoveAction = chessRule_->tryMove(
+        ChessMove{moveRqt.fromSquare, moveRqt.toSquare, moveRqt.promote},
+        chessRule_->getAllyColor());
 
-            if (yourMoveAction.isEmpty() ||
-                yourMoveAction.is<ChessMove::Invalid>())
-            {
-              throw std::invalid_argument(std::format(
-                  "Invalid move request: from {}{} to {}{} for color {}",
-                  moveRqt.fromSquare[0], moveRqt.fromSquare[1],
-                  moveRqt.toSquare[0], moveRqt.toSquare[1],
-                  chessRule_->getAllyColor()));
-            }
+    if (yourMoveAction.is<ChessMove::Invalid>())
+    {
+      throw std::invalid_argument(std::format(
+          "Invalid move request: from {}{} to {}{} for color {}",
+          moveRqt.fromSquare[0], moveRqt.fromSquare[1],
+          moveRqt.toSquare[0], moveRqt.toSquare[1],
+          chessRule_->getAllyColor()));
+    }
 
-            emit(MoveResponse{ErrorCode{0, "Mock", ""}});
-            chessRule_->commitMove(yourMoveAction);
+    emit(MoveResponse{ErrorCode{0, "Mock", ""}});
+    chessRule_->commitMove(yourMoveAction);
 
-            if (utils::getEnemyKingState(yourMoveAction) == KingState::CHECKMATED)
-            {
-              emit(GameFinishedNotification{"Win"});
-              return;
-            }
-          }
-          catch (std::exception const &e)
-          {
-            int errCodeValue = -1;
-            emit(MoveResponse{ErrorCode{errCodeValue, "Mock", e.what()}});
-            return;
-          }
-
-          sendChessGamePromptToAgent();
-        });
+    if (utils::getEnemyKingState(yourMoveAction) == KingState::CHECKMATED)
+    {
+      emit(GameFinishedNotification{"Win"});
+      gameFinished = true;
+    }
+    else
+    {
+      gameFinished = false;
+    }
   }
 
   void ChessGameService::sendChessGamePromptToAgent()
@@ -355,12 +291,11 @@ namespace bgg
     currentPlacements.pop_back(); // remove the last comma
 
     ///< send the prompt to the agent
-    int constexpr MAX_TRIES = 10;
     std::string pastFailures;
     std::string opponentLastMove = chessMoveActionToJsonString(
         chessRule_->getLastMoveAction());
     std::string agentColor = ChessRule::getEnemyColor(chessRule_->getAllyColor());
-    for (int i = 0; i < MAX_TRIES; ++i)
+    for (int i = 0; i < maxPromptRetries_; ++i)
     {
       std::string input = std::format(
           R"(
@@ -374,7 +309,7 @@ namespace bgg
 
       SPDLOG_DEBUG("Sending prompt to agent: {}", input);
 
-      std::optional<std::string> response = agent_.sendPromptWithArgs(input);
+      std::optional<std::string> response = agent_->sendPromptWithArgs(input);
       if (!response)
       {
         SPDLOG_WARN(
@@ -385,14 +320,24 @@ namespace bgg
       }
 
       ChessMove responseMove;
-      std::string uicResponseMove;
+      // std::string uicResponseMove;
       try
       {
         responseMove = utils::jsonToChessMoveObject(*response);
-        // uicResponseMove = utils::chessMoveObjectToUic(responseMove);
+      }
+      catch (std::exception const &e)
+      {
+        SPDLOG_WARN(
+            "Prompt failure number: {} (JSON parsing failure: {}. {}). Retrying...",
+            i + 1, e.what(), *response);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        continue;
+      }
 
-        ChessMove::Action enemyMoveAction =
-            chessRule_->tryMove(responseMove, agentColor);
+      try
+      {
+        ChessMove::Action enemyMoveAction = chessRule_->tryMove(
+            responseMove, agentColor);
         // handle the error case when 'responseMove' is invalid
         if (auto invalidAction = enemyMoveAction.getIf<ChessMove::Invalid>())
         {
@@ -424,7 +369,7 @@ namespace bgg
         std::string failure = std::format(
             R"(
             {{
-              "wrongMove": {{
+              "illegalMove": {{
                 "fromSquare": "{}{}",
                 "toSquare": "{}{}",
                 "promote": {}
@@ -455,6 +400,7 @@ namespace bgg
       }
     }
 
+    emit(GameFinishedNotification{"Error"});
     SPDLOG_ERROR("Prompt request completely failed");
     // TODO: handle the failure case after 100 times of try to send prompt to agent
     // msg = e.what();
@@ -495,22 +441,6 @@ namespace bgg
           promotion->promote,
           utils::toString(promotion->enemyKingState));
     }
-    else if (auto enPassantCapture = moveAction.getIf<ChessMove::EnPassant>())
-    {
-      return std::format(
-          R"(
-          {{
-            "type": "EnPassant",
-            "fromSquare": "{}{}",
-            "toSquare": "{}{}",
-            "enPassantCaptureSquare": "{}{}",
-            "yourKingSafety": "{}"
-          }})",
-          enPassantCapture->fromSquare[0], enPassantCapture->fromSquare[1],
-          enPassantCapture->toSquare[0], enPassantCapture->toSquare[1],
-          enPassantCapture->enPassantSquare[0], enPassantCapture->enPassantSquare[1],
-          utils::toString(enPassantCapture->enemyKingState));
-    }
     else if (auto castling = moveAction.getIf<ChessMove::Castling>())
     {
       return std::format(
@@ -528,6 +458,22 @@ namespace bgg
           castling->rookSource[0], castling->rookSource[1],
           castling->rookDestination[0], castling->rookDestination[1],
           utils::toString(castling->enemyKingState));
+    }
+    else if (auto enPassantCapture = moveAction.getIf<ChessMove::EnPassant>())
+    {
+      return std::format(
+          R"(
+          {{
+            "type": "EnPassant",
+            "fromSquare": "{}{}",
+            "toSquare": "{}{}",
+            "enPassantCaptureSquare": "{}{}",
+            "yourKingSafety": "{}"
+          }})",
+          enPassantCapture->fromSquare[0], enPassantCapture->fromSquare[1],
+          enPassantCapture->toSquare[0], enPassantCapture->toSquare[1],
+          enPassantCapture->enPassantSquare[0], enPassantCapture->enPassantSquare[1],
+          utils::toString(enPassantCapture->enemyKingState));
     }
     else if (auto invalidAction = moveAction.getIf<ChessMove::Invalid>())
     {

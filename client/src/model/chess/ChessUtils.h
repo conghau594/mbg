@@ -199,33 +199,19 @@ namespace utils
   {
     bgg::ChessMove move;
 
-    if (jsonObj.contains("fromSquare"))
+    std::string fromSquare{jsonObj.at("fromSquare").as_string().c_str()};
+    if (fromSquare.length() < 2)
     {
-      std::string fromSquare{jsonObj.at("fromSquare").as_string().c_str()};
-      if (fromSquare.length() < 2)
-      {
-        throw std::invalid_argument("Invalid 'fromSquare' length: " + fromSquare);
-      }
-      move.fromSquare = {fromSquare[0], fromSquare[1], '\0'};
+      throw std::invalid_argument("Invalid 'fromSquare' length: " + fromSquare);
     }
-    else
-    {
-      throw std::invalid_argument("Missing 'fromSquare' in JSON");
-    }
+    move.fromSquare = {fromSquare[0], fromSquare[1], '\0'};
 
-    if (jsonObj.contains("toSquare"))
+    std::string toSquare{jsonObj.at("toSquare").as_string().c_str()};
+    if (toSquare.length() < 2)
     {
-      std::string toSquare{jsonObj.at("toSquare").as_string().c_str()};
-      if (toSquare.length() < 2)
-      {
-        throw std::invalid_argument("Invalid 'toSquare' length: " + toSquare);
-      }
-      move.toSquare = {toSquare[0], toSquare[1], '\0'};
+      throw std::invalid_argument("Invalid 'toSquare' length: " + toSquare);
     }
-    else
-    {
-      throw std::invalid_argument("Missing 'toSquare' in JSON");
-    }
+    move.toSquare = {toSquare[0], toSquare[1], '\0'};
 
     if (jsonObj.contains("promote"))
     {
@@ -233,7 +219,7 @@ namespace utils
 
       if (!promoteValue.is_null())
       {
-        move.promote = std::string{jsonObj.at("promote").as_string().c_str()};
+        move.promote = std::string{promoteValue.as_string().c_str()};
       }
     }
 
@@ -244,8 +230,7 @@ namespace utils
 
   inline auto jsonToChessMoveObject(std::string const &jsonStr) -> bgg::ChessMove
   {
-    auto jsonObj = boost::json::parse(jsonStr).as_object();
-
+    boost::json::object jsonObj = boost::json::parse(jsonStr).as_object();
     return jsonToChessMoveObject(jsonObj);
   }
 

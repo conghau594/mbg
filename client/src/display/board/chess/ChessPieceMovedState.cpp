@@ -47,9 +47,8 @@ namespace bgg
             !movedItemEntry.isNull(),
             "There must be an item at the 'fromTile'");
         tileMap_->fitItemToTile(movedItemEntry.getItem(), move->fromTile);
-        gameBoard_->popState();
       }
-      else if (!pendingItemMoveAction_.is<std::monostate>())
+      else if (!pendingItemMoveAction_.isEmpty())
       {
         gameBoard_->sendMoveRequest(MoveRequest{
             "",
@@ -65,6 +64,7 @@ namespace bgg
   {
     if (pendingItemMoveAction_.is<InvalidChessItemMove>())
     {
+      gameBoard_->popState();
       return;
     }
 

@@ -152,7 +152,7 @@ namespace peeb // abbr of `Powerful Elegant Event Bus`
         return std::visit(subscribeVisitor_,
                           typename EVENT::ListenerVariant(listener));
       else
-        return std::optional<std::size_t>(std::nullopt);
+        return std::nullopt;
     }
 
     /////////////////////////////////////////////////////////////////////////////

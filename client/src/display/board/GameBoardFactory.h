@@ -9,6 +9,7 @@
 #include "chess/ChessBoard.h"
 #include "chess/ChessTextureAtlas001.h"
 #include "chess/ChessPieceSelectableState.h"
+#include "chess/ChessPieceMovedState.h"
 #include "chess/ChessRuleAdapter.h"
 
 #include "model/Piece.h"
@@ -71,17 +72,21 @@ namespace bgg
               boardRect, gameRuleAdapter, tileMap, itemStore, std::move(requestSender));
 
       // assign the initial state of the board
-      std::shared_ptr<IBoardState> initialBoardState;
+      std::shared_ptr<IBoardState>
+          initialBoardState = std::make_shared<ChessPieceSelectableState>(
+              chessBoard, gameRuleAdapter, tileMap, itemStore);
+      chessBoard->pushState(std::move(initialBoardState));
 
-      if (isYourTurn)
+      if (!isYourTurn)
       {
-        initialBoardState = std::make_shared<ChessPieceSelectableState>(
-            chessBoard,
-            std::move(gameRuleAdapter),
-            std::move(tileMap),
-            std::move(itemStore));
-
-        chessBoard->pushState(std::move(initialBoardState));
+        std::shared_ptr<IBoardState>
+            waitingState = std::make_shared<ChessPieceMovedState>(
+                chessBoard,
+                std::move(gameRuleAdapter),
+                std::move(tileMap),
+                std::move(itemStore),
+                std::nullopt);
+        chessBoard->pushState(std::move(waitingState));
       }
 
       return chessBoard;

@@ -1,6 +1,8 @@
 // ChessGameService.h
 #pragma once
 
+#include <mutex>
+
 #include "GameService.h"
 
 #include "ClientEventBus.h"
@@ -20,9 +22,11 @@ namespace bgg
     std::shared_ptr<ClientEventBus> eventBus_;
     std::vector<std::size_t> subscriptionIdList_;
 
-    GeminiAgent agent_;
+    std::shared_ptr<GeminiAgent> agent_;
+    std::atomic_int maxPromptRetries_;
 
     std::shared_ptr<ChessBoardState> chessRule_;
+    std::mutex mutexForThis_;
     // std::string moveHistoryStr_;
 
   public:
@@ -36,7 +40,8 @@ namespace bgg
   private:
     void emit(ServerMessage const &msg) noexcept override;
 
-    void handleMoveRequest(MoveRequest const &moveRqt) noexcept;
+    void validateMoveRequest(
+        MoveRequest const &moveRqt, bool &gameFinished) noexcept;
 
     void sendChessGamePromptToAgent();
 

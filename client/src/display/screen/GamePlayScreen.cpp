@@ -1,5 +1,7 @@
 // GamePlayScreen.cpp
 
+#include <thread>
+
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <imgui.h>      // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
@@ -20,8 +22,10 @@ namespace bgg
       : BaseScreen(std::move(window)),
         gameDisplay_(std::move(gameDisplay)),
         gameBoard_(std::move(gameBoard)),
+        buttonLabel_("Resign"),
         resignRegionHeight_(resignRegionHeight),
-        pressedButtonIndex_(-1)
+        pressedButtonIndex_(-1),
+        gameFinished_(false)
   {
   }
 
@@ -39,30 +43,38 @@ namespace bgg
     // handle button presses
     if (pressedButtonIndex_ == 0)
     {
-      char constexpr msg[] = "Do you want to give up?";
-      std::vector<std::string> &&buttonLabels{"Yes", "No"};
-      std::vector<std::function<void()>> &&buttonCallbacks{
-          [this]()
-          {
-            std::shared_ptr<IScreenInternal> waitScreen(new ConfirmationScreen(
-                getWindow(), "Wait a second...", {}, {}));
-            changeSubscreen(waitScreen);
+      if (gameFinished_)
+      {
+        gameDisplay_->popScreen();
+      }
+      else
+      {
+        char constexpr msg[] = "Do you want to give up?";
+        std::vector<std::string> &&buttonLabels{"Yes", "No"};
+        std::vector<std::function<void()>> &&buttonCallbacks{
+            [this]()
+            {
+              std::shared_ptr<IScreenInternal> waitScreen(new ConfirmationScreen(
+                  getWindow(), "Wait a second...", {}, {}));
+              changeSubscreen(waitScreen);
 
-            gameDisplay_->send(ResignGameRequest{});
-          },
-          [this]()
-          {
-            changeSubscreen(nullptr);
-          }};
+              gameDisplay_->send(ResignGameRequest{});
+            },
+            [this]()
+            {
+              changeSubscreen(nullptr);
+              // gameBoard_->
+            }};
 
-      std::shared_ptr<IScreenInternal> pauseScreen(new ConfirmationScreen(
-          getWindow(), msg, buttonLabels, buttonCallbacks));
+        std::shared_ptr<IScreenInternal> pauseScreen(new ConfirmationScreen(
+            getWindow(), msg, buttonLabels, buttonCallbacks));
 
-      changeSubscreen(pauseScreen);
-      // deactivate();
+        changeSubscreen(pauseScreen);
+        // deactivate();
+      }
+
+      pressedButtonIndex_ = -1;
     }
-
-    pressedButtonIndex_ = -1;
   }
 
   void GamePlayScreen::onWindowEventExceptClosed(
@@ -98,7 +110,7 @@ namespace bgg
       view.setViewport(sf::FloatRect({posX, posY}, {sizeX, sizeY}));
       getWindow()->setView(view);
     }
-    else
+    else if (!gameFinished_)
     {
       gameBoard_->onWindowEvent(*event);
     }
@@ -109,26 +121,26 @@ namespace bgg
     std::string msg;
     if (notif.result == "Win")
     {
-      msg = "You won! Would you like a new game?";
+      msg = "You won!";
     }
     else if (notif.result == "Lose")
     {
-      msg = "You lost! Would you like a new game?";
+      msg = "You lost!";
     }
     else if (notif.result == "Draw")
     {
-      msg = "It's a draw! Would you like a new game?";
+      msg = "It's a draw!";
     }
     else if (notif.result == "Error")
     {
-      msg = "An error occurred! Would you like a new game?";
+      msg = "An error occurred!\nThe game has been terminated.";
     }
 
-    std::vector<std::string> &&buttonLabels{"Yes", "No"};
+    std::vector<std::string> &&buttonLabels{"Review", "Exit"};
     std::vector<std::function<void()>> &&buttonCallbacks{
         [this]()
         {
-          // TODO: implement a new game request
+          changeSubscreen(nullptr);
         },
         [this]()
         {
@@ -138,7 +150,12 @@ namespace bgg
     std::shared_ptr<IScreenInternal> resultScreen(new ConfirmationScreen(
         getWindow(), msg, buttonLabels, buttonCallbacks));
 
+    int constexpr WAIT_TIME_MS = 3000;
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME_MS));
     changeSubscreen(resultScreen);
+
+    buttonLabel_ = "Exit";
+    gameFinished_ = true;
   }
 
   void GamePlayScreen::doEnter() noexcept
@@ -146,21 +163,30 @@ namespace bgg
     getServerMsgHandler().setHandler<GameUpdatedNotification>(
         [this](GameUpdatedNotification const &notif) -> bool
         {
-          gameBoard_->handleServerMessage(notif);
-          return true;
-        });
-
-    getServerMsgHandler().setHandler<GameFinishedNotification>(
-        [this](GameFinishedNotification const &notif) -> bool
-        {
-          onGameFinishedNotification(notif);
+          if (!gameFinished_)
+          {
+            gameBoard_->handleServerMessage(notif);
+          }
           return true;
         });
 
     getServerMsgHandler().setHandler<MoveResponse>(
         [this](MoveResponse const &response) -> bool
         {
-          gameBoard_->handleServerMessage(response);
+          if (!gameFinished_)
+          {
+            gameBoard_->handleServerMessage(response);
+          }
+          return true;
+        });
+
+    getServerMsgHandler().setHandler<GameFinishedNotification>(
+        [this](GameFinishedNotification const &notif) -> bool
+        {
+          if (!gameFinished_)
+          {
+            onGameFinishedNotification(notif);
+          }
           return true;
         });
   }
@@ -177,8 +203,6 @@ namespace bgg
     int constexpr FONT_VENITE_ADOREMUS_24 = 2;
     ImFont *font24 = ImGui::GetIO().Fonts->Fonts[FONT_VENITE_ADOREMUS_24];
     ImGui::PushFont(font24);
-
-    char constexpr buttonLabel[] = "Resign";
 
     // ImVec2 const TEXT_SIZE = ImGui::CalcTextSize(buttonLabel);
     // ImGuiStyle const &style = ImGui::GetStyle();
@@ -216,7 +240,7 @@ namespace bgg
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.5f, 0.1f, 0.1f, 1.0f));
     ++numStyleColorsPushed;
 
-    if (ImGui::Button(buttonLabel, BUTTON_SIZE) && pressedButtonIndex_ < 0)
+    if (ImGui::Button(buttonLabel_.c_str(), BUTTON_SIZE) && pressedButtonIndex_ < 0)
     {
       pressedButtonIndex_ = 0; // Only allow one button to be pressed at a time
     }

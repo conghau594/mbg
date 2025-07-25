@@ -135,7 +135,7 @@ namespace utils
       return "Invalid castling. ";
 
     case bgg::ChessMove::Error::KING_EXPOSED:
-      return "Your king is in check. ";
+      return "Your king is exposed. ";
 
     case bgg::ChessMove::Error::UNDEFINED:
     default:
