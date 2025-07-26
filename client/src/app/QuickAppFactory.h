@@ -140,7 +140,7 @@ namespace bgg
 			//============================
 			auto chessRuleAtClient = std::make_shared<ChessBoardState>(*chessRuleAtServer);
 
-			std::shared_ptr<IGameBoard> chessBoard = GameBoardFactory().createChessBoard(
+			std::shared_ptr<IBoardView> chessBoard = GameBoardFactory().createChessBoard(
 					std::move(chessRuleAtClient),
 					boardRect,
 					std::move(requestSender),

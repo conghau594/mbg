@@ -1,4 +1,4 @@
-// IBoardState.h
+// IBoardViewState.h
 #pragma once
 
 #include <SFML/System/Vector2.hpp>
@@ -7,10 +7,10 @@
 
 namespace bgg
 {
-  class IBoardState
+  class IBoardViewState
   {
   public:
-    virtual ~IBoardState() = default;
+    virtual ~IBoardViewState() = default;
     virtual void onEnter(sf::Vector2i const &mousePos) = 0;
     virtual void onExit() = 0;
     virtual void onMouseMoved(sf::Vector2i const &mousePos) = 0;

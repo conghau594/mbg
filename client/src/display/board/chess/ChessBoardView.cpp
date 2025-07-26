@@ -1,4 +1,4 @@
-// ChessBoard.cpp
+// ChessBoardView.cpp
 
 #include <list>
 
@@ -7,8 +7,8 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 
-#include "ChessBoard.h"
-#include "display/board/IBoardState.h"
+#include "ChessBoardView.h"
+#include "display/board/IBoardViewState.h"
 #include "IChessRuleAdapter.h"
 #include "ChessPieceSelectableState.h"
 
@@ -18,7 +18,7 @@
 
 namespace bgg
 {
-  ChessBoard::ChessBoard(
+  ChessBoardView::ChessBoardView(
       sf::IntRect const &boardRect,
       std::shared_ptr<IChessRuleAdapter> gameRule,
       std::shared_ptr<TileMap> tileMap,
@@ -31,10 +31,10 @@ namespace bgg
         itemStore_(std::move(itemStore)),
         requestSender_(std::move(requestSender))
   {
-    BOOST_ASSERT_MSG(gameRule_, "gameRule_ of ChessBoard cannot be null.");
-    BOOST_ASSERT_MSG(tileMap_, "tileMap_ of ChessBoard cannot be null.");
-    BOOST_ASSERT_MSG(itemStore_, "itemStore_ of ChessBoard cannot be null.");
-    BOOST_ASSERT_MSG(requestSender_, "requestSender_ of ChessBoard cannot be null.");
+    BOOST_ASSERT_MSG(gameRule_, "gameRule_ of ChessBoardView cannot be null.");
+    BOOST_ASSERT_MSG(tileMap_, "tileMap_ of ChessBoardView cannot be null.");
+    BOOST_ASSERT_MSG(itemStore_, "itemStore_ of ChessBoardView cannot be null.");
+    BOOST_ASSERT_MSG(requestSender_, "requestSender_ of ChessBoardView cannot be null.");
 
     fitRectangle(boardRect);
 
@@ -75,7 +75,7 @@ namespace bgg
     persistentHighlighters_[2].getItem().setVisible(false);
   }
 
-  void ChessBoard::onWindowEvent(sf::Event const &event) noexcept
+  void ChessBoardView::onWindowEvent(sf::Event const &event) noexcept
   {
     if (stateStack_.empty())
     {
@@ -109,17 +109,17 @@ namespace bgg
     }
   }
 
-  void ChessBoard::sendMoveRequest(MoveRequest const &move) noexcept
+  void ChessBoardView::sendMoveRequest(MoveRequest const &move) noexcept
   {
     requestSender_(move);
   }
 
-  void ChessBoard::handleServerMessage(ServerMessage const &msg) noexcept
+  void ChessBoardView::handleServerMessage(ServerMessage const &msg) noexcept
   {
     stateStack_.back()->onServerMessage(msg);
   }
 
-  void ChessBoard::draw(
+  void ChessBoardView::draw(
       sf::RenderTarget &target, sf::RenderStates states) const noexcept
   {
     // draw the tileMap
@@ -133,10 +133,10 @@ namespace bgg
     }
   }
 
-  void ChessBoard::changeState(std::shared_ptr<IBoardState> newState,
-                               sf::Vector2i const &mousePos) noexcept
+  void ChessBoardView::changeState(std::shared_ptr<IBoardViewState> newState,
+                                   sf::Vector2i const &mousePos) noexcept
   {
-    BOOST_ASSERT_MSG(newState != nullptr, "State of ChessBoard cannot be null");
+    BOOST_ASSERT_MSG(newState != nullptr, "State of ChessBoardView cannot be null");
     BOOST_ASSERT_MSG(
         !stateStack_.empty(),
         "You should not change board state while the state stack is empty");
@@ -147,10 +147,10 @@ namespace bgg
     lastState->onEnter(mousePos);
   }
 
-  void ChessBoard::pushState(std::shared_ptr<IBoardState> newState,
-                             sf::Vector2i const &mousePos) noexcept
+  void ChessBoardView::pushState(std::shared_ptr<IBoardViewState> newState,
+                                 sf::Vector2i const &mousePos) noexcept
   {
-    BOOST_ASSERT_MSG(newState != nullptr, "State of ChessBoard cannot be null");
+    BOOST_ASSERT_MSG(newState != nullptr, "State of ChessBoardView cannot be null");
 
     if (!stateStack_.empty())
     {
@@ -161,7 +161,7 @@ namespace bgg
     stateStack_.back()->onEnter(mousePos);
   }
 
-  void ChessBoard::popState(sf::Vector2i const &mousePos) noexcept
+  void ChessBoardView::popState(sf::Vector2i const &mousePos) noexcept
   {
     BOOST_ASSERT_MSG(
         !stateStack_.empty(),
@@ -176,7 +176,7 @@ namespace bgg
     }
   }
 
-  void ChessBoard::clearStates() noexcept
+  void ChessBoardView::clearStates() noexcept
   {
     if (stateStack_.empty())
     {
@@ -187,7 +187,7 @@ namespace bgg
     stateStack_.clear();
   }
 
-  void ChessBoard::fitRectangle(sf::IntRect const &boardRect) noexcept
+  void ChessBoardView::fitRectangle(sf::IntRect const &boardRect) noexcept
   {
     sf::Vector2i const &maxBoardSize = boardRect.size;
     sf::Vector2i mapSize = tileMap_->getSize();
@@ -221,10 +221,10 @@ namespace bgg
     tileMap_->scale(sf::Vector2f{scaleFactor, scaleFactor});
   }
 
-  // void ChessBoard::onGameFinishedNotification(
+  // void ChessBoardView::onGameFinishedNotification(
   //     GameFinishedNotification const &notif) noexcept
   // {
-  //   // TODO: ChessBoard::onGameFinishedNotification()
+  //   // TODO: ChessBoardView::onGameFinishedNotification()
 
   //   SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
   //               typeid(notif).name(), typeid(*this).name());

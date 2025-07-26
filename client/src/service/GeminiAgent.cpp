@@ -52,8 +52,8 @@ namespace bgg
     const std::string port = "443";
 
     // TODO: make this configurable
-    // const std::string target = "/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
-    const std::string target = "/v1beta/models/gemini-2.0-flash:generateContent";
+    const std::string target = "/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
+    // const std::string target = "/v1beta/models/gemini-2.0-flash:generateContent";
     // const std::string target = "/v1beta/models/gemini-2.5-pro-preview-06-05:generateContent";
     // const std::string target = "/v1beta/models/gemini-1.5-pro:generateContent";
 

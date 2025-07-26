@@ -27,6 +27,10 @@ namespace bgg
       {
         scalePercents = {95, 95};
       }
+      else if (regionIndex == int(ChessTextureCell::CHECK_HIGHLIGHTER))
+      {
+        scalePercents = {80, 80};
+      }
       else if (int(ChessTextureCell::WHITE_KING) <= regionIndex &&
                regionIndex <= int(ChessTextureCell::BLACK_PAWN))
       {

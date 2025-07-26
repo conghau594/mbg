@@ -10,14 +10,14 @@
 #include "GamePlayScreen.h"
 #include "ConfirmationScreen.h"
 
-#include "display/IGameBoard.h"
+#include "display/IBoardView.h"
 
 namespace bgg
 {
   GamePlayScreen::GamePlayScreen(
       std::shared_ptr<sf::RenderWindow> window,
       std::shared_ptr<IDisplay> gameDisplay,
-      std::shared_ptr<IGameBoard> gameBoard,
+      std::shared_ptr<IBoardView> gameBoard,
       int resignRegionHeight) noexcept
       : BaseScreen(std::move(window)),
         gameDisplay_(std::move(gameDisplay)),

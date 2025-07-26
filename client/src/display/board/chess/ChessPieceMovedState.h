@@ -3,20 +3,20 @@
 
 #include <memory>
 
-#include "display/board/IBoardState.h"
+#include "display/board/IBoardViewState.h"
 #include "ChessItemMove.h"
 #include "display/board/ItemStore.h"
 
 namespace bgg
 {
-  class IChessBoard;
+  class IChessBoardView;
   class IChessRuleAdapter;
   class TileMap;
   class ItemMove;
 
-  class ChessPieceMovedState final : public IBoardState
+  class ChessPieceMovedState final : public IBoardViewState
   {
-    std::shared_ptr<IChessBoard> gameBoard_;
+    std::shared_ptr<IChessBoardView> gameBoard_;
 
     std::shared_ptr<IChessRuleAdapter> gameRule_;
     std::shared_ptr<TileMap> tileMap_;
@@ -28,7 +28,7 @@ namespace bgg
 
     BoardItem *lastMoveHighlighters_[2];
     bool lastMoveHighlighterVisibility_[2];
-    
+
     BoardItem *allyCheckHighlighter_;
     bool allyCheckHighlighterVisibility_;
 
@@ -36,7 +36,7 @@ namespace bgg
 
   public:
     ChessPieceMovedState(
-        std::shared_ptr<IChessBoard> gameBoard,
+        std::shared_ptr<IChessBoardView> gameBoard,
         std::shared_ptr<IChessRuleAdapter> gameRule,
         std::shared_ptr<TileMap> tileMap,
         std::shared_ptr<ItemStore> itemStore,
@@ -63,7 +63,7 @@ namespace bgg
 
     void revertMoveAction() noexcept;
     void finalizeMoveAction() noexcept;
-    
+
     void finalizeBasicMoveAction(
         TileCoords const &fromTile, TileCoords const &toTile) noexcept;
 

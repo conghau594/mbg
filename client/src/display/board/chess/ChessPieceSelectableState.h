@@ -4,18 +4,18 @@
 #include <memory>
 #include <map>
 
-#include "display/board/IBoardState.h"
+#include "display/board/IBoardViewState.h"
 #include "display/board/ItemStore.h"
 #include "IChessRuleAdapter.h"
 
 namespace bgg
 {
-  class IChessBoard;
+  class IChessBoardView;
   class TileMap;
 
-  class ChessPieceSelectableState final : public IBoardState
+  class ChessPieceSelectableState final : public IBoardViewState
   {
-    std::shared_ptr<IChessBoard> gameBoard_;
+    std::shared_ptr<IChessBoardView> gameBoard_;
 
     std::shared_ptr<IChessRuleAdapter> gameRule_;
     std::shared_ptr<TileMap> tileMap_;
@@ -27,7 +27,7 @@ namespace bgg
 
   public:
     ChessPieceSelectableState(
-        std::shared_ptr<IChessBoard> gameBoard,
+        std::shared_ptr<IChessBoardView> gameBoard,
         std::shared_ptr<IChessRuleAdapter> gameRule,
         std::shared_ptr<TileMap> tileMap,
         std::shared_ptr<ItemStore> itemStore) noexcept;

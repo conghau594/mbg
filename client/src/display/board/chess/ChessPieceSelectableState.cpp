@@ -5,7 +5,7 @@
 #include "ChessPieceSelectableState.h"
 #include "ChessPieceSelectedState.h"
 
-#include "IChessBoard.h"
+#include "IChessBoardView.h"
 #include "display/board/TileMap.h"
 #include "display/board/ZOrder.h"
 
@@ -14,7 +14,7 @@
 namespace bgg
 {
   ChessPieceSelectableState::ChessPieceSelectableState(
-      std::shared_ptr<IChessBoard> gameBoard,
+      std::shared_ptr<IChessBoardView> gameBoard,
       std::shared_ptr<IChessRuleAdapter> gameRule,
       std::shared_ptr<TileMap> tileMap,
       std::shared_ptr<ItemStore> itemStore) noexcept
@@ -85,7 +85,7 @@ namespace bgg
       return;
     }
 
-    std::shared_ptr<IBoardState>
+    std::shared_ptr<IBoardViewState>
         pieceSelectedState = std::make_shared<ChessPieceSelectedState>(
             gameBoard_, gameRule_, tileMap_, itemStore_, targetedTile);
     gameBoard_->pushState(pieceSelectedState, mousePos);

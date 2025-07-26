@@ -1,4 +1,4 @@
-// IGameBoard.h
+// IBoardView.h
 #pragma once
 
 #include <SFML/Graphics/Drawable.hpp>
@@ -11,11 +11,10 @@ namespace sf
 
 namespace bgg
 {
-  class IGameBoard : public sf::Drawable
+  class IBoardView : public sf::Drawable
   {
   public:
     virtual void onWindowEvent(sf::Event const &event) = 0;
-    virtual void handleServerMessage(ServerMessage const& msg) = 0;
-
+    virtual void handleServerMessage(ServerMessage const &msg) = 0;
   };
 } // namespace bgg

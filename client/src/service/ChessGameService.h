@@ -40,8 +40,7 @@ namespace bgg
   private:
     void emit(ServerMessage const &msg) noexcept override;
 
-    void validateMoveRequest(
-        MoveRequest const &moveRqt, bool &gameFinished) noexcept;
+    void validateMoveRequest(MoveRequest const &moveRqt, bool &gameFinished);
 
     void sendChessGamePromptToAgent();
 

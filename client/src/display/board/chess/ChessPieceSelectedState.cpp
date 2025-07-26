@@ -6,7 +6,7 @@
 
 #include "ChessPieceSelectedState.h"
 #include "ChessPieceMovedState.h"
-#include "IChessBoard.h"
+#include "IChessBoardView.h"
 #include "display/board/TileMap.h"
 #include "display/board/ZOrder.h"
 
@@ -17,7 +17,7 @@
 namespace bgg
 {
   ChessPieceSelectedState::ChessPieceSelectedState(
-      std::shared_ptr<IChessBoard> gameBoard,
+      std::shared_ptr<IChessBoardView> gameBoard,
       std::shared_ptr<IChessRuleAdapter> gameRule,
       std::shared_ptr<TileMap> tileMap,
       std::shared_ptr<ItemStore> itemStore,
@@ -161,7 +161,7 @@ namespace bgg
     }
 
     ItemMove move{selectedTile_, targetedTile, promotedPiece};
-    std::shared_ptr<IBoardState>
+    std::shared_ptr<IBoardViewState>
         pieceMovedState = std::make_shared<ChessPieceMovedState>(
             gameBoard_, gameRule_, tileMap_, itemStore_, std::move(move));
 

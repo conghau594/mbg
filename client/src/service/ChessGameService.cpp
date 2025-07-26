@@ -13,7 +13,7 @@ namespace bgg
       R"(
         You are a master of chess. You play using the UCI  protocol.
         You will be given the `color` of the pieces you are controlling.
-        You will then receive the `currentPlacements` of all pieces on the board.
+        You will then receive the `piecePlacements` of all pieces on the board.
         You will also receive the `opponentLastMove`.
         
         Using this information, figure out the current board state, understand 
@@ -242,7 +242,7 @@ namespace bgg
     eventBus_->emit<ServerMessage>(msg);
   }
 
-  void ChessGameService::validateMoveRequest(MoveRequest const &moveRqt, bool &gameFinished) noexcept
+  void ChessGameService::validateMoveRequest(MoveRequest const &moveRqt, bool &gameFinished)
   {
     ChessMove::Action yourMoveAction = chessRule_->tryMove(
         ChessMove{moveRqt.fromSquare, moveRqt.toSquare, moveRqt.promote},
@@ -282,13 +282,13 @@ namespace bgg
       // emit(MoveResponse{ErrorCode{-1, "Mock", "No piece placements found"}});
       return;
     }
-    std::string currentPlacements;
+    std::string piecePlacementsString;
     for (auto &[square, piece] : piecePlacements)
     {
-      currentPlacements += std::format(
+      piecePlacementsString += std::format(
           R"("{}{}":"{}",)", square[0], square[1], piece.toString());
     }
-    currentPlacements.pop_back(); // remove the last comma
+    piecePlacementsString.pop_back(); // remove the last comma
 
     ///< send the prompt to the agent
     std::string pastFailures;
@@ -302,10 +302,10 @@ namespace bgg
           {{
             "yourColor": "{}",
             "pastFailures": [ {} ],
-            "currentPlacements": {{ {} }},
+            "piecePlacements": {{ {} }},
             "opponentLastMove": {}
           }})",
-          agentColor, pastFailures, currentPlacements, opponentLastMove);
+          agentColor, pastFailures, piecePlacementsString, opponentLastMove);
 
       SPDLOG_DEBUG("Sending prompt to agent: {}", input);
 
@@ -328,7 +328,7 @@ namespace bgg
       catch (std::exception const &e)
       {
         SPDLOG_WARN(
-            "Prompt failure number: {} (JSON parsing failure: {}. {}). Retrying...",
+            "Prompt failure number: {} (JSON parsing failure: {} -> {}). Retrying...",
             i + 1, e.what(), *response);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         continue;
@@ -401,7 +401,7 @@ namespace bgg
     }
 
     emit(GameFinishedNotification{"Error"});
-    SPDLOG_ERROR("Prompt request completely failed");
+    SPDLOG_ERROR("Completely failed to send prompt request");
     // TODO: handle the failure case after 100 times of try to send prompt to agent
     // msg = e.what();
     // errCodeValue = -1;

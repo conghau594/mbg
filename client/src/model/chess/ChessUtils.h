@@ -262,8 +262,7 @@ namespace utils
       {
         SPDLOG_DEBUG(
             "Cannot convert '{}' to a ChessMove object: {}",
-            uicMove,
-            e.what());
+            uicMove, e.what());
       }
     }
     return std::nullopt;

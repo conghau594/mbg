@@ -1,11 +1,11 @@
-// IChessBoard.h
+// IChessBoardView.h
 #pragma once
 
 #include <memory>
 #include <limits>
 
 #include <SFML/Graphics/Drawable.hpp>
-#include "display/IGameBoard.h"
+#include "display/IBoardView.h"
 namespace sf
 {
   class Event;
@@ -13,9 +13,9 @@ namespace sf
 
 namespace bgg
 {
-  class IBoardState;
+  class IBoardViewState;
   class MoveRequest;
-  class IChessBoard : public IGameBoard
+  class IChessBoardView : public IBoardView
   {
   public:
     static sf::Vector2i constexpr FARTHEST_POSITION =
@@ -24,10 +24,10 @@ namespace bgg
     virtual void sendMoveRequest(MoveRequest const &move) = 0;
 
     virtual void changeState(
-        std::shared_ptr<IBoardState> newState,
+        std::shared_ptr<IBoardViewState> newState,
         sf::Vector2i const &mousePos = FARTHEST_POSITION) = 0;
     virtual void pushState(
-        std::shared_ptr<IBoardState> newState,
+        std::shared_ptr<IBoardViewState> newState,
         sf::Vector2i const &mousePos = FARTHEST_POSITION) = 0;
     virtual void popState(sf::Vector2i const &mousePos = FARTHEST_POSITION) = 0;
     virtual void clearStates() = 0;

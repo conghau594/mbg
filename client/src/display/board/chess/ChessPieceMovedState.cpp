@@ -10,7 +10,7 @@
 #include "display/board/ZOrder.h"
 #include "service/ClientRequest.h"
 
-#include "IChessBoard.h"
+#include "IChessBoardView.h"
 #include "ItemMove.h"
 #include "ChessTextureCell.h"
 #include "IChessRuleAdapter.h"
@@ -18,7 +18,7 @@
 namespace bgg
 {
   ChessPieceMovedState::ChessPieceMovedState(
-      std::shared_ptr<IChessBoard> gameBoard,
+      std::shared_ptr<IChessBoardView> gameBoard,
       std::shared_ptr<IChessRuleAdapter> gameRule,
       std::shared_ptr<TileMap> tileMap,
       std::shared_ptr<ItemStore> itemStore,
@@ -69,11 +69,11 @@ namespace bgg
     }
 
     ///< find persistent highlighters of check
-    std::string const checkHighligherName = utils::toString(
-        ChessTextureCell::CHECK_HIGHLIGHTER);
     std::list<BoardItem *> checkHighlighterList = itemStore_->findItems(
-        [&checkHighligherName](BoardItem const &item)
+        [](BoardItem const &item)
         {
+          std::string const checkHighligherName = utils::toString(
+              ChessTextureCell::CHECK_HIGHLIGHTER);
           return item.getName() == checkHighligherName;
         });
 
@@ -85,11 +85,11 @@ namespace bgg
     allyCheckHighlighterVisibility_ = allyCheckHighlighter_->isVisible();
 
     ///< find persistent highlighters of last move
-    std::string const lastMoveHighligherName = utils::toString(
-        ChessTextureCell::LAST_MOVE_HIGHLIGHTER);
     std::list<BoardItem *> lastMoveHighlighterList = itemStore_->findItems(
-        [&lastMoveHighligherName](BoardItem const &item)
+        [](BoardItem const &item)
         {
+          std::string const lastMoveHighligherName = utils::toString(
+              ChessTextureCell::LAST_MOVE_HIGHLIGHTER);
           return item.getName() == lastMoveHighligherName;
         });
 

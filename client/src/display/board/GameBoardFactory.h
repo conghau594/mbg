@@ -6,7 +6,7 @@
 #include <boost/assert.hpp>
 
 #include "model/GameType.h"
-#include "chess/ChessBoard.h"
+#include "chess/ChessBoardView.h"
 #include "chess/ChessTextureAtlas001.h"
 #include "chess/ChessPieceSelectableState.h"
 #include "chess/ChessPieceMovedState.h"
@@ -26,7 +26,7 @@ namespace bgg
     //       sf::IntRect const &boardRect,
     //       std::function<void(ClientRequest const &)> requestSender,
     //       bool isYourTurn) const
-    //       -> std::shared_ptr<IGameBoard>
+    //       -> std::shared_ptr<IBoardView>
     //   {
 
     //     return createChessBoard(
@@ -39,7 +39,7 @@ namespace bgg
         sf::IntRect const &boardRect,
         std::function<void(ClientRequest const &)> requestSender,
         bool isYourTurn) const
-        -> std::shared_ptr<IGameBoard>
+        -> std::shared_ptr<IBoardView>
     {
       sf::Vector2i constexpr mapSizeInTiles{8, 8};
 
@@ -67,19 +67,19 @@ namespace bgg
               itemStore, std::move(chessRule));
 
       // create chessBoard with the loaded texture atlas
-      std::shared_ptr<IChessBoard>
-          chessBoard = std::make_shared<ChessBoard>(
+      std::shared_ptr<IChessBoardView>
+          chessBoard = std::make_shared<ChessBoardView>(
               boardRect, gameRuleAdapter, tileMap, itemStore, std::move(requestSender));
 
       // assign the initial state of the board
-      std::shared_ptr<IBoardState>
+      std::shared_ptr<IBoardViewState>
           initialBoardState = std::make_shared<ChessPieceSelectableState>(
               chessBoard, gameRuleAdapter, tileMap, itemStore);
       chessBoard->pushState(std::move(initialBoardState));
 
       if (!isYourTurn)
       {
-        std::shared_ptr<IBoardState>
+        std::shared_ptr<IBoardViewState>
             waitingState = std::make_shared<ChessPieceMovedState>(
                 chessBoard,
                 std::move(gameRuleAdapter),

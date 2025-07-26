@@ -1,11 +1,11 @@
 // BoardDisabledState.h
 #pragma once
 
-#include "IBoardState.h"
+#include "IBoardViewState.h"
 
 namespace bgg
 {
-  class BoardDisabledState final : public IBoardState
+  class BoardDisabledState final : public IBoardViewState
   {
   protected:
     void onEnter(sf::Vector2i const &mousePos) noexcept override {}

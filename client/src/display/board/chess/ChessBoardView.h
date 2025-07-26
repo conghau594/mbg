@@ -1,4 +1,4 @@
-// ChessBoard.h
+// ChessBoardView.h
 #pragma once
 
 #include <memory>
@@ -9,10 +9,10 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
 
-#include "IChessBoard.h"
+#include "IChessBoardView.h"
 #include "display/board/TileMap.h"
 #include "display/board/ItemStore.h"
-#include "display/board/IBoardState.h"
+#include "display/board/IBoardViewState.h"
 #include "display/board/ZOrder.h"
 
 #include "service/ClientRequest.h"
@@ -24,12 +24,12 @@ namespace sf
 }
 namespace bgg
 {
-  class ChessBoard final
-      : public IChessBoard,
-        public std::enable_shared_from_this<IChessBoard>
+  class ChessBoardView final
+      : public IChessBoardView,
+        public std::enable_shared_from_this<IChessBoardView>
   {
-    std::list<std::shared_ptr<IBoardState>> stateStack_;
-    std::shared_ptr<IBoardState> lastBoardState_;
+    std::list<std::shared_ptr<IBoardViewState>> stateStack_;
+    std::shared_ptr<IBoardViewState> lastBoardState_;
 
     std::shared_ptr<IChessRuleAdapter> gameRule_;
     std::shared_ptr<TileMap> tileMap_;
@@ -40,7 +40,7 @@ namespace bgg
     std::function<void(ClientRequest const &)> requestSender_;
 
   public:
-    ChessBoard(
+    ChessBoardView(
         sf::IntRect const &boardRect,
         std::shared_ptr<IChessRuleAdapter> gameRule,
         std::shared_ptr<TileMap> tileMap,
@@ -57,10 +57,10 @@ namespace bgg
         sf::RenderStates states) const noexcept override;
 
     void changeState(
-        std::shared_ptr<IBoardState> newState,
+        std::shared_ptr<IBoardViewState> newState,
         sf::Vector2i const &mousePos = FARTHEST_POSITION) noexcept override;
     void pushState(
-        std::shared_ptr<IBoardState> newState,
+        std::shared_ptr<IBoardViewState> newState,
         sf::Vector2i const &mousePos = FARTHEST_POSITION) noexcept override;
     void popState(
         sf::Vector2i const &mousePos = FARTHEST_POSITION) noexcept override;

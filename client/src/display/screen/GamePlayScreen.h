@@ -6,11 +6,11 @@
 namespace bgg
 {
   class IDisplay;
-  class IGameBoard;
+  class IBoardView;
   class GamePlayScreen final : public BaseScreen
   {
     std::shared_ptr<IDisplay> gameDisplay_;
-    std::shared_ptr<IGameBoard> gameBoard_;
+    std::shared_ptr<IBoardView> gameBoard_;
 
     std::string buttonLabel_;
     int resignRegionHeight_;
@@ -22,7 +22,7 @@ namespace bgg
     GamePlayScreen(
         std::shared_ptr<sf::RenderWindow> window,
         std::shared_ptr<IDisplay> gameDisplay,
-        std::shared_ptr<IGameBoard> gameBoard,
+        std::shared_ptr<IBoardView> gameBoard,
         int resignRegionHeight) noexcept;
 
   private:
