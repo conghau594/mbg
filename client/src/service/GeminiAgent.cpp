@@ -4,26 +4,16 @@
 #include <sstream>
 #include <chrono>
 
-#include <boost/beast/core.hpp>
-#include <boost/beast/ssl.hpp>
-#include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/connect.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <boost/json.hpp>
 
 #include "GeminiAgent.h"
 #include "base/JsonUtils.h"
 
-namespace beast = boost::beast;
-namespace http = beast::http;
-namespace net = boost::asio;
-namespace ssl = boost::asio::ssl;
-namespace json = boost::json;
-using tcp = net::ip::tcp;
-
 namespace bgg
 {
+  namespace json = boost::json;
   GeminiAgent::GeminiAgent(
       std::string apiKey,
       std::string systemInstruction,
@@ -32,7 +22,10 @@ namespace bgg
       : apiKey_(std::move(apiKey)),
         systemInstruction_(std::move(systemInstruction)),
         promptPattern_(std::move(promptPattern)),
-        responseSchema_{}
+        responseSchema_{},
+        ioContext_(),
+        sslContext_{ssl::context::tlsv12_client},
+        sslStream_{nullptr}
   {
     boost::json::value jsonValue = boost::json::parse(responseSchema);
     BOOST_ASSERT_MSG(
@@ -40,245 +33,128 @@ namespace bgg
         "GeminiAgent: responseSchema must be a valid JSON object");
 
     responseSchema_ = std::move(jsonValue.as_object());
+
+    sslContext_.set_default_verify_paths();
+  }
+
+  GeminiAgent::~GeminiAgent()
+  {
+    closeSslStream();
   }
 
   /**
    * TODO: need refactor this function using std::error_code
    */
-  auto GeminiAgent::sendPrompt(std::string_view prompt) const noexcept
+  auto GeminiAgent::sendPrompt(std::string_view prompt) noexcept
       -> std::optional<std::string>
   {
-    const std::string host = "generativelanguage.googleapis.com";
-    const std::string port = "443";
-
-    // TODO: make this configurable
-    const std::string target = "/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
-    // const std::string target = "/v1beta/models/gemini-2.0-flash:generateContent";
-    // const std::string target = "/v1beta/models/gemini-2.5-pro-preview-06-05:generateContent";
-    // const std::string target = "/v1beta/models/gemini-1.5-pro:generateContent";
-
-    json::value jsonResponse;
-    std::optional<std::string> responseText{std::nullopt};
+    http::response<http::dynamic_body> response;
     try
     {
-      // prepare connection objects
-      net::io_context ioc;
-      ssl::context context(ssl::context::tlsv12_client);
-      context.set_default_verify_paths();
-
-      beast::ssl_stream<beast::tcp_stream> stream(ioc, context);
-      int constexpr TIME_OUT_IN_SEC = 60;
-      stream.next_layer().expires_after(std::chrono::seconds(TIME_OUT_IN_SEC));
-      // if (SSL_ctrl(stream.native_handle(),
-      //              SSL_CTRL_SET_TLSEXT_HOSTNAME,
-      //              TLSEXT_NAMETYPE_host_name,
-      //              const_cast<char *>(host.c_str())))
-      if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
-      {
-        beast::error_code errcode(
-            int(::ERR_get_error()), net::error::get_ssl_category());
-        throw boost::system::system_error(errcode);
-      }
-
-      // resolve and connect to the host
-      tcp::resolver resolver(ioc);
-      auto const results = resolver.resolve(host, port);
-      beast::get_lowest_layer(stream).connect(results);
-      stream.handshake(ssl::stream_base::client);
-
-      ///< Build correct JSON request body according to Gemini API spec
-      /************************************************************************
-        {
-          "contents": {
-            "role": "ROLE",
-            "parts": { "text": "TEXT" }
-          },
-          "system_instruction":
-          {
-            "parts": [
-              {
-                "text": "SYSTEM_INSTRUCTION"
-              }
-            ]
-          },
-          "safety_settings": {
-            "category": "SAFETY_CATEGORY",
-            "threshold": "THRESHOLD"
-          },
-          "generation_config": {
-            "responseMimeType": "application/json",
-            "responseSchema": "JSON_SCHEMA",
-            "temperature": 0.0,
-            "thinkingConfig": {
-            }
-
-
-            "topP": TOP_P,
-            "topK": TOP_K,
-            "candidateCount": 1,
-            "maxOutputTokens": MAX_OUTPUT_TOKENS,
-            "stopSequences": STOP_SEQUENCES
-          }
-        }
-      ************************************************************************/
-      ///< "contents":
-      json::object userPart;
-      userPart["text"] = prompt;
-
-      json::object userContent;
-      userContent["role"] = "user";
-      userContent["parts"] = json::array{userPart};
-
-      ///< "system_instruction":
-      json::object systemPart;
-      systemPart["text"] = systemInstruction_;
-      json::object systemInstruction;
-      systemInstruction["parts"] = json::array{systemPart};
-
-      ///< "generation_config"
-      json::object generationConfig;
-      generationConfig["temperature"] = 0.0;
-      generationConfig["responseMimeType"] = "application/json";
-      generationConfig["responseSchema"] = responseSchema_;
-
-      json::object thinkingConfig;
-      thinkingConfig["thinkingBudget"] = 8192;
-      generationConfig["thinkingConfig"] = thinkingConfig;
-
-      ///< json request
-      // json::array conversationHistory;
-      // conversationHistory.push_back(userContent);
-
-      json::object jsonRequest;
-      jsonRequest["contents"] = json::array{userContent};
-      jsonRequest["systemInstruction"] = systemInstruction;
-      jsonRequest["generationConfig"] = generationConfig;
-
-      // //=======================================================================
-      // // LOG_DEBUG jsonRequest
-      // {
-      //   std::ostringstream oss;
-      //   utils::printPrettyJson(oss, jsonRequest);
-      //   SPDLOG_DEBUG("jsonRequest: {}", oss.str());
-      // }
-      // //=======================================================================
-
-      // Prepare HTTP request
-      http::request<http::string_body>
-          request{
-              http::verb::post, target + "?key=" + apiKey_, 11};
-      request.set(http::field::host, host);
-      // request.set("x-api-key", api_key);
-      request.set(http::field::content_type, "application/json");
-      request.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-      // request.content_length(body_str.size());
-      request.body() = json::serialize(jsonRequest);
-      request.prepare_payload(); // auto-set content-length
+      openSslStream();
 
       // Send request
-      http::write(stream, request);
+      http::request<http::string_body> request = createHtmlRequest(prompt);
+      http::write(*sslStream_, request);
 
       // Read response
       beast::flat_buffer buffer;
-      http::response<http::dynamic_body> response;
 
       //=======================================================================
       // measure time to read response:
       auto start = std::chrono::steady_clock::now();
-      http::read(stream, buffer, response);
+      http::read(*sslStream_, buffer, response);
       auto duration = std::chrono::steady_clock::now() - start;
       SPDLOG_INFO(
           "Time to read response: {}s",
           std::chrono::duration<double>(duration).count());
       //=======================================================================
+    }
+    catch (const beast::system_error &e)
+    {
+      SPDLOG_ERROR("Connection error: {} (code: {})", e.what(), e.code().value());
+      closeSslStream();
+      return std::nullopt;
+    }
 
+    json::value jsonResponse;
+    std::optional<std::string> responseText{std::nullopt};
+    try
+    {
       // Parse JSON response and extract "text" from "parts" in "content"
       std::string responseBody = beast::buffers_to_string(response.body().data());
       jsonResponse = json::parse(responseBody);
 
-      // //=======================================================================
-      // // LOG_DEBUG jsonResponse
-      // {
-      //   std::ostringstream oss;
-      //   utils::printPrettyJson(oss, jsonResponse);
-      //   SPDLOG_DEBUG("Json response: {}", oss.str());
-      // }
-      // //=======================================================================
+      auto jsonObj = jsonResponse.as_object();
+      printTokenUsage(jsonObj);
 
-      if (jsonResponse.is_object())
-      {
-        auto jsonObj = jsonResponse.as_object();
-        if (jsonObj.contains("candidates"))
-        {
-          try
-          {
-            printTokenUsage(jsonObj);
-          }
-          catch (const std::exception &e)
-          {
-            SPDLOG_ERROR("Error printing token usage: {}", e.what());
-          }
+      auto candidates = jsonObj.at("candidates").as_array();
+      auto content = candidates.at(0).as_object().at("content").as_object();
+      auto parts = content.at("parts").as_array();
+      responseText = parts.at(0).as_object()["text"].as_string().c_str();
+    }
+    catch (const std::exception &e)
+    {
+      SPDLOG_ERROR("JSON parsing error: {}", e.what());
+      // LOG_DEBUG jsonResponse
+      std::ostringstream oss;
+      utils::printPrettyJson(oss, jsonResponse);
+      SPDLOG_DEBUG("Json response on error: {}", oss.str());
+    }
 
-          auto candidates = jsonObj["candidates"].as_array();
-          if (!candidates.empty())
-          {
-            auto content = candidates[0].as_object()["content"].as_object();
-            auto parts = content["parts"].as_array();
-            if (!parts.empty())
-            {
-              responseText = parts[0].as_object()["text"].as_string().c_str();
-              // std::string processed_text = processResponseText(text.c_str());
-              // std::cout << "BOT: " << processed_text << std::endl;
+    if (responseText)
+    {
+      SPDLOG_DEBUG("Gemini responses: {}", *responseText);
+    }
 
-              // json::object agentPart;
-              // agentPart["text"] = text;
+    return responseText;
+  }
 
-              // json::object agentContent;
-              // agentContent["role"] = "model";
-              // agentContent["parts"] = json::array{agentPart};
+  void GeminiAgent::openSslStream()
+  {
+    if (sslStream_)
+    {
+      return;
+    }
+    sslStream_ = std::make_unique<beast::ssl_stream<beast::tcp_stream>>(
+        ioContext_, sslContext_);
 
-              // conversation_history.push_back(agentContent);
-            }
-            else
-            {
-              SPDLOG_ERROR("The field 'parts' from response is empty");
-            }
-          }
-          else
-          {
-            SPDLOG_ERROR("The field 'candidates' from response is empty");
-          }
-        }
-        else
-        {
-          if (jsonObj.contains("error"))
-          {
-            std::string msg = "";
-            std::int64_t errCode;
-            auto errorObj = jsonObj["error"].as_object();
+    // prepare connection objects
+    int constexpr TIME_OUT_IN_SEC = 60;
+    sslStream_->next_layer().expires_after(std::chrono::seconds(TIME_OUT_IN_SEC));
+    // if (SSL_ctrl(sslStream_.native_handle(),
+    //              SSL_CTRL_SET_TLSEXT_HOSTNAME,
+    //              TLSEXT_NAMETYPE_host_name,
+    //              const_cast<char *>(host.c_str())))
+    if (!SSL_set_tlsext_host_name(sslStream_->native_handle(), host_.c_str()))
+    {
+      beast::error_code errcode(
+          int(::ERR_get_error()), net::error::get_ssl_category());
+      throw boost::system::system_error(errcode);
+    }
 
-            if (errorObj.contains("code"))
-            {
-              errCode = errorObj["code"].as_int64();
-            }
+    // resolve and connect to the host
+    tcp::resolver resolver(ioContext_);
+    auto const results = resolver.resolve(host_, port_);
+    beast::get_lowest_layer(*sslStream_).connect(results);
+    sslStream_->handshake(ssl::stream_base::client);
+  }
 
-            if (errorObj.contains("message"))
-            {
-              msg = errorObj["message"].as_string().c_str();
-            }
+  void GeminiAgent::closeSslStream() noexcept
+  {
+    if (!sslStream_)
+    {
+      return; // No stream to close
+    }
 
-            SPDLOG_ERROR("Error from server: {} (code: {})", msg, errCode);
-          }
-          else
-          {
-            SPDLOG_ERROR("Unknown error");
-          }
-        }
-      }
-
-      // Shutdown SSL
+    try
+    {
       beast::error_code ec;
-      stream.shutdown(ec);
+
+      sslStream_->next_layer().cancel();
+      sslStream_->shutdown(ec);
+      sslStream_->next_layer().close();
+
       if (ec == net::error::eof || ec == ssl::error::stream_truncated)
       {
         ec.assign(0, ec.category());
@@ -289,42 +165,93 @@ namespace bgg
         throw beast::system_error{ec};
       }
     }
-    catch (const beast::system_error &e)
+    catch (const std::exception &e)
     {
-      SPDLOG_ERROR("System error: {} (code: {})", e.what(), e.code().value());
-      // LOG_DEBUG jsonResponse
-      {
-        std::ostringstream oss;
-        utils::printPrettyJson(oss, jsonResponse);
-        SPDLOG_DEBUG("Json response on error: {}", oss.str());
-      }
+      SPDLOG_WARN("Failed to close SSL stream: {}", e.what());
     }
 
-    if (responseText)
-    {
-      SPDLOG_DEBUG("Gemini responses: {}", *responseText);
-    }
-    return responseText;
+    sslStream_ = nullptr; // Release the stream
   }
 
-  void GeminiAgent::printTokenUsage(boost::json::object const &jsonObj)
+  auto GeminiAgent::createHtmlRequest(std::string_view prompt)
+      -> http::request<http::string_body>
   {
-    auto usageMetadata = jsonObj.at("usageMetadata").as_object();
+    ///< Build correct JSON request body according to Gemini API spec
+    ///< See QuickNotes.md to understand the structure of the request
 
-    SPDLOG_INFO(
-        "Prompt tokens: {}",
-        usageMetadata["promptTokenCount"].as_int64());
+    ///< "contents":
+    json::object userPart;
+    userPart["text"] = prompt;
 
-    SPDLOG_INFO(
-        "Response tokens: {}",
-        usageMetadata["candidatesTokenCount"].as_int64());
+    json::object userContent;
+    userContent["role"] = "user";
+    userContent["parts"] = json::array{userPart};
 
-    SPDLOG_INFO(
-        "Thoughts tokens: {}",
-        usageMetadata["thoughtsTokenCount"].as_int64());
+    ///< "system_instruction":
+    json::object systemPart;
+    systemPart["text"] = systemInstruction_;
+    json::object systemInstruction;
+    systemInstruction["parts"] = json::array{systemPart};
 
-    SPDLOG_INFO(
-        "Total tokens: {}",
-        usageMetadata["totalTokenCount"].as_int64());
+    ///< "generation_config"
+    json::object generationConfig;
+    generationConfig["temperature"] = 0.0;
+    generationConfig["responseMimeType"] = "application/json";
+    generationConfig["responseSchema"] = responseSchema_;
+
+    json::object thinkingConfig;
+    thinkingConfig["thinkingBudget"] = 8192;
+    generationConfig["thinkingConfig"] = thinkingConfig;
+
+    ///< json request
+    // json::array conversationHistory;
+    // conversationHistory.push_back(userContent);
+
+    json::object jsonRequest;
+    jsonRequest["contents"] = json::array{userContent};
+    jsonRequest["systemInstruction"] = systemInstruction;
+    jsonRequest["generationConfig"] = generationConfig;
+
+    // //=======================================================================
+    // // LOG_DEBUG jsonRequest
+    // {
+    //   std::ostringstream oss;
+    //   utils::printPrettyJson(oss, jsonRequest);
+    //   SPDLOG_DEBUG("jsonRequest: {}", oss.str());
+    // }
+    // //=======================================================================
+
+    // Prepare HTTP request
+    http::request<http::string_body>
+        request{http::verb::post, target_ + "?key=" + apiKey_, 11};
+    request.set(http::field::host, host_);
+    // request.set("x-api-key", api_key);
+    request.set(http::field::content_type, "application/json");
+    request.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+    // request.content_length(body_str.size());
+    request.body() = json::serialize(jsonRequest);
+    request.prepare_payload(); // auto-set content-length
+
+    return request;
   }
+
+  void GeminiAgent::printTokenUsage(boost::json::object const &jsonObj) noexcept
+  {
+    if (!jsonObj.contains("usageMetadata"))
+    {
+      SPDLOG_WARN("No usage metadata found in the response");
+      return;
+    }
+    // if (!jsonObj.at("usageMetadata").is_object())
+    // {
+    //   SPDLOG_WARN("Usage metadata is not an object");
+    //   return;
+    // }
+
+    std::ostringstream oss;
+    utils::printPrettyJson(oss, jsonObj.at("usageMetadata"));
+
+    SPDLOG_INFO("Usage metadata: {}", oss.str());
+  }
+
 } // namespace bgg

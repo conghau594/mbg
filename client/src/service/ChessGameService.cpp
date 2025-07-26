@@ -331,7 +331,7 @@ namespace bgg
       catch (std::exception const &e)
       {
         SPDLOG_WARN(
-            "Prompt failure number: {} (JSON parsing failure: {} -> {}). Retrying...",
+            "Prompt failure number: {} (JSON parsing failure: {}, response: {}). Retrying...",
             i + 1, e.what(), *response);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         continue;

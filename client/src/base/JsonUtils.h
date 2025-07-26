@@ -42,7 +42,7 @@ namespace utils
   inline void printPrettyJson(
       std::ostream &os,
       json::value const &jv,
-      std::string indent = "")
+      std::string indent = "") noexcept
   {
     int constexpr TAB_SIZE = 2;
     switch (jv.kind())
