@@ -173,6 +173,7 @@ namespace bgg
   ChessGameService::ChessGameService(
       std::string apiKey,
       std::shared_ptr<ChessBoardState> chessRule,
+      std::string agentColor,
       std::shared_ptr<ClientEventBus> eventBus)
       : threadPool_(2),
         eventBus_(std::move(eventBus)),
@@ -182,6 +183,8 @@ namespace bgg
             CHESS_GAME_SYSTEM_INSTRUCTION,
             CHESS_MOVE_JSON_SCHEMA,
             CHESS_GAME_PROMPT_PATTERN)),
+        agentColor_(std::move(agentColor)),
+        allyColor_(ChessRule::getEnemyColor(agentColor_)),
         maxPromptRetries_(10),
         chessRule_(std::move(chessRule))
   // moveHistoryStr_{}
@@ -246,7 +249,7 @@ namespace bgg
   {
     ChessMove::Action yourMoveAction = chessRule_->tryMove(
         ChessMove{moveRqt.fromSquare, moveRqt.toSquare, moveRqt.promote},
-        chessRule_->getAllyColor());
+        allyColor_);
 
     if (yourMoveAction.is<ChessMove::Invalid>())
     {
@@ -254,7 +257,7 @@ namespace bgg
           "Invalid move request: from {}{} to {}{} for color {}",
           moveRqt.fromSquare[0], moveRqt.fromSquare[1],
           moveRqt.toSquare[0], moveRqt.toSquare[1],
-          chessRule_->getAllyColor()));
+          allyColor_));
     }
 
     emit(MoveResponse{ErrorCode{0, "Mock", ""}});
@@ -294,7 +297,7 @@ namespace bgg
     std::string pastFailures;
     std::string opponentLastMove = chessMoveActionToJsonString(
         chessRule_->getLastMoveAction());
-    std::string agentColor = ChessRule::getEnemyColor(chessRule_->getAllyColor());
+
     for (int i = 0; i < maxPromptRetries_; ++i)
     {
       std::string input = std::format(
@@ -305,7 +308,7 @@ namespace bgg
             "piecePlacements": {{ {} }},
             "opponentLastMove": {}
           }})",
-          agentColor, pastFailures, piecePlacementsString, opponentLastMove);
+          agentColor_, pastFailures, piecePlacementsString, opponentLastMove);
 
       SPDLOG_DEBUG("Sending prompt to agent: {}", input);
 
@@ -337,7 +340,7 @@ namespace bgg
       try
       {
         ChessMove::Action enemyMoveAction = chessRule_->tryMove(
-            responseMove, agentColor);
+            responseMove, agentColor_);
         // handle the error case when 'responseMove' is invalid
         if (auto invalidAction = enemyMoveAction.getIf<ChessMove::Invalid>())
         {
@@ -352,7 +355,7 @@ namespace bgg
             responseMove.fromSquare,
             responseMove.toSquare,
             responseMove.promote,
-            chessRule_->getAllyColor(),
+            allyColor_,
             currentTurn});
 
         if (utils::getEnemyKingState(enemyMoveAction) == KingState::CHECKMATED)

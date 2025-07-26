@@ -160,7 +160,7 @@ namespace bgg
       promotedPiece = "Queen";
     }
 
-    ItemMove move{selectedTile_, targetedTile, promotedPiece};
+    ChessItemMove move{selectedTile_, targetedTile, promotedPiece};
     std::shared_ptr<IBoardViewState>
         pieceMovedState = std::make_shared<ChessPieceMovedState>(
             gameBoard_, gameRule_, tileMap_, itemStore_, std::move(move));

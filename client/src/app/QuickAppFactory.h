@@ -123,11 +123,12 @@ namespace bgg
 			//==============
 
 			auto chessRuleAtServer = std::make_shared<ChessBoardState>(
-					findGameResponse.initialBoard, findGameResponse.yourColor);
+					findGameResponse.initialBoard);
 
+			std::string &&agentColor = ChessRule::getEnemyColor(findGameResponse.yourColor);
 			std::shared_ptr<GameService>
 					gameService = std::make_shared<ChessGameService>(
-							std::move(geminiApiKey), chessRuleAtServer, eventBus);
+							std::move(geminiApiKey), chessRuleAtServer, agentColor, eventBus);
 
 			sf::IntRect boardRect(
 					{0, RESIGN_REGION_HEIGHT}, {BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH});
@@ -144,6 +145,7 @@ namespace bgg
 					std::move(chessRuleAtClient),
 					boardRect,
 					std::move(requestSender),
+					findGameResponse.yourColor,
 					findGameResponse.yourTurn == findGameResponse.currentTurn);
 
 			std::shared_ptr<IScreen> chessScreen = std::make_shared<GamePlayScreen>(

@@ -5,26 +5,16 @@
 
 namespace bgg
 {
-  ChessBoardState::ChessBoardState(std::string color) noexcept
+  ChessBoardState::ChessBoardState() noexcept
       : piecePlacements_(ChessRule::INITIAL_PLACEMENTS.begin(),
-                         ChessRule::INITIAL_PLACEMENTS.end()),
-        yourColor_(std::move(color))
+                         ChessRule::INITIAL_PLACEMENTS.end())
   {
-    BGG_VALIDATE_COLOR(yourColor_);
   }
 
   ChessBoardState::ChessBoardState(
-      std::map<Position, Piece> piecePlacements,
-      std::string color) noexcept
-      : piecePlacements_(std::move(piecePlacements)),
-        yourColor_(std::move(color))
+      std::map<Position, Piece> piecePlacements) noexcept
+      : piecePlacements_(std::move(piecePlacements))
   {
-    BGG_VALIDATE_COLOR(yourColor_);
-  }
-
-  auto ChessBoardState::getAllyColor() const noexcept -> std::string const &
-  {
-    return yourColor_;
   }
 
   auto ChessBoardState::getPiecePlacements() const noexcept
@@ -33,7 +23,7 @@ namespace bgg
     return piecePlacements_;
   }
 
-  auto ChessBoardState::getSelectablePieces(std::string const &color) const noexcept
+  auto ChessBoardState::collectSelectablePieces(std::string const &color) const noexcept
       -> std::map<Position, Piece>
   {
     std::map<Position, Piece> selectablePieces;
@@ -183,23 +173,23 @@ namespace bgg
     std::optional<Piece> movedPiece = getPiece(move.fromSquare);
     if (!movedPiece)
     {
-      return ChessMove::Invalid{ChessMove::Error::INVALID_SOURCE_SQUARE};
+      return ChessMove::Invalid{move.fromSquare, move.toSquare, ChessMove::Error::INVALID_SOURCE_SQUARE};
     }
 
     if (movedPiece->color != color)
     {
-      return ChessMove::Invalid{ChessMove::Error::INVALID_COLOR};
+      return ChessMove::Invalid{move.fromSquare, move.toSquare, ChessMove::Error::INVALID_COLOR};
     }
 
     if (move.promote && movedPiece->type != ChessRule::PAWN)
     {
-      return ChessMove::Invalid{ChessMove::Error::INVALID_PROMOTION};
+      return ChessMove::Invalid{move.fromSquare, move.toSquare, ChessMove::Error::INVALID_PROMOTION};
     }
 
     std::optional<Piece> capturedPiece = getPiece(move.toSquare);
     if (capturedPiece && (movedPiece->color == capturedPiece->color))
     {
-      return ChessMove::Invalid{ChessMove::Error::INVALID_DESTINATION_SQUARE};
+      return ChessMove::Invalid{move.fromSquare, move.toSquare, ChessMove::Error::INVALID_DESTINATION_SQUARE};
     }
 
     // ========================================
@@ -260,7 +250,7 @@ namespace bgg
               piecePlacements_, movedPiece->color, false);
           if (allyKingState == KingState::IN_CHECK)
           {
-            return ChessMove::Invalid{ChessMove::Error::INVALID_CASTLING};
+            return ChessMove::Invalid{move.fromSquare, move.toSquare, ChessMove::Error::INVALID_CASTLING};
           }
 
           std::pair<Position, Position> castlingRookMove =
@@ -281,7 +271,7 @@ namespace bgg
               copiedPiecePlacements, movedPiece->color, false);
           if (allyKingState == KingState::IN_CHECK)
           {
-            return ChessMove::Invalid{ChessMove::Error::INVALID_CASTLING};
+            return ChessMove::Invalid{move.fromSquare, move.toSquare, ChessMove::Error::INVALID_CASTLING};
           }
 
           moveAction = ChessMove::Castling{
@@ -329,13 +319,13 @@ namespace bgg
       }
       else
       {
-        return ChessMove::Invalid{ChessMove::Error::INVALID_PROMOTION};
+        return ChessMove::Invalid{move.fromSquare, move.toSquare, ChessMove::Error::INVALID_PROMOTION};
       }
     }
 
     if (moveAction.isEmpty())
     {
-      return ChessMove::Invalid{ChessMove::Error::INVALID_DESTINATION_SQUARE};
+      return ChessMove::Invalid{move.fromSquare, move.toSquare, ChessMove::Error::INVALID_DESTINATION_SQUARE};
     }
 
     // ========================================
@@ -347,7 +337,7 @@ namespace bgg
         copiedPiecePlacements, movedPiece->color, false);
     if (allyKingState == KingState::IN_CHECK)
     {
-      return ChessMove::Invalid{ChessMove::Error::KING_EXPOSED};
+      return ChessMove::Invalid{move.fromSquare, move.toSquare, ChessMove::Error::KING_EXPOSED};
     }
 
     std::string enemyColor = ChessRule::getEnemyColor(movedPiece->color);
@@ -372,7 +362,9 @@ namespace bgg
     {
       if constexpr (requires {
         { action.fromSquare } -> std::same_as<Position const &>;
-        { action.toSquare } -> std::same_as<Position const &>; })
+        { action.toSquare } -> std::same_as<Position const &>; 
+        { action.enemyKingSquare } -> std::same_as<Position const &>;
+        { action.enemyKingState } -> std::same_as<KingState const &>; })
       {
         // SPDLOG_INFO("You have committed a '{}'", typeid(T).name());
 

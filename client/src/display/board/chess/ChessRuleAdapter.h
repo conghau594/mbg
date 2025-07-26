@@ -19,6 +19,7 @@ namespace bgg
     class ChessRuleAdapter final : public IChessRuleAdapter
     {
         std::shared_ptr<ChessBoardState> chessRule_;
+        std::string allyColor_;
 
         ItemPlacementMap itemPlacements_;
         std::function<TileCoords(Position const &)> const positionToTileConverter_;
@@ -27,7 +28,8 @@ namespace bgg
     public:
         ChessRuleAdapter(
             std::shared_ptr<ItemStore> itemStore,
-            std::shared_ptr<ChessBoardState> chessRule) noexcept;
+            std::shared_ptr<ChessBoardState> chessRule,
+            std::string allyColor) noexcept;
 
         static auto getPositionToTileConverter(std::string color) noexcept
             -> std::function<TileCoords(Position const &)>;
@@ -48,7 +50,7 @@ namespace bgg
             -> ChessMove::Action;
 
         auto tryMove(
-            ItemMove const &itemMove, std::string const &color) const noexcept
+            ChessItemMove const &itemMove, std::string const &color) const noexcept
             -> ChessItemMoveAction override;
 
         void commitMove(

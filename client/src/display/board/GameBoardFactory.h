@@ -38,6 +38,7 @@ namespace bgg
         std::shared_ptr<ChessBoardState> chessRule,
         sf::IntRect const &boardRect,
         std::function<void(ClientRequest const &)> requestSender,
+        std::string yourColor,
         bool isYourTurn) const
         -> std::shared_ptr<IBoardView>
     {
@@ -64,7 +65,7 @@ namespace bgg
 
       std::shared_ptr<IChessRuleAdapter>
           gameRuleAdapter = std::make_shared<ChessRuleAdapter>(
-              itemStore, std::move(chessRule));
+              itemStore, std::move(chessRule), std::string(yourColor));
 
       // create chessBoard with the loaded texture atlas
       std::shared_ptr<IChessBoardView>

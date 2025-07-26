@@ -102,6 +102,9 @@ namespace bgg
     class Invalid
     {
     public:
+      Position fromSquare;
+      Position toSquare;
+
       Error error;
     };
 

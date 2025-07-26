@@ -11,7 +11,7 @@
 #include "service/ClientRequest.h"
 
 #include "IChessBoardView.h"
-#include "ItemMove.h"
+#include "ChessItemMove.h"
 #include "ChessTextureCell.h"
 #include "IChessRuleAdapter.h"
 
@@ -22,7 +22,7 @@ namespace bgg
       std::shared_ptr<IChessRuleAdapter> gameRule,
       std::shared_ptr<TileMap> tileMap,
       std::shared_ptr<ItemStore> itemStore,
-      std::optional<ItemMove> const &move) noexcept
+      std::optional<ChessItemMove> const &move) noexcept
       : gameBoard_(std::move(gameBoard)),
         gameRule_(std::move(gameRule)),
         tileMap_(std::move(tileMap)),
@@ -581,7 +581,7 @@ namespace bgg
       }
     };
 
-    ItemMove enemyMove{
+    ChessItemMove enemyMove{
         gameRule_->positionToTile(notif.fromSquare),
         gameRule_->positionToTile(notif.toSquare),
         notif.promote};

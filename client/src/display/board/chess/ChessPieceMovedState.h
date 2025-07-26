@@ -12,7 +12,7 @@ namespace bgg
   class IChessBoardView;
   class IChessRuleAdapter;
   class TileMap;
-  class ItemMove;
+  class ChessItemMove;
 
   class ChessPieceMovedState final : public IBoardViewState
   {
@@ -40,7 +40,7 @@ namespace bgg
         std::shared_ptr<IChessRuleAdapter> gameRule,
         std::shared_ptr<TileMap> tileMap,
         std::shared_ptr<ItemStore> itemStore,
-        std::optional<ItemMove> const &move) noexcept;
+        std::optional<ChessItemMove> const &move) noexcept;
 
   private:
     void onEnter(sf::Vector2i const &mousePos) noexcept override;

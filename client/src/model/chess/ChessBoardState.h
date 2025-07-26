@@ -23,15 +23,12 @@ namespace bgg
 		std::list<ChessMove::Action> moveHistory_;
 
 	public:
-		ChessBoardState(std::string color) noexcept;
-		ChessBoardState(std::map<Position, Piece> piecePlacements,
-										std::string color) noexcept;
-
-		[[nodiscard]] auto getAllyColor() const noexcept -> std::string const &;
+		ChessBoardState() noexcept;
+		ChessBoardState(std::map<Position, Piece> piecePlacements) noexcept;
 
 		[[nodiscard]] auto getPiecePlacements() const noexcept -> std::map<Position, Piece> const &;
 
-		[[nodiscard]] auto getSelectablePieces(
+		[[nodiscard]] auto collectSelectablePieces(
 				std::string const &color) const noexcept -> std::map<Position, Piece>;
 
 		[[nodiscard]] auto collectCandidateMoves(

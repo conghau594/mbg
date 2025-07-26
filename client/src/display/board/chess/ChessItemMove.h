@@ -1,10 +1,25 @@
 // ChessItemMove.h
 #pragma once
 
-#include "ItemMove.h"
+#include <optional>
+#include <string>
+
+#include <SFML/System/Vector2.hpp>
+
+#include "base/Variant.h"
 
 namespace bgg
 {
+  using TileCoords = sf::Vector2i;
+
+  class ChessItemMove
+  {
+  public:
+    TileCoords fromTile;
+    TileCoords toTile;
+    std::optional<std::string> promote;
+  };
+
   /////////////////////////////////////////////////////////////////////////////
   class NormalChessItemMove
   {

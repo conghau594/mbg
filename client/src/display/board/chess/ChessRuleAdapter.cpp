@@ -13,12 +13,12 @@ namespace bgg
 {
   ChessRuleAdapter::ChessRuleAdapter(
       std::shared_ptr<ItemStore> itemStore,
-      std::shared_ptr<ChessBoardState> chessRule) noexcept
+      std::shared_ptr<ChessBoardState> chessRule,
+      std::string allyColor) noexcept
       : chessRule_(std::move(chessRule)),
-        positionToTileConverter_(
-            getPositionToTileConverter(chessRule_->getAllyColor())),
-        tileToPositionConverter_(
-            getTileToPositionConverter(chessRule_->getAllyColor()))
+        allyColor_(std::move(allyColor)),
+        positionToTileConverter_(getPositionToTileConverter(allyColor_)),
+        tileToPositionConverter_(getTileToPositionConverter(allyColor_))
   {
     BOOST_ASSERT_MSG(itemStore, "The 'itemStore' cannot be null");
 
@@ -254,12 +254,12 @@ namespace bgg
           "The last case of this 'itemMoveAction' should be of type ChessMove::Invalid");
 
       SPDLOG_DEBUG("The move is invalid: {}", invalidItemMove->errorMsg);
-      return ChessMove::Invalid{ChessMove::Error::UNDEFINED};
+      return ChessMove::Invalid{"", "", ChessMove::Error::UNDEFINED};
     }
   }
 
   auto ChessRuleAdapter::tryMove(
-      ItemMove const &itemMove, std::string const &color) const noexcept
+      ChessItemMove const &itemMove, std::string const &color) const noexcept
       -> ChessItemMoveAction
   {
     ChessMove chessMove{
@@ -280,12 +280,12 @@ namespace bgg
 
   auto ChessRuleAdapter::getAllyColor() const -> std::string
   {
-    return chessRule_->getAllyColor();
+    return allyColor_;
   }
 
   auto ChessRuleAdapter::getEnemyColor() const -> std::string
   {
-    return ChessRule::getEnemyColor(chessRule_->getAllyColor());
+    return ChessRule::getEnemyColor(allyColor_);
   }
 
   auto ChessRuleAdapter::getItemColor(TileCoords const &tile) const noexcept
@@ -318,7 +318,7 @@ namespace bgg
   auto ChessRuleAdapter::getSelectableTiles() const noexcept -> ItemPlacementMap
   {
     std::map<Position, Piece>
-        piecePlacements = chessRule_->getSelectablePieces(chessRule_->getAllyColor());
+        piecePlacements = chessRule_->collectSelectablePieces(allyColor_);
 
     ItemPlacementMap itemPlacements;
     for (auto &[square, piece] : piecePlacements)

@@ -70,12 +70,6 @@ namespace bgg
     virtual auto getReachableTiles(TileCoords const &tile) const
         -> std::optional<ReachableTileInfo> = 0;
 
-    // /**
-    //  * \return type of piece at the `tile`
-    //  */
-    // [[nodiscard]]
-    // virtual auto getItemType(TileCoords const &tile) const -> std::optional<int> = 0;
-
     [[nodiscard]]
     virtual auto getItemEntry(TileCoords const &tile) const
         -> ItemStore::Entry = 0;
@@ -87,7 +81,7 @@ namespace bgg
 
     [[nodiscard]]
     virtual auto tryMove(
-        ItemMove const &itemMove, std::string const &color) const noexcept
+        ChessItemMove const &itemMove, std::string const &color) const noexcept
         -> ChessItemMoveAction = 0;
 
     virtual void commitMove(ChessItemMoveAction const &itemMoveAction) = 0;
