@@ -4,6 +4,8 @@
 #include <array>
 #include <string>
 
+#include <boost/assert.hpp>
+
 namespace bgg
 {
   class Piece
@@ -71,6 +73,7 @@ namespace utils
       return "Enemy";
 
     default:
+      BOOST_ASSERT_MSG(false, "Invalid 'PositionStatus' value.");
       return "";
     }
   }
@@ -89,6 +92,7 @@ namespace utils
       return "Checkmated";
 
     default:
+      BOOST_ASSERT_MSG(false, "Invalid 'KingState' value.");
       return "";
     }
   }

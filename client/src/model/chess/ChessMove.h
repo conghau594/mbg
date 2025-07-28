@@ -11,7 +11,7 @@
 
 namespace bgg
 {
-  class CandidateChessMoveInfo final
+  class ReachableSquareInfo final
   {
   public:
     Piece piece;

@@ -32,7 +32,7 @@ namespace bgg
 				std::string const &color) const noexcept -> std::map<Position, Piece>;
 
 		[[nodiscard]] auto collectCandidateMoves(
-				Position const &square) const noexcept -> CandidateChessMoveInfo;
+				Position const &square) const noexcept -> ReachableSquareInfo;
 
 		[[nodiscard]] auto getPiece(
 				Position const &square) const noexcept -> std::optional<Piece>;

@@ -121,15 +121,15 @@ namespace bgg
     std::string msg;
     if (notif.result == "Win")
     {
-      msg = "You won!";
+      msg = "You won!            ";
     }
     else if (notif.result == "Lose")
     {
-      msg = "You lost!";
+      msg = "You lost!           ";
     }
     else if (notif.result == "Draw")
     {
-      msg = "It's a draw!";
+      msg = "It's a draw!        ";
     }
     else if (notif.result == "Error")
     {

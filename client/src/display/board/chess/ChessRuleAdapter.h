@@ -65,8 +65,8 @@ namespace bgg
             -> std::optional<std::string> override;
 
         auto getItemPlacements() -> ItemPlacementMap const & override;
-        auto getSelectableTiles() const noexcept -> ItemPlacementMap override;
-        auto getReachableTiles(TileCoords const &tile) const noexcept
+        auto collectSelectableTiles() const noexcept -> ItemPlacementMap override;
+        auto collectReachableTiles(TileCoords const &tile) const noexcept
             -> std::optional<ReachableTileInfo> override;
 
         auto getItemEntry(TileCoords const &tile) const noexcept

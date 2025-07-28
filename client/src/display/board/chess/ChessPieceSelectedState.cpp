@@ -53,7 +53,7 @@ namespace bgg
       somethingWrong = false;
     }
 
-    if (auto reachableTileInfo = gameRule_->getReachableTiles(selectedTile_))
+    if (auto reachableTileInfo = gameRule_->collectReachableTiles(selectedTile_))
     {
       addHighlighters(reachableTileInfo.value());
       somethingWrong = false;

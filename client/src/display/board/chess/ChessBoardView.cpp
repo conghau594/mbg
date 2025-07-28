@@ -220,14 +220,4 @@ namespace bgg
     tileMap_->move(moveVector);
     tileMap_->scale(sf::Vector2f{scaleFactor, scaleFactor});
   }
-
-  // void ChessBoardView::onGameFinishedNotification(
-  //     GameFinishedNotification const &notif) noexcept
-  // {
-  //   // TODO: ChessBoardView::onGameFinishedNotification()
-
-  //   SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
-  //               typeid(notif).name(), typeid(*this).name());
-  // }
-
 } // namespace bgg

@@ -160,11 +160,6 @@ namespace bgg
   {
   }
 
-  ItemStore::Iter::Iter(ItemStore const &itemStore) noexcept
-      : Iter(itemStore.end())
-  {
-  }
-
   void ItemStore::Iter::operator++() noexcept
   {
     ++(std::get<Container::iterator>(itemIter_));
@@ -210,12 +205,6 @@ namespace bgg
   {
     return (itemMapPtr_ == nullptr) || (itemIter_ == nullptr);
   }
-
-  // auto ItemStore::Entry::getId() const noexcept -> std::size_t const &
-  // {
-  //   BOOST_ASSERT_MSG(!isNull(), "Invalid entry. It may be removed from its map.");
-  //   return itemIter_->first;
-  // }
 
   auto ItemStore::Entry::getItem() const noexcept -> BoardItem &
   {

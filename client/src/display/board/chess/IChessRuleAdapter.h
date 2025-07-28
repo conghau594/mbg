@@ -64,10 +64,10 @@ namespace bgg
     virtual auto getItemPlacements() -> ItemPlacementMap const & = 0;
 
     [[nodiscard]]
-    virtual auto getSelectableTiles() const -> ItemPlacementMap = 0;
+    virtual auto collectSelectableTiles() const -> ItemPlacementMap = 0;
 
     [[nodiscard]]
-    virtual auto getReachableTiles(TileCoords const &tile) const
+    virtual auto collectReachableTiles(TileCoords const &tile) const
         -> std::optional<ReachableTileInfo> = 0;
 
     [[nodiscard]]

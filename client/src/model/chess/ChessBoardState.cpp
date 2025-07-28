@@ -77,9 +77,9 @@ namespace bgg
   }
 
   auto ChessBoardState::collectCandidateMoves(
-      Position const &square) const noexcept -> CandidateChessMoveInfo
+      Position const &square) const noexcept -> ReachableSquareInfo
   {
-    CandidateChessMoveInfo candidateMoves;
+    ReachableSquareInfo candidateMoves;
 
     ChessRule::collectBasicCandidateMoves(
         piecePlacements_,
@@ -193,8 +193,8 @@ namespace bgg
     }
 
     // ========================================
-    // check the move based on the CandidateChessMoveInfo
-    CandidateChessMoveInfo candidateMoves = collectCandidateMoves(move.fromSquare);
+    // check the move based on the ReachableSquareInfo
+    ReachableSquareInfo candidateMoves = collectCandidateMoves(move.fromSquare);
 
     ChessMove::Action moveAction;
     auto enemyKingSqr = ChessRule::findKingSquare(

@@ -17,8 +17,47 @@ namespace bgg
         You will also receive the `opponentLastMove`.
         
         Using this information, figure out the current board state, understand 
-        your opponent's intentions through its last move, and respond 
-        with your next move in UCI (Universal Chess Interface) format.
+        your opponent's intentions through its last move, and respond concisely
+        with your next move in the following format. 
+        {
+          "purpose": "<brief reason why you do this move (at most 3 sentences)>",
+          "fromSquare": "<source square>",
+          "toSquare": "<destination square>",
+          "promote": "<promoted piece if needed>"
+        }
+        For example:
+        - A rook moves from a1 to a3 normally:
+          {
+            "purpose": "...",
+            "fromSquare": "a1",
+            "toSquare": "a3"
+          }
+        - A black pawn from a2 reachs to the last rank at a1 and promotes to 
+          a queen:
+          {
+            "purpose": "...",
+            "fromSquare": "a2",
+            "toSquare": "a1",
+            "promote": "Queen"
+          }
+
+        If you want to castle or capture en passant, you just specify the
+        `fromSquare` and the `toSquare` of the moved piece.
+        For example:
+        - The black king castles at queen side. So it moves from e8 to c8:
+          {
+            "purpose": "...",
+            "fromSquare": "e8",
+            "toSquare": "c8"
+          }
+        - An white pawn from e5 captures en passant a black pawn at d5. So it 
+          moves to d6:
+          {
+            "purpose": "...",
+            "fromSquare": "e5",
+            "toSquare": "d6"
+          }
+        - And so on.
 
         Sometimes, you make an invalid move. You can refer to `pastFailures` 
         and take it as a lesson then try again.

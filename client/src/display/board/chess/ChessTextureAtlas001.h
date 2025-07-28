@@ -29,7 +29,7 @@ namespace bgg
       }
       else if (regionIndex == int(ChessTextureCell::CHECK_HIGHLIGHTER))
       {
-        scalePercents = {80, 80};
+        scalePercents = {85, 85};
       }
       else if (int(ChessTextureCell::WHITE_KING) <= regionIndex &&
                regionIndex <= int(ChessTextureCell::BLACK_PAWN))

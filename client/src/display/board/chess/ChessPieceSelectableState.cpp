@@ -42,7 +42,7 @@ namespace bgg
 
   void ChessPieceSelectableState::onEnter(sf::Vector2i const &mousePos) noexcept
   {
-    selectableTiles_ = gameRule_->getSelectableTiles();
+    selectableTiles_ = gameRule_->collectSelectableTiles();
     onMouseMoved(mousePos);
 
     // SPDLOG_INFO("Entered '{}'", typeid(*this).name());

@@ -92,12 +92,7 @@ namespace bgg
         Container const *const itemMapPtr) noexcept;
 
   public:
-    /**
-     * Construct an null Entry object associated with an ItemStore
-     *
-     */
-    Iter(ItemStore const &itemStore) noexcept;
-
+    Iter() = delete;
     void operator++() noexcept;
     void operator++() const noexcept;
     [[nodiscard]] auto operator*() noexcept -> BoardItem &;

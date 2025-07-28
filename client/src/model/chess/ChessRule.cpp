@@ -340,7 +340,7 @@ namespace bgg
 
     for (Position const &sqr : possibleSquares)
     {
-      PositionStatus sqrStatus = ChessRule::getPositionStatus(
+      PositionStatus sqrStatus = getPositionStatus(
           piecePlacements, sqr, color);
       if (sqrStatus == PositionStatus::ENEMY || sqrStatus == PositionStatus::EMPTY)
       {

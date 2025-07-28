@@ -315,13 +315,13 @@ namespace bgg
     return itemPlacements_;
   }
 
-  auto ChessRuleAdapter::getSelectableTiles() const noexcept -> ItemPlacementMap
+  auto ChessRuleAdapter::collectSelectableTiles() const noexcept -> ItemPlacementMap
   {
     std::map<Position, Piece>
-        piecePlacements = chessRule_->collectSelectablePieces(allyColor_);
+        selectablePieces = chessRule_->collectSelectablePieces(allyColor_);
 
     ItemPlacementMap itemPlacements;
-    for (auto &[square, piece] : piecePlacements)
+    for (auto &[square, piece] : selectablePieces)
     {
       TileCoords tile = positionToTile(square);
       ItemStore::Entry entry = itemPlacements_.at(tile);
@@ -334,7 +334,7 @@ namespace bgg
     return itemPlacements;
   }
 
-  auto ChessRuleAdapter::getReachableTiles(TileCoords const &tile) const noexcept
+  auto ChessRuleAdapter::collectReachableTiles(TileCoords const &tile) const noexcept
       -> std::optional<ReachableTileInfo>
   {
     auto itemEntry = getItemEntry(tile);
@@ -345,7 +345,7 @@ namespace bgg
 
     Position originSquare = tileToPosition(tile);
 
-    CandidateChessMoveInfo candidateMoveInfo = chessRule_->collectCandidateMoves(originSquare);
+    ReachableSquareInfo candidateMoveInfo = chessRule_->collectCandidateMoves(originSquare);
 
     std::list<TileCoords> quietSquares;
     for (auto &square : candidateMoveInfo.quietSquares)
