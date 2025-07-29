@@ -98,15 +98,14 @@ namespace bgg
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     // begin ImGui window
-    int constexpr IM_GUI_FLAGS =
-        ImGuiWindowFlags_NoTitleBar |
-        // ImGuiWindowFlags_NoBackground |
-        ImGuiWindowFlags_NoSavedSettings |
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoCollapse |
-        // ImGuiWindowFlags_NoDecoration |
-        ImGuiWindowFlags_AlwaysAutoResize |
-        ImGuiWindowFlags_NoMove;
+    int constexpr IM_GUI_FLAGS = int(ImGuiWindowFlags_NoTitleBar) |
+                                 // int(ImGuiWindowFlags_NoBackground) |
+                                 int(ImGuiWindowFlags_NoSavedSettings) |
+                                 int(ImGuiWindowFlags_NoResize) |
+                                 int(ImGuiWindowFlags_NoCollapse) |
+                                 // int(ImGuiWindowFlags_NoDecoration) |
+                                 int(ImGuiWindowFlags_AlwaysAutoResize) |
+                                 int(ImGuiWindowFlags_NoMove);
 
     ImGui::Begin("Blocking Screen", nullptr, IM_GUI_FLAGS);
 

@@ -83,13 +83,13 @@ namespace bgg
                   0.5f * float(getWindow()->getSize().y));
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
-    int constexpr IM_GUI_FLAGS = ImGuiWindowFlags_NoBackground |
-                                 ImGuiWindowFlags_NoSavedSettings |
-                                 ImGuiWindowFlags_NoResize |
-                                 ImGuiWindowFlags_NoCollapse |
-                                 ImGuiWindowFlags_NoDecoration |
-                                 ImGuiWindowFlags_AlwaysAutoResize |
-                                 ImGuiWindowFlags_NoMove;
+    int constexpr IM_GUI_FLAGS = int(ImGuiWindowFlags_NoBackground) |
+                                 int(ImGuiWindowFlags_NoSavedSettings) |
+                                 int(ImGuiWindowFlags_NoResize) |
+                                 int(ImGuiWindowFlags_NoCollapse) |
+                                 int(ImGuiWindowFlags_NoDecoration) |
+                                 int(ImGuiWindowFlags_AlwaysAutoResize) |
+                                 int(ImGuiWindowFlags_NoMove);
 
     ImVec2 constexpr BUTTON_SIZE(400.0f, 70.0f);
     ImVec2 constexpr DUMMY_SIZE(0.0f, 10.0f);

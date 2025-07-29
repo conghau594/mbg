@@ -88,13 +88,13 @@ namespace bgg
     ImGui::PushFont(font36);
 
     // begin ImGui window
-    int constexpr IM_GUI_FLAGS = ImGuiWindowFlags_NoBackground |
-                                 ImGuiWindowFlags_NoSavedSettings |
-                                 ImGuiWindowFlags_NoResize |
-                                 ImGuiWindowFlags_NoCollapse |
-                                 ImGuiWindowFlags_NoDecoration |
-                                 ImGuiWindowFlags_AlwaysAutoResize |
-                                 ImGuiWindowFlags_NoMove;
+    int constexpr IM_GUI_FLAGS = int(ImGuiWindowFlags_NoBackground) |
+                                 int(ImGuiWindowFlags_NoSavedSettings) |
+                                 int(ImGuiWindowFlags_NoResize) |
+                                 int(ImGuiWindowFlags_NoCollapse) |
+                                 int(ImGuiWindowFlags_NoDecoration) |
+                                 int(ImGuiWindowFlags_AlwaysAutoResize) |
+                                 int(ImGuiWindowFlags_NoMove);
 
     ImVec2 constexpr DUMMY_SIZE(0.0f, 10.0f);
     ImVec2 constexpr INPUT_BOX_SIZE(400.0f, 60.0f);
@@ -132,8 +132,8 @@ namespace bgg
 
     ImGui::Dummy(DUMMY_SIZE);
 
-    int constexpr PASSWORD_INPUT_FLAG = ImGuiInputTextFlags_Password |
-                                        ImGuiInputTextFlags_CharsNoBlank;
+    int const PASSWORD_INPUT_FLAG = ImGuiInputTextFlags_Password |
+                                    ImGuiInputTextFlags_CharsNoBlank;
 
     ImGui::InputTextEx(
         "##Password",

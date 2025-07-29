@@ -89,13 +89,13 @@ namespace bgg
     // ImGuiIO &io = ImGui::GetIO();
     // io.FontGlobalScale = 2.0f;
 
-    int constexpr IM_GUI_FLAGS = ImGuiWindowFlags_NoBackground |
-                                 ImGuiWindowFlags_NoSavedSettings |
-                                 ImGuiWindowFlags_NoResize |
-                                 ImGuiWindowFlags_NoCollapse |
-                                 ImGuiWindowFlags_NoDecoration |
-                                 ImGuiWindowFlags_AlwaysAutoResize |
-                                 ImGuiWindowFlags_NoMove;
+    int constexpr IM_GUI_FLAGS = int(ImGuiWindowFlags_NoBackground) |
+                                 int(ImGuiWindowFlags_NoSavedSettings) |
+                                 int(ImGuiWindowFlags_NoResize) |
+                                 int(ImGuiWindowFlags_NoCollapse) |
+                                 int(ImGuiWindowFlags_NoDecoration) |
+                                 int(ImGuiWindowFlags_AlwaysAutoResize) |
+                                 int(ImGuiWindowFlags_NoMove);
 
     ImVec2 constexpr BUTTON_SIZE(300.0f, 60.0f);
     ImVec2 constexpr DUMMY_SIZE(0.0f, 10.0f);
