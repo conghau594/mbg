@@ -3,9 +3,13 @@
 #include <boost/assert.hpp>
 
 #include "ChessGameService.h"
+#include "ChessGameUtils.h"
+#include "GeminiAgent.h"
+
 #include "base/Logger.h"
-#include "model/chess/ChessUtils.h"
-#include "model/chess/ChessBoardState.h"
+#include "model/Piece.h"
+#include "model/chess/ChessHelpers.h"
+#include "model/chess/IChessRule.h"
 
 namespace bgg
 {
@@ -59,8 +63,9 @@ namespace bgg
           }
         - And so on.
 
-        Sometimes, you make an invalid move. You can refer to `pastFailures` 
-        and take it as a lesson then try again.
+        Sometimes, you make invalid moves. All your failures in the past is
+        stored in `pastFailureMessages`. You should take it as a lesson then
+        try again.
 
         Make sure to:
         - Always evaluate the safety of your king before making any move.
@@ -80,7 +85,7 @@ namespace bgg
                 "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
                 "e7": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
               },
-              "pastFailures": [],
+              "pastFailureMessages": [],
               "opponentLastMove": {
                 "type": "Normal",
                 "piece": "White Pawn",
@@ -114,7 +119,7 @@ namespace bgg
                 "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
                 "e5": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
               },
-              "pastFailures": [
+              "pastFailureMessages": [
                 {
                   "illegalMove": {
                     "fromSquare": "b8",
@@ -156,7 +161,7 @@ namespace bgg
                 "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
                 "e7": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
               },
-              "pastFailures": [
+              "pastFailureMessages": [
                 {
                   "illegalMove": {
                     "fromSquare": "e3",
@@ -211,8 +216,8 @@ namespace bgg
 
   ChessGameService::ChessGameService(
       std::string apiKey,
-      std::shared_ptr<ChessBoardState> chessRule,
-      std::string agentColor,
+      std::shared_ptr<IChessRule> chessRule,
+      Side const &agentColor,
       std::shared_ptr<ClientEventBus> eventBus)
       : threadPool_(2),
         eventBus_(std::move(eventBus)),
@@ -223,7 +228,7 @@ namespace bgg
             CHESS_MOVE_JSON_SCHEMA,
             CHESS_GAME_PROMPT_PATTERN)),
         agentColor_(std::move(agentColor)),
-        allyColor_(ChessRule::getEnemyColor(agentColor_)),
+        allyColor_(chess::getOpponentColor(agentColor_)),
         maxPromptRetries_(10),
         chessRule_(std::move(chessRule))
   // moveHistoryStr_{}
@@ -286,23 +291,21 @@ namespace bgg
 
   void ChessGameService::validateMoveRequest(MoveRequest const &moveRqt, bool &gameFinished)
   {
-    ChessMove::Action yourMoveAction = chessRule_->tryMove(
-        ChessMove{moveRqt.fromSquare, moveRqt.toSquare, moveRqt.promote},
-        allyColor_);
+    ChessMove::Detail moveDetail = chessRule_->tryMove(moveRqt.move);
 
-    if (yourMoveAction.is<ChessMove::Invalid>())
+    if (moveDetail.is<ChessMove::Invalid>())
     {
       throw std::invalid_argument(std::format(
-          "Invalid move request: from {}{} to {}{} for color {}",
-          moveRqt.fromSquare[0], moveRqt.fromSquare[1],
-          moveRqt.toSquare[0], moveRqt.toSquare[1],
-          allyColor_));
+          "Invalid move request: from {} to {} for color {}",
+          moveRqt.move.fromSquare.toString(),
+          moveRqt.move.fromSquare.toString(),
+          allyColor_.toString()));
     }
 
     emit(MoveResponse{ErrorCode{0, "Mock", ""}});
-    chessRule_->commitMove(yourMoveAction);
+    chessRule_->commitMove(moveDetail);
 
-    if (utils::getEnemyKingState(yourMoveAction) == KingState::CHECKMATED)
+    if (ChessMove::getOpponentKingStatus(moveDetail) == Side::Status::CHECKMATED)
     {
       emit(GameFinishedNotification{"Win"});
       gameFinished = true;
@@ -315,27 +318,19 @@ namespace bgg
 
   void ChessGameService::sendChessGamePromptToAgent()
   {
-    ///< get current placements
-    auto const &piecePlacements = chessRule_->getPiecePlacements();
-    if (piecePlacements.empty())
-    {
-      SPDLOG_ERROR("No piece placements found in the chess rule");
-      // TODO: handle the error case when there are no piece placements
-      // emit(MoveResponse{ErrorCode{-1, "Mock", "No piece placements found"}});
-      return;
-    }
-    std::string piecePlacementsString;
-    for (auto &[square, piece] : piecePlacements)
-    {
-      piecePlacementsString += std::format(
-          R"("{}{}":"{}",)", square[0], square[1], piece.toString());
-    }
-    piecePlacementsString.pop_back(); // remove the last comma
+    std::string agentPiecePlacementsStr = piecePlacementsToJsonStr(
+        chessRule_->collectPieces(agentColor_));
+
+    std::string opponentPiecePlacementsStr = piecePlacementsToJsonStr(
+        chessRule_->collectPieces(chess::getOpponentColor(agentColor_)));
+
+    // TODO: handle the error case when there are no piece placements
+    // emit(MoveResponse{ErrorCode{-1, "Mock", "No piece placements found"}});
 
     ///< send the prompt to the agent
-    std::string pastFailures;
-    std::string opponentLastMove = chessMoveActionToJsonString(
-        chessRule_->getLastMoveAction());
+    std::string opponentLastMove = chessMoveDetailToJsonStr(
+        chessRule_->getLastMove());
+    std::string pastFailureMessages;
 
     for (int i = 0; i < maxPromptRetries_; ++i)
     {
@@ -343,195 +338,246 @@ namespace bgg
           R"(
           {{
             "yourColor": "{}",
-            "pastFailures": [ {} ],
-            "piecePlacements": {{ {} }},
+            "pastFailureMessages": [ {} ],
+            "yourPiecePlacements": {{ {} }},
+            "opponentPiecePlacements": {{ {} }},
             "opponentLastMove": {}
           }})",
-          agentColor_, pastFailures, piecePlacementsString, opponentLastMove);
+          agentColor_.toString(),
+          pastFailureMessages,
+          agentPiecePlacementsStr,
+          opponentPiecePlacementsStr,
+          opponentLastMove);
 
       SPDLOG_DEBUG("Sending prompt to agent: {}", input);
 
-      std::optional<std::string> response = agent_->sendPromptWithArgs(input);
-      if (!response)
+      std::optional<std::string> agentResponse = agent_->sendPromptWithArgs(input);
+      if (!agentResponse)
       {
         SPDLOG_WARN(
-            "Prompt failure number: {} (connection error). Retrying...",
+            "Prompt failure number: {} (connection error).\nRetrying...",
             i + 1);
         std::this_thread::sleep_for(std::chrono::milliseconds(1500));
         continue;
       }
 
-      ChessMove responseMove;
+      ChessMove agentMove;
       // std::string uicResponseMove;
       try
       {
-        responseMove = utils::jsonToChessMoveObject(*response);
+        agentMove = chess::jsonToChessMove(*agentResponse);
       }
       catch (std::exception const &e)
       {
         SPDLOG_WARN(
-            "Prompt failure number: {} (JSON parsing failure: {}, response: {}). Retrying...",
-            i + 1, e.what(), *response);
+            "Prompt failure number: {} (JSON parsing failure: {}).\nRetrying...",
+            i + 1, e.what());
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         continue;
       }
 
+      ChessMove::Detail agentMoveDetail{};
       try
       {
-        ChessMove::Action enemyMoveAction = chessRule_->tryMove(
-            responseMove, agentColor_);
-        // handle the error case when 'responseMove' is invalid
-        if (auto invalidAction = enemyMoveAction.getIf<ChessMove::Invalid>())
+        agentMoveDetail = chessRule_->tryMove(agentMove);
+        // handle the error case when 'agentMove' is invalid
+        if (auto invalidMove = agentMoveDetail.getIf<ChessMove::Invalid>())
         {
-          throw std::runtime_error(utils::toString(invalidAction->error));
+          throw std::logic_error(invalidMove->errorMessage);
         }
-
-        // moveHistoryStr_ += ",\"" + uicResponseMove + "\"";
-        chessRule_->commitMove(enemyMoveAction);
-
-        std::string currentTurn = Color::WHITE;
-        emit(GameUpdatedNotification{
-            responseMove.fromSquare,
-            responseMove.toSquare,
-            responseMove.promote,
-            allyColor_,
-            currentTurn});
-
-        if (utils::getEnemyKingState(enemyMoveAction) == KingState::CHECKMATED)
-        {
-          emit(GameFinishedNotification{"Lose"});
-        }
-        return;
       }
       catch (std::exception const &e)
       {
-        std::string promoveValue = responseMove.promote
-                                       ? "\"" + *(responseMove.promote) + "\""
-                                       : std::string("null");
-        std::string failure = std::format(
-            R"(
-            {{
-              "illegalMove": {{
-                "fromSquare": "{}{}",
-                "toSquare": "{}{}",
-                "promote": {}
-              }}, 
-              "message": "{}"
-            }})",
-            responseMove.fromSquare[0], responseMove.fromSquare[1],
-            responseMove.toSquare[0], responseMove.toSquare[1],
-            promoveValue,
-            e.what());
+        // std::string promoveValue = responseMove.promote
+        //                                ? "\"" + *(responseMove.promote) + "\""
+        //                                : std::string("null");
+        std::string failureMsg = std::format("\"{}\"", e.what());
 
-        if (pastFailures.empty())
+        if (pastFailureMessages.empty())
         {
-          pastFailures = failure;
+          pastFailureMessages = failureMsg;
         }
         else
         {
-          pastFailures += ", " + failure;
+          pastFailureMessages += ",\n" + failureMsg;
         }
 
         SPDLOG_WARN(
-            "Prompt failure number: {} (logic error: {}). Retrying...",
+            "Prompt failure number: {} (rule violation: {}).\nRetrying...",
             i + 1,
-            pastFailures);
+            pastFailureMessages);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         continue;
       }
+
+      // moveHistoryStr_ += ",\"" + uicResponseMove + "\"";
+      chessRule_->commitMove(agentMoveDetail);
+
+      Side currentTurn = chess::getOpponentColor(agentColor_);
+      emit(GameUpdatedNotification{agentMoveDetail, currentTurn, currentTurn});
+
+      if (ChessMove::getOpponentKingStatus(agentMoveDetail) ==
+          Side::Status::CHECKMATED)
+      {
+        emit(GameFinishedNotification{"Lose"});
+      }
+      return;
     }
 
     emit(GameFinishedNotification{"Error"});
-    SPDLOG_ERROR("Completely failed to send prompt request");
+    SPDLOG_ERROR("Completely failed to send prompt to the agent");
     // TODO: handle the failure case after 100 times of try to send prompt to agent
     // msg = e.what();
     // errCodeValue = -1;
     // emit(FailureNotif{ErrorCode{errCodeValue, "Mock", msg}});
   }
 
-  auto ChessGameService::chessMoveActionToJsonString(
-      ChessMove::Action const &moveAction) noexcept -> std::string
+  auto ChessGameService::chessMoveDetailToJsonStr(
+      ChessMove::Detail const &moveDetail) noexcept -> std::string
   {
-    if (auto normalAction = moveAction.getIf<ChessMove::Normal>())
+    if (auto normalMove = moveDetail.getIf<ChessMove::Normal>())
     {
+      std::string capturedPiece = "null";
+      if (normalMove->capturedPiece)
+      {
+        capturedPiece = "\"" + normalMove->capturedPiece->toString() + "\"";
+      }
       return std::format(
           R"(
           {{
-            "type": "Normal",
-            "fromSquare": "{}{}",
-            "toSquare": "{}{}",
+            "type": "NormalMove",
+            "color": {},
+            "movedPiece": "{}",
+            "fromSquare": "{}",
+            "toSquare": "{}",
+            "yourCapturedPiece": {},
             "yourKingSafety": "{}"
           }})",
-          normalAction->fromSquare[0], normalAction->fromSquare[1],
-          normalAction->toSquare[0], normalAction->toSquare[1],
-          utils::toString(normalAction->enemyKingState));
+          normalMove->color.toString(),
+          normalMove->movedPiece.toString(),
+          normalMove->fromSquare.toString(),
+          normalMove->toSquare.toString(),
+          capturedPiece,
+          Side::toString(normalMove->opponentKingStatus));
     }
-    else if (auto promotion = moveAction.getIf<ChessMove::Promotion>())
+    else if (auto promotion = moveDetail.getIf<ChessMove::Promotion>())
     {
+      std::string capturedPiece = "null";
+      if (promotion->capturedPiece)
+      {
+        capturedPiece = "\"" + promotion->capturedPiece->toString() + "\"";
+      }
       return std::format(
           R"(
           {{
             "type": "Promotion",
-            "fromSquare": "{}{}",
-            "toSquare": "{}{}",
-            "promote": "{}",
+            "color": {},
+            "movedPiece": "{}",
+            "fromSquare": "{}",
+            "toSquare": "{}",
+            "promotedPiece": "{}",
+            "yourCapturedPiece": {},
             "yourKingSafety": "{}"
           }})",
-          promotion->fromSquare[0], promotion->fromSquare[1],
-          promotion->toSquare[0], promotion->toSquare[1],
-          promotion->promote,
-          utils::toString(promotion->enemyKingState));
+          promotion->color.toString(),
+          promotion->movedPiece.toString(),
+          promotion->fromSquare.toString(),
+          promotion->toSquare.toString(),
+          promotion->promotedPiece.toString(),
+          capturedPiece,
+          Side::toString(promotion->opponentKingStatus));
     }
-    else if (auto castling = moveAction.getIf<ChessMove::Castling>())
-    {
-      return std::format(
-          R"(
-          {{
-            "type": "Castling",
-            "fromSquare": "{}{}",
-            "toSquare": "{}{}",
-            "rookSource": "{}{}",
-            "rookDestination": "{}{}",
-            "yourKingSafety": "{}"
-          }})",
-          castling->fromSquare[0], castling->fromSquare[1],
-          castling->toSquare[0], castling->toSquare[1],
-          castling->rookSource[0], castling->rookSource[1],
-          castling->rookDestination[0], castling->rookDestination[1],
-          utils::toString(castling->enemyKingState));
-    }
-    else if (auto enPassantCapture = moveAction.getIf<ChessMove::EnPassant>())
+    else if (auto enPassantCapture = moveDetail.getIf<ChessMove::EnPassant>())
     {
       return std::format(
           R"(
           {{
             "type": "EnPassant",
-            "fromSquare": "{}{}",
-            "toSquare": "{}{}",
-            "enPassantCaptureSquare": "{}{}",
+            "color": {},
+            "movedPiece": "{}",
+            "fromSquare": "{}",
+            "toSquare": "{}",
+            "enPassantCaptureSquare": "{}",
+            "yourCapturedPiece": "{}",
             "yourKingSafety": "{}"
           }})",
-          enPassantCapture->fromSquare[0], enPassantCapture->fromSquare[1],
-          enPassantCapture->toSquare[0], enPassantCapture->toSquare[1],
-          enPassantCapture->enPassantSquare[0], enPassantCapture->enPassantSquare[1],
-          utils::toString(enPassantCapture->enemyKingState));
+          enPassantCapture->color.toString(),
+          enPassantCapture->movedPiece.toString(),
+          enPassantCapture->fromSquare.toString(),
+          enPassantCapture->toSquare.toString(),
+          enPassantCapture->enPassantCaptureSquare.toString(),
+          enPassantCapture->capturedPiece.toString(),
+          Side::toString(enPassantCapture->opponentKingStatus));
     }
-    else if (auto invalidAction = moveAction.getIf<ChessMove::Invalid>())
+    else if (auto castling = moveDetail.getIf<ChessMove::Castling>())
     {
       return std::format(
           R"(
           {{
-            "type": "Invalid",
-            "errorCode": "{}",
+            "type": "Castling",
+            "color": {},
+            "movedPiece": "{}",
+            "fromSquare": "{}",
+            "toSquare": "{}",
+            "rookSource": "{}",
+            "rookDestination": "{}",
+            "yourKingSafety": "{}"
+          }})",
+          castling->color.toString(),
+          castling->movedPiece.toString(),
+          castling->fromSquare.toString(),
+          castling->toSquare.toString(),
+          castling->rookSource.toString(),
+          castling->rookDestination.toString(),
+          Side::toString(castling->opponentKingStatus));
+    }
+    else if (auto invalidMove = moveDetail.getIf<ChessMove::Invalid>())
+    {
+      std::string promotedPiece = "null";
+      if (invalidMove->promotedPiece)
+      {
+        promotedPiece = "\"" + invalidMove->promotedPiece->toString() + "\"";
+      }
+      return std::format(
+          R"(
+          {{
+            "type": "InvalidMove",
+            "movedPiece": "{}",
+            "fromSquare": "{}",
+            "promotedPiece": {},
+            "toSquare": "{}",
             "message": "{}"
           }})",
-          int(invalidAction->error),
-          utils::toString(invalidAction->error));
+          invalidMove->color.toString(),
+          invalidMove->fromSquare.toString(),
+          invalidMove->toSquare.toString(),
+          promotedPiece,
+          invalidMove->errorMessage);
     }
-    else // if (auto emptyAction moveAction.getIf<ChessMove::Invalid>())
+    else // if (auto emptyAction moveDetail.getIf<ChessMove::Invalid>())
     {
       return "null";
     }
+  }
+  auto ChessGameService::piecePlacementsToJsonStr(
+      std::list<std::shared_ptr<Piece>> const &piecePlacements) noexcept -> std::string
+  {
+    if (piecePlacements.empty())
+    {
+      SPDLOG_ERROR("No piece placements to convert to JSON string");
+      return "";
+    }
+    std::string piecePlacementsStr;
+    for (auto const &piece : piecePlacements)
+    {
+      piecePlacementsStr += std::format(
+          R"("{}":"{}",)",
+          piece->getPosition().toString(),
+          piece->getSide().toString() + piece->getType().toString());
+    }
+    piecePlacementsStr.pop_back(); // remove the last comma
+
+    return std::string();
   }
 } // namespace bgg

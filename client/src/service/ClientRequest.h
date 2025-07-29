@@ -5,7 +5,7 @@
 #include <optional>
 #include <map>
 
-#include "model/Piece.h"
+#include "model/chess/ChessMove.h"
 #include "peeb/Event.hpp"
 
 namespace bgg
@@ -37,8 +37,7 @@ namespace bgg
     std::string userId;
     std::string gameId;
 
-    Position fromSquare, toSquare;
-    std::optional<std::string> promote; // e.g. promote to: "Queen", "check"
+    ChessMove move;
   };
 
   class ResignGameRequest final

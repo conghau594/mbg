@@ -7,6 +7,9 @@
 #include "base/RandomUtils.h"
 #include "MockGameService.h"
 
+#include "model/chess/ChessHelpers.h"
+#include "model/GameType.h"
+
 namespace bgg
 {
   MockGameService::MockGameService(std::shared_ptr<ClientEventBus> eventBus)
@@ -46,7 +49,6 @@ namespace bgg
 
   MockGameService::~MockGameService()
   {
-
   }
 
   void MockGameService::emit(ServerMessage const &msg) noexcept
@@ -125,8 +127,18 @@ namespace bgg
           }
 
           std::string gameId = "@Test123";
-          int side = 0; // 0: WHITE, 1: BLACK
-          emit(FindGameResponse{ErrorCode{errCodeValue, "Mock", msg}});
+
+          std::list<std::tuple<EntityType, Side, Position>>
+              standardPiecePlacements(chess::STANDARD_PIECE_PLACEMENTS);
+          FindGameResponse findGameResponse{
+              {0, "", "Mock"}, // error code
+              GameType::CHESS,
+              standardPiecePlacements, // initialBoard
+              chess::WHITE,            // yourColor
+              chess::WHITE             // currentTurn
+          };
+
+          emit(findGameResponse);
         });
   }
 
@@ -188,14 +200,11 @@ namespace bgg
             errCodeValue = -1;
           }
 
-          std::string gameId = "@Test123 ";
-          int side = 0; // 0: WHITE, 1: BLACK
+          // std::string gameId = "@Test123 ";
           emit(GameUpdatedNotification{
-              Position("b7"),
-              Position("a5"),
-              std::nullopt,
-              0,
-              0});
+              ChessMove::Detail{},
+              chess::WHITE,
+              chess::WHITE});
         });
   }
 

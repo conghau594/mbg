@@ -13,7 +13,7 @@
 #include "display/board/GameBoardFactory.h"
 
 #include "peeb/EventBus.hpp"
-#include "model/chess/ChessBoardState.h"
+#include "model/chess/ChessRule.h"
 #include "base/EnvUtils.h"
 namespace bgg
 {
@@ -70,62 +70,56 @@ namespace bgg
 					gameDisplay = std::make_shared<GameDisplay>(window, eventBus);
 
 			//==============
-			std::pair<Position, Piece> TESTING_PLACEMENTS[ChessRule::PIECE_COUNT]{
-					{Position{"e1"}, Piece{ChessRule::KING, Color::WHITE}},
-					{Position{"d4"}, Piece{ChessRule::QUEEN, Color::WHITE}},
-					{Position{"a1"}, Piece{ChessRule::ROOK, Color::WHITE}},
-					{Position{"h1"}, Piece{ChessRule::ROOK, Color::WHITE}},
-					{Position{"b2"}, Piece{ChessRule::KNIGHT, Color::WHITE}},
-					{Position{"g2"}, Piece{ChessRule::KNIGHT, Color::WHITE}},
-					{Position{"c2"}, Piece{ChessRule::BISHOP, Color::WHITE}},
-					{Position{"f2"}, Piece{ChessRule::BISHOP, Color::WHITE}},
-					{Position{"c6"}, Piece{ChessRule::PAWN, Color::WHITE}},
-					{Position{"a5"}, Piece{ChessRule::PAWN, Color::WHITE}},
-					{Position{"a4"}, Piece{ChessRule::PAWN, Color::WHITE}},
-					{Position{"d2"}, Piece{ChessRule::PAWN, Color::WHITE}},
-					{Position{"d7"}, Piece{ChessRule::PAWN, Color::WHITE}},
-					{Position{"c5"}, Piece{ChessRule::PAWN, Color::WHITE}},
-					{Position{"b4"}, Piece{ChessRule::PAWN, Color::WHITE}},
-					{Position{"e2"}, Piece{ChessRule::PAWN, Color::WHITE}},
+			const std::initializer_list<std::tuple<EntityType, Side, Position>>
+					TESTING_PIECE_PLACEMENTS{
+							std::make_tuple(chess::KING, chess::WHITE, Position{"e1"}),
+							std::make_tuple(chess::QUEEN, chess::WHITE, Position{"d4"}),
+							std::make_tuple(chess::ROOK, chess::WHITE, Position{"a1"}),
+							std::make_tuple(chess::ROOK, chess::WHITE, Position{"h1"}),
+							std::make_tuple(chess::KNIGHT, chess::WHITE, Position{"b2"}),
+							std::make_tuple(chess::KNIGHT, chess::WHITE, Position{"g2"}),
+							std::make_tuple(chess::BISHOP, chess::WHITE, Position{"c2"}),
+							std::make_tuple(chess::BISHOP, chess::WHITE, Position{"f2"}),
+							std::make_tuple(chess::PAWN, chess::WHITE, Position{"c6"}),
+							std::make_tuple(chess::PAWN, chess::WHITE, Position{"a5"}),
+							std::make_tuple(chess::PAWN, chess::WHITE, Position{"a4"}),
+							std::make_tuple(chess::PAWN, chess::WHITE, Position{"d2"}),
+							std::make_tuple(chess::PAWN, chess::WHITE, Position{"d7"}),
+							std::make_tuple(chess::PAWN, chess::WHITE, Position{"c5"}),
+							std::make_tuple(chess::PAWN, chess::WHITE, Position{"b4"}),
+							std::make_tuple(chess::PAWN, chess::WHITE, Position{"e2"}),
+							std::make_tuple(chess::KING, chess::BLACK, Position{"g5"}),
+							std::make_tuple(chess::QUEEN, chess::BLACK, Position{"f8"}),
+							std::make_tuple(chess::ROOK, chess::BLACK, Position{"c8"}),
+							std::make_tuple(chess::ROOK, chess::BLACK, Position{"h7"}),
+							std::make_tuple(chess::KNIGHT, chess::BLACK, Position{"b7"}),
+							std::make_tuple(chess::KNIGHT, chess::BLACK, Position{"g8"}),
+							std::make_tuple(chess::BISHOP, chess::BLACK, Position{"e8"}),
+							std::make_tuple(chess::BISHOP, chess::BLACK, Position{"f7"}),
+							std::make_tuple(chess::PAWN, chess::BLACK, Position{"g6"}),
+							std::make_tuple(chess::PAWN, chess::BLACK, Position{"b5"}),
+							std::make_tuple(chess::PAWN, chess::BLACK, Position{"g4"}),
+							std::make_tuple(chess::PAWN, chess::BLACK, Position{"g3"}),
+							std::make_tuple(chess::PAWN, chess::BLACK, Position{"h6"}),
+							std::make_tuple(chess::PAWN, chess::BLACK, Position{"h5"}),
+							std::make_tuple(chess::PAWN, chess::BLACK, Position{"h4"}),
+							std::make_tuple(chess::PAWN, chess::BLACK, Position{"h3"})};
 
-					{Position{"g5"}, Piece{ChessRule::KING, Color::BLACK}},
-					{Position{"f8"}, Piece{ChessRule::QUEEN, Color::BLACK}},
-					{Position{"c8"}, Piece{ChessRule::ROOK, Color::BLACK}},
-					{Position{"h7"}, Piece{ChessRule::ROOK, Color::BLACK}},
-					{Position{"b7"}, Piece{ChessRule::KNIGHT, Color::BLACK}},
-					{Position{"g8"}, Piece{ChessRule::KNIGHT, Color::BLACK}},
-					{Position{"e8"}, Piece{ChessRule::BISHOP, Color::BLACK}},
-					{Position{"f7"}, Piece{ChessRule::BISHOP, Color::BLACK}},
-					{Position{"g6"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"b5"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"g4"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"g3"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"h6"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"h5"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"h4"}, Piece{ChessRule::PAWN, Color::BLACK}},
-					{Position{"h3"}, Piece{ChessRule::PAWN, Color::BLACK}},
-			};
-
-			std::map<Position, Piece> initialPlacements(
-					TESTING_PLACEMENTS, TESTING_PLACEMENTS + ChessRule::PIECE_COUNT);
-
-			std::map<Position, Piece> standardPlacements(
-					ChessRule::INITIAL_PLACEMENTS);
-
+			std::list<std::tuple<EntityType, Side, Position>>
+					standardPiecePlacements(chess::STANDARD_PIECE_PLACEMENTS);
 			FindGameResponse findGameResponse{
 					{0, "", "Mock"}, // error code
 					gameType_,
-					std::move(standardPlacements), // initialBoard -> empty
-					Color::WHITE,									 // yourColor
-					Color::WHITE,									 // yourTurn
-					Color::WHITE									 // currentTurn
+					standardPiecePlacements, // initialBoard
+					chess::WHITE,						 // yourColor
+					chess::WHITE						 // currentTurn
 			};
-			//==============
 
-			auto chessRuleAtServer = std::make_shared<ChessBoardState>(
-					findGameResponse.initialBoard);
+			//============================
+			std::shared_ptr<IChessRule> chessRuleAtServer = std::make_shared<ChessRule>(
+					findGameResponse.initialPlacements);
 
-			std::string &&agentColor = ChessRule::getEnemyColor(findGameResponse.yourColor);
+			Side &&agentColor = chess::getOpponentColor(findGameResponse.yourColor);
 			std::shared_ptr<GameService>
 					gameService = std::make_shared<ChessGameService>(
 							std::move(geminiApiKey), chessRuleAtServer, agentColor, eventBus);
@@ -139,14 +133,15 @@ namespace bgg
 			};
 
 			//============================
-			auto chessRuleAtClient = std::make_shared<ChessBoardState>(*chessRuleAtServer);
+			auto chessRuleAtClient = std::make_shared<ChessRule>(
+					findGameResponse.initialPlacements);
 
 			std::shared_ptr<IBoardView> chessBoard = GameBoardFactory().createChessBoard(
 					std::move(chessRuleAtClient),
 					boardRect,
 					std::move(requestSender),
 					findGameResponse.yourColor,
-					findGameResponse.yourTurn == findGameResponse.currentTurn);
+					findGameResponse.yourColor == findGameResponse.currentTurn);
 
 			std::shared_ptr<IScreen> chessScreen = std::make_shared<GamePlayScreen>(
 					window, gameDisplay, chessBoard, RESIGN_REGION_HEIGHT);

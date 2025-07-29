@@ -7,7 +7,7 @@
 
 #include "peeb/Event.hpp"
 #include "base/ErrorCode.h"
-#include "model/Piece.h"
+#include "model/chess/ChessMove.h"
 
 namespace bgg
 {
@@ -30,10 +30,9 @@ namespace bgg
     ErrorCode errcode;
     int gameType;
 
-    std::map<Position, Piece> initialBoard;
-    std::string yourColor;
-    std::string yourTurn;
-    std::string currentTurn;
+    std::list<std::tuple<EntityType, Side, Position>> initialPlacements;
+    Side yourColor;
+    Side currentTurn;
   };
 
   class CancelMatchmakingResponse final
@@ -45,18 +44,16 @@ namespace bgg
   class GameUpdatedNotification final
   {
   public:
-    // enemy move
-    Position fromSquare, toSquare;
-    std::optional<std::string> promote; // e.g. promote to: "Queen"
-    std::string yourTurn;
-    std::string currentTurn;
+    ChessMove::Detail opponentMoveDetail;
+    Side yourColor;
+    Side currentTurn;
   };
 
   class GameFinishedNotification final
   {
   public:
-    std::string result;  // "Win", "Lose", "Draw", "Error"
-    
+    std::string result; // "Win", "Lose", "Draw", "Error"
+
     // int yourRank;
     // int playerCount;
   };
@@ -65,7 +62,7 @@ namespace bgg
   {
   public:
     ErrorCode errcode;
-    //std::optional<GameUpdatedNotification> currentGameState;
+    // std::optional<GameUpdatedNotification> currentGameState;
   };
 
   class ResignGameResponse final
