@@ -6,7 +6,7 @@
 
 #include "IChessRuleAdapter.h"
 #include "display/board/ItemStore.h"
-#include "model/chess/ChessBoardState.h"
+#include "model/chess/IChessRule.h"
 
 #define BGG_VALIDATE_TILE(tile) BOOST_ASSERT_MSG(             \
     tile.x >= 0 && tile.x <= 7 && tile.y >= 0 && tile.y <= 7, \
@@ -18,51 +18,43 @@ namespace bgg
 
     class ChessRuleAdapter final : public IChessRuleAdapter
     {
-        std::shared_ptr<ChessBoardState> chessRule_;
-        std::string allyColor_;
+        std::shared_ptr<IChessRule> chessRule_;
+        Side allyColor_;
+        Side opponentColor_;
 
         ItemPlacementMap itemPlacements_;
-        std::function<TileCoords(Position const &)> const positionToTileConverter_;
+        std::function<TileCoords(Position const &)> const posToTileConverter_;
         std::function<Position(TileCoords const &)> const tileToPositionConverter_;
 
     public:
         ChessRuleAdapter(
             std::shared_ptr<ItemStore> itemStore,
-            std::shared_ptr<ChessBoardState> chessRule,
-            std::string allyColor) noexcept;
-
-        static auto getPositionToTileConverter(std::string color) noexcept
-            -> std::function<TileCoords(Position const &)>;
-        static auto getTileToPositionConverter(std::string color) noexcept
-            -> std::function<Position(TileCoords const &)>;
+            std::shared_ptr<IChessRule> chessRule,
+            Side const &allyColor) noexcept;
 
     private:
+        static auto getPositionToTileConverter(Side const &color) noexcept
+            -> std::function<TileCoords(Position const &)>;
+        static auto getTileToPositionConverter(Side const &color) noexcept
+            -> std::function<Position(TileCoords const &)>;
+
         [[nodiscard]] auto positionToTile(
             Position const &position) const noexcept -> TileCoords override;
         [[nodiscard]] auto tileToPosition(
             TileCoords const &tile) const noexcept -> Position override;
 
-        [[nodiscard]] auto chessMoveActionToItemMoveAction(
-            ChessMove::Action const &chessMoveAction) const noexcept
-            -> ChessItemMoveAction;
-        [[nodiscard]] auto itemMoveActionToChessMoveAction(
-            ChessItemMoveAction const &itemMoveAction) const noexcept
-            -> ChessMove::Action;
+        // [[nodiscard]] auto chessMoveActionToItemMoveAction(
+        //     ChessMove::Detail const &chessMoveAction) const noexcept
+        //     -> ChessItemMoveAction;
+        // [[nodiscard]] auto itemMoveActionToChessMoveAction(
+        //     ChessItemMoveAction const &itemMoveAction) const noexcept
+        //     -> ChessMove::Detail;
 
-        auto tryMove(
-            ChessItemMove const &itemMove, std::string const &color) const noexcept
-            -> ChessItemMoveAction override;
+        auto getAllyColor() const -> Side override;
+        auto getOpponentColor() const -> Side override;
 
-        void commitMove(
-            ChessItemMoveAction const &itemMoveAction) noexcept override;
-
-        auto getAllyColor() const -> std::string override;
-        auto getEnemyColor() const -> std::string override;
-
-        auto getItemColor(TileCoords const &tile) const noexcept
-            -> std::optional<std::string> override;
-        auto getItemType(TileCoords const &tile) const noexcept
-            -> std::optional<std::string> override;
+        auto getItemInfo(TileCoords const &tile) const noexcept
+            -> std::optional<ItemInfo> override;
 
         auto getItemPlacements() -> ItemPlacementMap const & override;
         auto collectSelectableTiles() const noexcept -> ItemPlacementMap override;
@@ -71,5 +63,18 @@ namespace bgg
 
         auto getItemEntry(TileCoords const &tile) const noexcept
             -> ItemStore::Entry override;
+
+        auto tryMove(
+            ChessItemMove const &itemMove, Side const &color) const noexcept
+            -> ChessItemMove::Detail override;
+
+        void commitMove(
+            ChessItemMove::Detail const &itemMoveDetail) noexcept override;
+
+        void commitMove(
+            ChessMove::Detail const &nativeMoveDetail) noexcept override;
+
+        // auto chessMoveToItemMove(ChessMove::Detail) const
+        //     -> ChessItemMove::Detail override;
     };
 } // namespace bgg

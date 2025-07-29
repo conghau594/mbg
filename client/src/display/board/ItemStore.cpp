@@ -213,6 +213,16 @@ namespace bgg
     return (*itemIter_)->second;
   }
 
+  auto ItemStore::Entry::operator*() const noexcept -> BoardItem &
+  {
+    return getItem();
+  }
+
+  auto ItemStore::Entry::operator->() const noexcept -> BoardItem *
+  {
+    return &(getItem());
+  }
+
   void ItemStore::Entry::reset() noexcept
   {
     itemIter_ = nullptr;

@@ -8,6 +8,7 @@
 
 #include "display/board/ItemStore.h"
 #include "model/Piece.h"
+#include "model/chess/ChessMove.h"
 #include "ChessItemMove.h"
 
 namespace bgg
@@ -15,7 +16,7 @@ namespace bgg
   class TileComparator
   {
   public:
-    auto operator()(
+    [[nodiscard]] auto operator()(
         const TileCoords &lhs, const TileCoords &rhs) const noexcept -> bool
     {
       if (lhs.x == rhs.x)
@@ -48,17 +49,14 @@ namespace bgg
     virtual ~IChessRuleAdapter() = default;
 
     [[nodiscard]]
-    virtual auto getAllyColor() const -> std::string = 0;
+    virtual auto getAllyColor() const -> Side = 0;
 
     [[nodiscard]]
-    virtual auto getEnemyColor() const -> std::string = 0;
+    virtual auto getOpponentColor() const -> Side = 0;
 
     [[nodiscard]]
-    virtual auto getItemColor(TileCoords const &tile) const
-        -> std::optional<std::string> = 0;
-    [[nodiscard]]
-    virtual auto getItemType(TileCoords const &tile) const
-        -> std::optional<std::string> = 0;
+    virtual auto getItemInfo(TileCoords const &tile) const
+        -> std::optional<ItemInfo> = 0;
 
     [[nodiscard]]
     virtual auto getItemPlacements() -> ItemPlacementMap const & = 0;
@@ -81,11 +79,15 @@ namespace bgg
 
     [[nodiscard]]
     virtual auto tryMove(
-        ChessItemMove const &itemMove, std::string const &color) const noexcept
-        -> ChessItemMoveAction = 0;
+        ChessItemMove const &itemMove, Side const &color) const
+        -> ChessItemMove::Detail = 0;
 
-    virtual void commitMove(ChessItemMoveAction const &itemMoveAction) = 0;
+    virtual void commitMove(ChessMove::Detail const &nativeMoveDetail) = 0;
+    virtual void commitMove(ChessItemMove::Detail const &itemMoveDetail) = 0;
 
+    // [[nodiscard]]
+    // virtual auto chessMoveToItemMove(ChessMove::Detail) const
+    //     -> ChessItemMove::Detail = 0;
     // virtual auto addItemEntry(TileCoords tile, ItemStore::Entry entry) -> bool = 0;
   };
 } // namespace bgg

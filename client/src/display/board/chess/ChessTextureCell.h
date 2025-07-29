@@ -2,12 +2,12 @@
 #pragma once
 
 // #include "base/EnumUtils.h"
-#include "model/chess/ChessBoardState.h"
+#include "model/chess/ChessHelpers.h"
 
 namespace bgg
 {
 
-  enum class ChessTextureCell : int
+  enum class ChessTextureCell : unsigned
   {
     WHITE_SQUARE,
     BLACK_SQUARE,
@@ -63,75 +63,75 @@ namespace utils
   }
 
   inline auto getChessTextureCellIndex(
-      bgg::Piece const &piece) noexcept -> bgg::ChessTextureCell
+      bgg::EntityType const &pieceType, bgg::Side const &pieceColor) noexcept -> bgg::ChessTextureCell
   {
-    if (bgg::Color::WHITE == piece.color)
+    if (bgg::chess::WHITE == pieceColor)
     {
-      if (bgg::ChessRule::KING == piece.type)
+      if (bgg::chess::KING == pieceType)
       {
         return bgg::ChessTextureCell::WHITE_KING;
       }
 
-      if (bgg::ChessRule::QUEEN == piece.type)
+      if (bgg::chess::QUEEN == pieceType)
       {
         return bgg::ChessTextureCell::WHITE_QUEEN;
       }
 
-      if (bgg::ChessRule::ROOK == piece.type)
+      if (bgg::chess::ROOK == pieceType)
       {
         return bgg::ChessTextureCell::WHITE_ROOK;
       }
 
-      if (bgg::ChessRule::BISHOP == piece.type)
+      if (bgg::chess::BISHOP == pieceType)
       {
         return bgg::ChessTextureCell::WHITE_BISHOP;
       }
 
-      if (bgg::ChessRule::KNIGHT == piece.type)
+      if (bgg::chess::KNIGHT == pieceType)
       {
         return bgg::ChessTextureCell::WHITE_KNIGHT;
       }
 
-      if (bgg::ChessRule::PAWN == piece.type)
+      if (bgg::chess::PAWN == pieceType)
       {
         return bgg::ChessTextureCell::WHITE_PAWN;
       }
     }
-    else if (bgg::Color::BLACK == piece.color)
+    else if (bgg::chess::BLACK == pieceColor)
     {
-      if (bgg::ChessRule::KING == piece.type)
+      if (bgg::chess::KING == pieceType)
       {
         return bgg::ChessTextureCell::BLACK_KING;
       }
 
-      if (bgg::ChessRule::QUEEN == piece.type)
+      if (bgg::chess::QUEEN == pieceType)
       {
         return bgg::ChessTextureCell::BLACK_QUEEN;
       }
 
-      if (bgg::ChessRule::ROOK == piece.type)
+      if (bgg::chess::ROOK == pieceType)
       {
         return bgg::ChessTextureCell::BLACK_ROOK;
       }
 
-      if (bgg::ChessRule::BISHOP == piece.type)
+      if (bgg::chess::BISHOP == pieceType)
       {
         return bgg::ChessTextureCell::BLACK_BISHOP;
       }
 
-      if (bgg::ChessRule::KNIGHT == piece.type)
+      if (bgg::chess::KNIGHT == pieceType)
       {
         return bgg::ChessTextureCell::BLACK_KNIGHT;
       }
 
-      if (bgg::ChessRule::PAWN == piece.type)
+      if (bgg::chess::PAWN == pieceType)
       {
         return bgg::ChessTextureCell::BLACK_PAWN;
       }
     }
 
-    BOOST_ASSERT_MSG(false, "Invalid chess piece");
-    return bgg::ChessTextureCell(-1);
+    BOOST_ASSERT_MSG(false, "Invalid chess color or chess type");
+    return bgg::ChessTextureCell::WHITE_SQUARE;
   };
 
 } // namespace utils

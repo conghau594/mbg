@@ -32,7 +32,7 @@ namespace bgg
         false);
 
     SPDLOG_DEBUG("There are {} selectable tiles from '{}'",
-                 selectableTiles_.size(), gameRule_->getAllyColor());
+                 selectableTiles_.size(), gameRule_->getAllyColor().toString());
   }
 
   ChessPieceSelectableState::~ChessPieceSelectableState() noexcept

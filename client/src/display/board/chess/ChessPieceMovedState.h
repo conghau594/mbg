@@ -3,18 +3,18 @@
 
 #include <memory>
 
-#include "display/board/IBoardViewState.h"
 #include "ChessItemMove.h"
+
 #include "display/board/ItemStore.h"
+#include "display/board/BoardDisabledState.h"
 
 namespace bgg
 {
   class IChessBoardView;
   class IChessRuleAdapter;
   class TileMap;
-  class ChessItemMove;
 
-  class ChessPieceMovedState final : public IBoardViewState
+  class ChessPieceMovedState final : public BoardDisabledState
   {
     std::shared_ptr<IChessBoardView> gameBoard_;
 
@@ -24,15 +24,15 @@ namespace bgg
 
     ItemStore::Entry pendingPromotionItem_;
     ItemStore::Entry pendingMoveHighlighters_[2];
-    ItemStore::Entry enemyCheckHighlighter_;
+    ItemStore::Entry opponentCheckHighlighter_;
 
     BoardItem *lastMoveHighlighters_[2];
-    bool lastMoveHighlighterVisibility_[2];
+    bool lastMoveHighlighterVisibility_[2]; ///< the original visibility of lastMoveHighlighters_
 
     BoardItem *allyCheckHighlighter_;
-    bool allyCheckHighlighterVisibility_;
+    bool allyCheckHighlighterVisibility_; ///< the original visibility of allyCheckHighlighter_
 
-    ChessItemMoveAction pendingItemMoveAction_;
+    ChessItemMove::Detail pendingItemMoveDetail_;
 
   public:
     ChessPieceMovedState(
@@ -40,34 +40,14 @@ namespace bgg
         std::shared_ptr<IChessRuleAdapter> gameRule,
         std::shared_ptr<TileMap> tileMap,
         std::shared_ptr<ItemStore> itemStore,
-        std::optional<ChessItemMove> const &move) noexcept;
+        ChessItemMove const &itemMove) noexcept;
 
   private:
     void onEnter(sf::Vector2i const &mousePos) noexcept override;
-    void onExit() noexcept override;
-    void onMouseMoved(sf::Vector2i const &mousePos) noexcept override;
-    void onMousePressed(sf::Vector2i const &mousePos) noexcept override;
-    void onMouseReleased(sf::Vector2i const &mousePos) noexcept override;
     void onServerMessage(ServerMessage const &msg) noexcept override;
 
-    void updateBoard(ChessItemMoveAction const &itemMoveAction) noexcept;
-
-    void previewBasicMoveAction(
-        BoardItem &movedItemEntry,
-        TileCoords const &fromTile,
-        TileCoords const &toTile,
-        TileCoords const &enemyKingTile,
-        KingState const &enemyKingState) noexcept;
-
-    void onMoveResponse(MoveResponse const &response) noexcept;
-
+    void previewMoveAction() noexcept;
     void revertMoveAction() noexcept;
     void finalizeMoveAction() noexcept;
-
-    void finalizeBasicMoveAction(
-        TileCoords const &fromTile, TileCoords const &toTile) noexcept;
-
-    void onGameUpdatedNotification(
-        GameUpdatedNotification const &notif) noexcept;
   };
 } // namespace bgg

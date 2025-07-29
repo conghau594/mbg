@@ -152,9 +152,9 @@ namespace bgg
     }
     // choiceHighlighter_.getItem().setVisible(false);
 
-    std::optional<std::string> promotedPiece(std::nullopt);
+    std::optional<EntityType> promotedPiece(std::nullopt);
     if (targetedTile.y == 0 &&
-        gameRule_->getItemType(selectedTile_) == ChessRule::PAWN)
+        gameRule_->getItemInfo(selectedTile_)->type == chess::PAWN)
     {
       // TODO: make 'promotedPiece' choosable instead fixed "Queen" like this
       promotedPiece = "Queen";
@@ -163,9 +163,9 @@ namespace bgg
     ChessItemMove move{selectedTile_, targetedTile, promotedPiece};
     std::shared_ptr<IBoardViewState>
         pieceMovedState = std::make_shared<ChessPieceMovedState>(
-            gameBoard_, gameRule_, tileMap_, itemStore_, std::move(move));
+            gameBoard_, gameRule_, tileMap_, itemStore_, move);
 
-    gameBoard_->changeState(std::move(pieceMovedState));
+    gameBoard_->changeState(pieceMovedState);
   }
 
   void ChessPieceSelectedState::onServerMessage(

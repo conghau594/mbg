@@ -5,14 +5,14 @@
 
 namespace bgg
 {
-  class BoardDisabledState final : public IBoardViewState
+  class BoardDisabledState : public IBoardViewState
   {
   protected:
-    void onEnter(sf::Vector2i const &mousePos) noexcept override {}
+    void onEnter(sf::Vector2i const & /*mousePos*/) noexcept override {}
     void onExit() noexcept override {}
-    void onMouseMoved(sf::Vector2i const &mousePos) noexcept override {}
-    void onMousePressed(sf::Vector2i const &mousePos) noexcept override {}
-    void onMouseReleased(sf::Vector2i const &mousePos) noexcept override {}
-    void onServerMessage(ServerMessage const &msg) noexcept override {}
+    void onMouseMoved(sf::Vector2i const & /*mousePos*/) noexcept override {}
+    void onMousePressed(sf::Vector2i const & /*mousePos*/) noexcept override {}
+    void onMouseReleased(sf::Vector2i const & /*mousePos*/) noexcept override {}
+    void onServerMessage(ServerMessage const & /*message*/) noexcept override {}
   };
 }

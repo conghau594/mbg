@@ -141,6 +141,10 @@ namespace bgg
      */
     [[nodiscard]] auto getItem() const noexcept -> BoardItem &;
 
+    [[nodiscard]] auto operator*() const noexcept -> BoardItem &;
+
+    [[nodiscard]] auto operator->() const noexcept -> BoardItem *;
+
     void reset() noexcept;
   };
 } // namespace bgg

@@ -5,17 +5,18 @@
 #include <format>
 #include <boost/assert.hpp>
 
+#include "model/Piece.h"
 #include "model/GameType.h"
+
 #include "chess/ChessBoardView.h"
 #include "chess/ChessTextureAtlas001.h"
 #include "chess/ChessPieceSelectableState.h"
-#include "chess/ChessPieceMovedState.h"
+#include "chess/ChessPieceDisabledState.h"
 #include "chess/ChessRuleAdapter.h"
-
-#include "model/Piece.h"
 
 namespace bgg
 {
+  class IChessRule;
   // TODO: Make this class is specific to a single game, and a single texture.
 
   class GameBoardFactory final
@@ -35,10 +36,10 @@ namespace bgg
 
     // private:
     [[nodiscard]] auto createChessBoard(
-        std::shared_ptr<ChessBoardState> chessRule,
+        std::shared_ptr<IChessRule> chessRule,
         sf::IntRect const &boardRect,
         std::function<void(ClientRequest const &)> requestSender,
-        std::string yourColor,
+        Side const &yourColor,
         bool isYourTurn) const
         -> std::shared_ptr<IBoardView>
     {
@@ -65,7 +66,7 @@ namespace bgg
 
       std::shared_ptr<IChessRuleAdapter>
           gameRuleAdapter = std::make_shared<ChessRuleAdapter>(
-              itemStore, std::move(chessRule), std::string(yourColor));
+              itemStore, std::move(chessRule), yourColor);
 
       // create chessBoard with the loaded texture atlas
       std::shared_ptr<IChessBoardView>
@@ -81,12 +82,11 @@ namespace bgg
       if (!isYourTurn)
       {
         std::shared_ptr<IBoardViewState>
-            waitingState = std::make_shared<ChessPieceMovedState>(
+            waitingState = std::make_shared<ChessPieceDisabledState>(
                 chessBoard,
                 std::move(gameRuleAdapter),
                 std::move(tileMap),
-                std::move(itemStore),
-                std::nullopt);
+                std::move(itemStore));
         chessBoard->pushState(std::move(waitingState));
       }
 
