@@ -7,6 +7,8 @@
 #include "Side.h"
 #include "Position.h"
 
+#include "base/Logger.h"
+
 namespace bgg
 {
   class ReachablePosInfo final
@@ -35,11 +37,30 @@ namespace bgg
     {
     }
 
-    virtual ~Piece() = default;
+    virtual ~Piece()
+    {
+      SPDLOG_INFO("A {} {} at '{}' has destroyed",
+                  side_.toString(),
+                  type_.toString(),
+                  position_.toString());
+    }
 
     [[nodiscard]] constexpr auto getPosition() const noexcept -> Position const &
     {
       return position_;
+    }
+
+    /**
+     * \brief Silently sets the position of the piece to `newPos`,
+     *        without inscreasing the move count
+     */
+    [[nodiscard]] constexpr void setMoveInfo(
+        Position const &newPos, int newMoveCount) noexcept
+    {
+      BOOST_ASSERT_MSG(
+          newMoveCount >= 0, "Cannot set moveCount_ to a negative number");
+      position_ = newPos;
+      moveCount_ = newMoveCount;
     }
 
     [[nodiscard]] auto isMoved() const noexcept -> bool
@@ -68,8 +89,10 @@ namespace bgg
       position_ = newPosition;
     }
 
+    [[nodiscard]] virtual auto clone() const -> std::shared_ptr<Piece> = 0;
     [[nodiscard]] virtual auto canMove() const -> bool = 0;
-
+    [[nodiscard]] virtual auto canMoveTo(Position const &pos) const -> bool = 0;
+    [[nodiscard]] virtual auto canCapture(Piece const &piece) const -> bool = 0;
     [[nodiscard]] virtual auto collectReachablePositions() const -> ReachablePosInfo = 0;
   };
 } // namespace bgg

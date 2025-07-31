@@ -4,6 +4,13 @@
 
 namespace bgg
 {
+  PieceSet::PieceSet(PieceSet const &other) noexcept
+  {
+    for (auto const &piece : other)
+    {
+      pieces_.emplace(piece->clone());
+    }
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   void PieceSet::addPiece(std::shared_ptr<Piece> piece) noexcept
@@ -24,6 +31,17 @@ namespace bgg
     return true;
   }
 
+  // auto PieceSet::findPiece(Position const &pos) const noexcept
+  //     -> std::shared_ptr<const Piece>
+  // {
+  //   auto iter = pieces_.find(pos);
+  //   if (iter == pieces_.end())
+  //   {
+  //     return nullptr;
+  //   }
+  //   return *iter;
+  // }
+
   auto PieceSet::findPiece(Position const &pos) const noexcept
       -> std::shared_ptr<Piece>
   {
@@ -33,6 +51,46 @@ namespace bgg
       return nullptr;
     }
     return *iter;
+  }
+
+  // auto PieceSet::findPiecesIf(
+  //     std::function<bool(std::shared_ptr<Piece> const &)> const &predicate,
+  //     bool onlyFirst) const noexcept
+  //     -> std::list<std::shared_ptr<const Piece>>
+  // {
+  //   std::list<std::shared_ptr<const Piece>> result;
+  //   for (auto const &piece : pieces_)
+  //   {
+  //     if (predicate(piece))
+  //     {
+  //       result.emplace_back(piece);
+  //       if (onlyFirst)
+  //       {
+  //         return result;
+  //       }
+  //     }
+  //   }
+  //   return result;
+  // }
+
+  auto PieceSet::findPiecesIf(
+      std::function<bool(std::shared_ptr<Piece> const &)> const &predicate,
+      bool onlyFirst) const noexcept
+      -> std::list<std::shared_ptr<Piece>>
+  {
+    std::list<std::shared_ptr<Piece>> result;
+    for (auto &piece : pieces_)
+    {
+      if (predicate(piece))
+      {
+        result.emplace_back(piece);
+        if (onlyFirst)
+        {
+          return result;
+        }
+      }
+    }
+    return result;
   }
 
   auto PieceSet::begin() noexcept -> PieceSet::Iter

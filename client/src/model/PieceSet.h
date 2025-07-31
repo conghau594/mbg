@@ -4,6 +4,7 @@
 #include <memory>
 #include <set>
 #include <variant>
+#include <functional>
 
 #include "Piece.h"
 
@@ -53,17 +54,28 @@ namespace bgg
   public:
     class Iter;
 
-    // PieceSet(std::initializer_list<Piece> pieces) noexcept
-    //     : pieces_(pieces)
-    // {
-    // }
+    PieceSet() noexcept = default;
+    PieceSet(PieceSet const &other) noexcept;
 
     void addPiece(std::shared_ptr<Piece> piece) noexcept;
 
     auto removePiece(Position const &pos) noexcept -> bool;
 
+    // [[nodiscard]] auto findPiece(Position const &pos) const noexcept
+    //     -> std::shared_ptr<const Piece>;
+
     [[nodiscard]] auto findPiece(Position const &pos) const noexcept
         -> std::shared_ptr<Piece>;
+
+    // [[nodiscard]] auto findPiecesIf(
+    //     std::function<bool(std::shared_ptr<Piece> const &)> const &predicate,
+    //     bool onlyFirst = false) const noexcept
+    //     -> std::list<std::shared_ptr<const Piece>>;
+
+    [[nodiscard]] auto findPiecesIf(
+        std::function<bool(std::shared_ptr<Piece> const &)> const &predicate,
+        bool onlyFirst = false) const noexcept
+        -> std::list<std::shared_ptr<Piece>>;
 
     [[nodiscard]] auto begin() noexcept -> Iter;
 
@@ -82,9 +94,8 @@ namespace bgg
     mutable PiecePlacementSet::iterator pieceIter_;
     PiecePlacementSet const *const pieceSetPtr_;
 
-    Iter(
-        PiecePlacementSet::iterator pieceIter,
-        PiecePlacementSet const *const pieceSetPtr) noexcept;
+    Iter(PiecePlacementSet::iterator pieceIter,
+         PiecePlacementSet const *const pieceSetPtr) noexcept;
 
   public:
     Iter() = delete;

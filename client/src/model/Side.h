@@ -15,9 +15,11 @@ namespace bgg
   public:
     enum class Status : unsigned
     {
+      UNDEFINED,
       SAFE,
       IN_CHECK,
-      CHECKMATED
+      CHECKMATED,
+      STALEMATED
     };
 
     constexpr Side() = default;
@@ -60,6 +62,9 @@ namespace bgg
     {
       switch (sideStatus)
       {
+      case Status::UNDEFINED:
+        return "Undefined";
+
       case Status::SAFE:
         return "Safe";
 
