@@ -1,6 +1,7 @@
 // ChessHelpers.h
 #pragma once
 
+#include <format>
 #include <tuple>
 #include <stdexcept>
 
@@ -97,6 +98,44 @@ namespace bgg
 			return color == WHITE ? BLACK : WHITE;
 		}
 
+		constexpr auto getEnPassantRank(Side const &color) -> int
+		{
+			return color == WHITE ? int('5') : int('4');
+		}
+
+		constexpr auto getPromotionRank(Side const &color) -> int
+		{
+			return color == WHITE ? int('8') : int('1');
+		}
+
+		constexpr auto getPawnStep(Side const &color) -> int
+		{
+			return color == chess::WHITE ? 1 : -1;
+		}
+
+		constexpr auto getCastlingRookMove(Position const &kingDestination)
+				-> std::pair<Position, Position>
+		{
+			if (kingDestination.getFile() == int('c'))
+			{
+				return {Position(chess::FIRST_FILE, kingDestination.getRank()),
+								Position(int('d'), kingDestination.getRank())};
+			}
+			else // if (kingDestination.getFile() == int('g'))
+			{
+				return {Position(chess::LAST_FILE, kingDestination.getRank()),
+								Position(int('g'), kingDestination.getRank())};
+			}
+		}
+
+		constexpr auto getCastlingKingDestination(Position const &rookSource)
+				-> Position
+		{
+			constexpr int KING_SOURCE_FILE = int('e');
+			return Position{(1 + KING_SOURCE_FILE + rookSource.getFile()) / 2,
+											rookSource.getRank()};
+		}
+
 		constexpr auto isValid(Position const &square) noexcept -> bool
 		{
 			return square.getFile() >= FIRST_FILE &&
@@ -129,26 +168,29 @@ namespace bgg
 						 (pieceColor == BLACK);
 		}
 
-		inline void validateChessMove(bgg::ChessMove const &move)
+		inline void validateStandardChessMove(bgg::ChessMove const &move)
 		{
 			if (!isValid(move.fromSquare))
 			{
-				throw std::invalid_argument(
-						"Invalid 'fromSquare' in chess: " + move.fromSquare.toString());
+				throw std::invalid_argument(std::format(
+						"'{}' is an invalid value for 'fromSquare' in a standard chess game",
+						move.fromSquare.toString()));
 			}
 
 			if (!isValid(move.toSquare))
 			{
-				throw std::invalid_argument(
-						"Invalid 'toSquare' in chess: " + move.toSquare.toString());
+				throw std::invalid_argument(std::format(
+						"'{}' is an invalid value for 'toSquare' in a standard chess game",
+						move.toSquare.toString()));
 			}
 
 			if (move.promotedPiece)
 			{
 				if (!isValidPromotedPiece(*move.promotedPiece))
 				{
-					throw std::invalid_argument(
-							"Invalid 'promotedPiece' in chess: " + move.promotedPiece->toString());
+					throw std::invalid_argument(std::format(
+							"'{}' is an invalid value for 'promotedPiece' a standard chess game",
+							move.promotedPiece->toString()));
 				}
 			}
 		}

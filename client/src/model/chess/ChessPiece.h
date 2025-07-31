@@ -13,7 +13,7 @@ namespace bgg
 
   class NormalChessPiece : public Piece
   {
-    IChessRule *board_;
+    IChessRule *const board_;
     const std::vector<std::pair<int, int>> moveVectorList_;
     const int maxMoveVectorFactor_;
 
@@ -27,7 +27,10 @@ namespace bgg
         int maxMoveVectorFactor) noexcept;
 
   protected:
+    auto clone() const noexcept -> std::shared_ptr<Piece> override;
     auto canMove() const noexcept -> bool override;
+    auto canMoveTo(Position const &square) const noexcept -> bool override;
+    auto canCapture(Piece const &piece) const noexcept -> bool override;
     auto collectReachablePositions() const noexcept -> ReachablePosInfo override;
     [[nodiscard]] auto getBoard() const noexcept -> IChessRule *;
   };
@@ -74,13 +77,15 @@ namespace bgg
          Position const &square) noexcept;
 
   private:
+    auto clone() const noexcept -> std::shared_ptr<Piece> override;
+    auto canMoveTo(Position const &square) const noexcept -> bool override;
     auto collectReachablePositions() const noexcept
         -> ReachablePosInfo override;
   };
 
   class Pawn : public Piece
   {
-    IChessRule *board_;
+    IChessRule *const board_;
     int const step_;
     int const enPassantRank_;
 
@@ -90,10 +95,13 @@ namespace bgg
          Position const &square) noexcept;
 
   private:
+    auto clone() const noexcept -> std::shared_ptr<Piece> override;
     auto canMove() const noexcept -> bool override;
+    auto canMoveTo(Position const &square) const noexcept -> bool override;
+    auto canCapture(Piece const &pos) const noexcept -> bool override;
     auto collectReachablePositions() const noexcept
         -> ReachablePosInfo override;
-    [[nodiscard]] auto findEnPassantSquare() const noexcept
+    [[nodiscard]] auto findEnPassantDestination() const noexcept
         -> std::optional<Position>;
   };
 

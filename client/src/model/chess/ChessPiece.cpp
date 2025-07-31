@@ -54,6 +54,11 @@ namespace bgg
     BGG_VALIDATE_SQUARE(square);
   }
 
+  auto NormalChessPiece::clone() const noexcept -> std::shared_ptr<Piece>
+  {
+    return std::make_shared<NormalChessPiece>(*this);
+  }
+
   auto NormalChessPiece::canMove() const noexcept -> bool
   {
     int const &file = getPosition().getFile();
@@ -67,6 +72,59 @@ namespace bgg
           positionStatus == Position::Status::EMPTY)
       {
         return true;
+      }
+    }
+
+    return false;
+  }
+
+  auto NormalChessPiece::canMoveTo(Position const &square) const noexcept -> bool
+  {
+    int const &file = getPosition().getFile();
+    int const &rank = getPosition().getRank();
+    for (auto const &[dFile, dRank] : moveVectorList_)
+    {
+      Position nextSquare{file, rank};
+      for (int i = 0; i < maxMoveVectorFactor_; ++i)
+      {
+        nextSquare.getFile() += dFile;
+        nextSquare.getRank() += dRank;
+        if (square == nextSquare)
+        {
+          auto positionStatus = board_->getPositionStatus(nextSquare, getSide());
+          if (positionStatus == Position::Status::EMPTY ||
+              positionStatus == Position::Status::OPPONENT)
+          {
+            return true;
+          }
+          return false;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  auto NormalChessPiece::canCapture(Piece const &piece) const noexcept -> bool
+  {
+    if (getSide() == piece.getSide())
+    {
+      return false;
+    }
+
+    int const &file = getPosition().getFile();
+    int const &rank = getPosition().getRank();
+    for (auto const &[dFile, dRank] : moveVectorList_)
+    {
+      Position nextSquare{file, rank};
+      for (int i = 0; i < maxMoveVectorFactor_; ++i)
+      {
+        nextSquare.getFile() += dFile;
+        nextSquare.getRank() += dRank;
+        if (piece.getPosition() == nextSquare)
+        {
+          return true;
+        }
       }
     }
 
@@ -112,8 +170,9 @@ namespace bgg
     return board_;
   }
 
-  Knight::Knight(
-      IChessRule *board, Side const &color, Position const &square) noexcept
+  Knight::Knight(IChessRule *board,
+                 Side const &color,
+                 Position const &square) noexcept
       : NormalChessPiece(
             board,
             chess::KNIGHT,
@@ -124,8 +183,9 @@ namespace bgg
   {
   }
 
-  Bishop::Bishop(
-      IChessRule *board, Side const &color, Position const &square) noexcept
+  Bishop::Bishop(IChessRule *board,
+                 Side const &color,
+                 Position const &square) noexcept
       : NormalChessPiece(
             board,
             chess::BISHOP,
@@ -136,8 +196,9 @@ namespace bgg
   {
   }
 
-  Rook::Rook(
-      IChessRule *board, Side const &color, Position const &square) noexcept
+  Rook::Rook(IChessRule *board,
+             Side const &color,
+             Position const &square) noexcept
       : NormalChessPiece(
             board,
             chess::ROOK,
@@ -148,8 +209,9 @@ namespace bgg
   {
   }
 
-  Queen::Queen(
-      IChessRule *board, Side const &color, Position const &square) noexcept
+  Queen::Queen(IChessRule *board,
+               Side const &color,
+               Position const &square) noexcept
       : NormalChessPiece(
             board,
             chess::QUEEN,
@@ -160,8 +222,9 @@ namespace bgg
   {
   }
 
-  King::King(
-      IChessRule *board, Side const &color, Position const &square) noexcept
+  King::King(IChessRule *board,
+             Side const &color,
+             Position const &square) noexcept
       : NormalChessPiece(
             board,
             chess::KING,
@@ -175,6 +238,42 @@ namespace bgg
   {
   }
 
+  auto King::clone() const noexcept -> std::shared_ptr<Piece>
+  {
+    return std::make_shared<King>(*this);
+  }
+
+  auto King::canMoveTo(Position const &square) const noexcept -> bool
+  {
+    if (isMoved())
+    {
+      return NormalChessPiece::canMoveTo(square);
+    }
+
+    IChessRule *board = getBoard();
+    for (Position const &rookSquare : initialRookSquares_)
+    {
+      auto rook = board->findPiece(rookSquare);
+      if (rook == nullptr ||
+          rook->isMoved() ||
+          rook->getType() != chess::ROOK ||
+          rook->getSide() != getSide())
+      {
+        continue;
+      }
+
+      Position destination{
+          (1 + getPosition().getFile() + rookSquare.getFile()) / 2,
+          getPosition().getRank()};
+      if (square == destination)
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   auto King::collectReachablePositions() const noexcept
       -> ReachablePosInfo
   {
@@ -185,34 +284,39 @@ namespace bgg
     }
 
     IChessRule *board = getBoard();
-    for (Position const &square : initialRookSquares_)
+    for (Position const &rookSource : initialRookSquares_)
     {
-      auto rook = board->findPiece(square);
+      auto rook = board->findPiece(rookSource);
       if (rook == nullptr ||
           rook->isMoved() ||
+          rook->getPosition().getRank() != getPosition().getRank() ||
           rook->getType() != chess::ROOK ||
           rook->getSide() != getSide())
       {
         continue;
       }
-      auto const &rookPos = rook->getPosition();
-      reachable.specialPositions.emplace_back(
-          (1 + square.getFile() + rookPos.getFile()) / 2,
-          (1 + square.getRank() + rookPos.getRank()) / 2);
+      Position kingDestination = chess::getCastlingKingDestination(rookSource);
+      reachable.specialPositions.emplace_back(kingDestination);
     }
 
     return reachable;
   }
 
-  Pawn::Pawn(
-      IChessRule *board, Side const &color, Position const &square) noexcept
+  Pawn::Pawn(IChessRule *board,
+             Side const &color,
+             Position const &square) noexcept
       : Piece(chess::PAWN, color, square),
         board_(board),
-        step_(color == chess::WHITE ? 1 : -1),
-        enPassantRank_(color == chess::WHITE ? int('5') : int('4'))
+        step_(chess::getPawnStep(color)),
+        enPassantRank_(chess::getEnPassantRank(color))
   {
     BGG_VALIDATE_COLOR(color);
     BGG_VALIDATE_SQUARE(square);
+  }
+
+  auto Pawn::clone() const noexcept -> std::shared_ptr<Piece>
+  {
+    return std::make_shared<Pawn>(*this);
   }
 
   auto Pawn::canMove() const noexcept -> bool
@@ -244,9 +348,99 @@ namespace bgg
         return true;
       }
     }
-    else if (findEnPassantSquare())
+    else if (findEnPassantDestination())
     {
       return true;
+    }
+
+    return false;
+  }
+
+  auto Pawn::canMoveTo(Position const &square) const noexcept -> bool
+  {
+    int const &file = getPosition().getFile();
+    int const &rank = getPosition().getRank();
+    Position forwardSquare(file, rank + step_);
+    if (square == forwardSquare)
+    {
+      if (!board_->findPiece(forwardSquare))
+      {
+        return true;
+      }
+      return false;
+    }
+
+    Position normalCaptureSquares[2]{
+        {file - 1, rank + step_},
+        {file + 1, rank + step_}};
+    for (auto const &captureSquare : normalCaptureSquares)
+    {
+      if (square == captureSquare)
+      {
+        auto captureSquareStatus = board_->getPositionStatus(
+            captureSquare, getSide());
+        if (captureSquareStatus == Position::Status::OPPONENT)
+        {
+          return true;
+        }
+        return false;
+      }
+    }
+
+    if (!isMoved())
+    {
+      Position twoSquaresForward(file, rank + 2 * step_);
+      if (square == twoSquaresForward)
+      {
+        if (!board_->findPiece(twoSquaresForward))
+        {
+          return true;
+        }
+        return false;
+      }
+    }
+    else if (auto enPassantDestination = findEnPassantDestination())
+    {
+      if (square == *enPassantDestination)
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  auto Pawn::canCapture(Piece const &piece) const noexcept -> bool
+  {
+    if (getSide() == piece.getSide())
+    {
+      return false;
+    }
+
+    Position normalCaptureSquares[2]{
+        {getPosition().getFile() - 1, getPosition().getRank() + step_},
+        {getPosition().getFile() + 1, getPosition().getRank() + step_}};
+    for (auto const &captureSquare : normalCaptureSquares)
+    {
+      if (piece.getPosition() == captureSquare)
+      {
+        return true;
+      }
+    }
+
+    if (piece.getType() != chess::PAWN)
+    {
+      return false;
+    }
+
+    if (auto enPassantDestination = findEnPassantDestination())
+    {
+      Position enPassantCaptureSquare{
+          enPassantDestination->getFile(), enPassantRank_};
+      if (piece.getPosition() == enPassantCaptureSquare)
+      {
+        return true;
+      }
     }
 
     return false;
@@ -282,15 +476,15 @@ namespace bgg
         reachable.quietPositions.emplace_back(twoSquaresForward);
       }
     }
-    else if (auto enPassantSquare = findEnPassantSquare())
+    else if (auto enPassantDestination = findEnPassantDestination())
     {
-      reachable.specialPositions.emplace_back(*enPassantSquare);
+      reachable.specialPositions.emplace_back(*enPassantDestination);
     }
 
     return reachable;
   }
 
-  auto Pawn::findEnPassantSquare() const noexcept -> std::optional<Position>
+  auto Pawn::findEnPassantDestination() const noexcept -> std::optional<Position>
   {
     int const &file = getPosition().getFile();
     int const &rank = getPosition().getRank();
@@ -299,39 +493,30 @@ namespace bgg
       return std::nullopt;
     }
 
-    Position enPassantSquares[2]{
-        {file - 1, rank},
-        {file + 1, rank}};
+    Position enPassantDestinations[2]{
+        {file - 1, enPassantRank_ + step_},
+        {file + 1, enPassantRank_ + step_}};
 
-    for (auto const &square : enPassantSquares)
+    for (auto const &destination : enPassantDestinations)
     {
-      if (square.getFile() < chess::FIRST_FILE ||
-          square.getFile() > chess::LAST_FILE)
+      if (destination.getFile() < chess::FIRST_FILE ||
+          destination.getFile() > chess::LAST_FILE)
       {
         continue;
       }
 
-      auto capturedPawnFromSquare = Position{
-          square.getFile(), square.getRank() + 2 * step_};
+      auto initialPosOfCapturedPawn = Position{
+          destination.getFile(), destination.getRank() + step_};
       auto lastMove = board_->getLastMove().getIf<ChessMove::Normal>();
       if (lastMove == nullptr ||
-          lastMove->fromSquare != capturedPawnFromSquare ||
-          lastMove->toSquare != square ||
-          lastMove->movedPiece != chess::PAWN)
+          lastMove->fromSquare != initialPosOfCapturedPawn ||
+          lastMove->movedPiece != chess::PAWN ||
+          lastMove->toSquare != Position{destination.getFile(), enPassantRank_})
       {
         continue;
       }
 
-      // Piece *piece = board_->findPiece(square);
-      // BOOST_ASSERT_MSG(
-      //     true ||
-      //         piece == nullptr ||                ///< is empty?
-      //         piece->getMoveCount() != 1 ||      ///< is not first move?
-      //         piece->getType() != chess::PAWN || ///< is not a pawn?
-      //         piece->getSide() == getSide(),     ///< is not of the opponent?
-      //     "There is conflict with last move information");
-
-      return lastMove->toSquare;
+      return destination;
     }
 
     return std::nullopt;
