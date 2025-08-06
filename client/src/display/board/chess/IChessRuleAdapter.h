@@ -78,16 +78,21 @@ namespace bgg
     virtual auto tileToPosition(TileCoords const &tile) const -> Position = 0;
 
     [[nodiscard]]
-    virtual auto tryMove(
-        ChessItemMove const &itemMove, Side const &color) const
-        -> ChessItemMove::Detail = 0;
+    virtual auto tryMove(ChessItemMove const &itemMove) const
+        -> ChessMoveDetailAdapter = 0;
 
-    virtual void commitMove(ChessMove::Detail const &nativeMoveDetail) = 0;
-    virtual void commitMove(ChessItemMove::Detail const &itemMoveDetail) = 0;
+    /**
+     * \return number of the move
+     */
+    virtual auto commitMove(ChessMoveDetailAdapter const &itemMoveDetail) noexcept
+        -> int = 0;
+
+    virtual auto commitMove(ChessMove::Detail const &nativeMoveDetail) noexcept
+        -> int = 0;
 
     // [[nodiscard]]
     // virtual auto chessMoveToItemMove(ChessMove::Detail) const
-    //     -> ChessItemMove::Detail = 0;
+    //     -> ChessMoveDetailAdapter = 0;
     // virtual auto addItemEntry(TileCoords tile, ItemStore::Entry entry) -> bool = 0;
   };
 } // namespace bgg

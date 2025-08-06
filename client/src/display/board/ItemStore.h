@@ -54,9 +54,15 @@ namespace bgg
         std::string name = "",
         bool visible = true) noexcept -> BoardItem;
 
-    auto findItems(
-        std::function<bool(BoardItem const &item)> const &predicate) noexcept
+    auto findItemsIf(
+        std::function<bool(BoardItem const &item)> const &predicate,
+        bool onlyFirst = false) noexcept
         -> std::list<BoardItem *>;
+
+    auto findItemsIf(
+        std::function<bool(BoardItem const &item)> const &predicate,
+        bool onlyFirst = false) const noexcept
+        -> std::list<BoardItem const *>;
 
     // auto removeItem(std::size_t itemId) noexcept -> bool;
     auto removeItem(Entry &entry) noexcept -> bool;

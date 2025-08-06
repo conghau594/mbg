@@ -52,8 +52,9 @@ namespace bgg
     return BoardItem(itemTextureAtlas_, textureCellRect, std::move(name), visible);
   }
 
-  auto ItemStore::findItems(
-      std::function<bool(BoardItem const &item)> const &predicate) noexcept
+  auto ItemStore::findItemsIf(
+      std::function<bool(BoardItem const &item)> const &predicate,
+      bool onlyFirst) noexcept
       -> std::list<BoardItem *>
   {
     std::list<BoardItem *> result;
@@ -62,6 +63,30 @@ namespace bgg
       if (predicate(item))
       {
         result.emplace_back(&item);
+        if (onlyFirst)
+        {
+          return result;
+        }
+      }
+    }
+    return result;
+  }
+
+  auto ItemStore::findItemsIf(
+      std::function<bool(BoardItem const &item)> const &predicate,
+      bool onlyFirst) const noexcept
+      -> std::list<BoardItem const *>
+  {
+    std::list<BoardItem const *> result;
+    for (auto &[id, item] : boardItems_)
+    {
+      if (predicate(item))
+      {
+        result.emplace_back(&item);
+        if (onlyFirst)
+        {
+          return result;
+        }
       }
     }
     return result;

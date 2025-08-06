@@ -26,40 +26,6 @@ namespace bgg
         lastMoveHighlighters_{nullptr, nullptr},
         checkHighlighter_{nullptr}
   {
-
-    ///< find persistent highlighters of check
-    std::list<BoardItem *> checkHighlighterList = itemStore_->findItems(
-        [](BoardItem const &item)
-        {
-          std::string const checkHighligherName = utils::toString(
-              ChessTextureCell::CHECK_HIGHLIGHTER);
-          return item.getName() == checkHighligherName;
-        });
-
-    BOOST_ASSERT_MSG(
-        checkHighlighterList.size() == 1,
-        "There must be exactly one checkHighlighter in the itemStore_");
-
-    checkHighlighter_ = checkHighlighterList.front();
-    // checkHighlighterVisibility_ = allyCheckHighlighter_->isVisible();
-
-    ///< find persistent highlighters of last move
-    std::list<BoardItem *> lastMoveHighlighterList = itemStore_->findItems(
-        [](BoardItem const &item)
-        {
-          std::string const lastMoveHighligherName = utils::toString(
-              ChessTextureCell::LAST_MOVE_HIGHLIGHTER);
-          return item.getName() == lastMoveHighligherName;
-        });
-
-    BOOST_ASSERT_MSG(
-        lastMoveHighlighterList.size() == 2,
-        "There must be exactly two lastMoveHighlighters in the itemStore_");
-
-    lastMoveHighlighters_[0] = lastMoveHighlighterList.front();
-    lastMoveHighlighters_[1] = lastMoveHighlighterList.back();
-    // lastMoveHighlighterVisibility_[0] = lastMoveHighlighters_[0]->isVisible();
-    // lastMoveHighlighterVisibility_[1] = lastMoveHighlighters_[1]->isVisible();
   }
 
   void ChessPieceDisabledState::onServerMessage(ServerMessage const &msg) noexcept
@@ -79,24 +45,68 @@ namespace bgg
     }
   }
 
+  void ChessPieceDisabledState::onEnter(sf::Vector2i const & /*mousePos*/) noexcept
+  {
+    ///< initHighlighters() must be placed right here. No choice.
+    initHighlighters();
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  void ChessPieceDisabledState::initHighlighters() noexcept
+  {
+    ///< find persistent highlighters of check
+    std::list<BoardItem *> checkHighlighterList = itemStore_->findItemsIf(
+        [](BoardItem const &item)
+        {
+          std::string const checkHighligherName = utils::toString(
+              ChessTextureCell::CHECK_HIGHLIGHTER);
+          return item.getName() == checkHighligherName;
+        });
+
+    BOOST_ASSERT_MSG(
+        checkHighlighterList.size() == 1,
+        "There must be exactly one checkHighlighter in the itemStore_");
+
+    checkHighlighter_ = checkHighlighterList.front();
+    // checkHighlighterVisibility_ = allyCheckHighlighter_->isVisible();
+
+    ///< find persistent highlighters of last move
+    std::list<BoardItem *> lastMoveHighlighterList = itemStore_->findItemsIf(
+        [](BoardItem const &item)
+        {
+          std::string const lastMoveHighligherName = utils::toString(
+              ChessTextureCell::LAST_MOVE_HIGHLIGHTER);
+          return item.getName() == lastMoveHighligherName;
+        });
+
+    BOOST_ASSERT_MSG(
+        lastMoveHighlighterList.size() == 2,
+        "There must be exactly two lastMoveHighlighters in the itemStore_");
+
+    lastMoveHighlighters_[0] = lastMoveHighlighterList.front();
+    lastMoveHighlighters_[1] = lastMoveHighlighterList.back();
+    // lastMoveHighlighterVisibility_[0] = lastMoveHighlighters_[0]->isVisible();
+    // lastMoveHighlighterVisibility_[1] = lastMoveHighlighters_[1]->isVisible();
+  }
+
   /////////////////////////////////////////////////////////////////////////
   void ChessPieceDisabledState::updatedOpponentMove(
       ChessMove::Detail const &nativeMoveDetail) noexcept
   {
-    ChessItemMove::Detail opponentItemMoveDetail{
+    if (nativeMoveDetail.isEmpty())
+    {
+      SPDLOG_ERROR(
+          "An empty 'opponentMoveDetail' in 'GameUpdatedNotification' "
+          "has come to 'ChessPieceDisabledState' from server");
+      return;
+    }
+
+    ChessMoveDetailAdapter opponentItemMoveDetail{
         nativeMoveDetail,
         [this](Position const &pos) -> TileCoords
         {
           return gameRule_->positionToTile(pos);
         }};
-
-    if (opponentItemMoveDetail.isEmpty() || !opponentItemMoveDetail.isValid())
-    {
-      SPDLOG_ERROR(
-          "An invalid or empty 'opponentMoveDetail' in 'GameUpdatedNotification' "
-          "has come to 'ChessPieceDisabledState' from server");
-      return;
-    }
 
     auto const &opponentFromTile = opponentItemMoveDetail.getSourceTile();
     auto const &opponentToTile = opponentItemMoveDetail.getDestinationTile();
@@ -156,16 +166,7 @@ namespace bgg
     auto const &allyKingTile = opponentItemMoveDetail.getOpponentKingTile();
     auto const &allyKingStatus = opponentItemMoveDetail.getOpponentKingStatus();
 
-    if (allyKingStatus == Side::Status::IN_CHECK)
-    {
-      tileMap_->fitItemToTile(*checkHighlighter_, allyKingTile);
-      gameBoard_->popState();
-    }
-    else if (allyKingStatus == Side::Status::SAFE)
-    {
-      gameBoard_->popState();
-    }
-    else // if (allyKingStatus == Side::Status::CHECKMATED)
+    if (allyKingStatus == Side::Status::CHECKMATED)
     {
       ItemStore::Entry checkmateHighlighter = itemStore_->addItem(
           ZOrder::THIRD_LAYER,
@@ -177,8 +178,20 @@ namespace bgg
       ///< handle the losing case
       ///< => do nothing, just wait for the server to send a GameFinishedNotification
     }
+    else
+    {
+      if (allyKingStatus == Side::Status::IN_CHECK)
+      {
+        tileMap_->fitItemToTile(*checkHighlighter_, allyKingTile);
+      }
+      else // if (allyKingStatus == Side::Status::SAFE)
+      {
+        checkHighlighter_->setVisible(false);
+      }
 
-    gameRule_->commitMove(nativeMoveDetail);
+      gameRule_->commitMove(nativeMoveDetail);
+      gameBoard_->popState();
+    }
   }
 
   ///////////////////////////////////////////////////////////////////////

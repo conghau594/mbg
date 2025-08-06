@@ -74,20 +74,20 @@ namespace bgg
               boardRect, gameRuleAdapter, tileMap, itemStore, std::move(requestSender));
 
       // assign the initial state of the board
-      std::shared_ptr<IBoardViewState>
+      std::shared_ptr<IBoardViewState> &&
           initialBoardState = std::make_shared<ChessPieceSelectableState>(
               chessBoard, gameRuleAdapter, tileMap, itemStore);
-      chessBoard->pushState(std::move(initialBoardState));
+      chessBoard->pushState(initialBoardState);
 
       if (!isYourTurn)
       {
-        std::shared_ptr<IBoardViewState>
+        std::shared_ptr<IBoardViewState> &&
             waitingState = std::make_shared<ChessPieceDisabledState>(
                 chessBoard,
                 std::move(gameRuleAdapter),
                 std::move(tileMap),
                 std::move(itemStore));
-        chessBoard->pushState(std::move(waitingState));
+        chessBoard->pushState(waitingState);
       }
 
       return chessBoard;

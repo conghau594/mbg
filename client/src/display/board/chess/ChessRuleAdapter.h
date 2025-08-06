@@ -64,17 +64,16 @@ namespace bgg
         auto getItemEntry(TileCoords const &tile) const noexcept
             -> ItemStore::Entry override;
 
-        auto tryMove(
-            ChessItemMove const &itemMove, Side const &color) const noexcept
-            -> ChessItemMove::Detail override;
+        auto tryMove(ChessItemMove const &itemMove) const
+            -> ChessMoveDetailAdapter override;
 
-        void commitMove(
-            ChessItemMove::Detail const &itemMoveDetail) noexcept override;
+        auto commitMove(ChessMoveDetailAdapter const &itemMoveDetail) noexcept
+            -> int override;
 
-        void commitMove(
-            ChessMove::Detail const &nativeMoveDetail) noexcept override;
+        auto commitMove(ChessMove::Detail const &nativeMoveDetail) noexcept
+            -> int override;
 
         // auto chessMoveToItemMove(ChessMove::Detail) const
-        //     -> ChessItemMove::Detail override;
+        //     -> ChessMoveDetailAdapter override;
     };
 } // namespace bgg

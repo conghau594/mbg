@@ -35,7 +35,9 @@ namespace bgg
 
   private:
     void onServerMessage(ServerMessage const &msg) noexcept override;
+    void onEnter(sf::Vector2i const &mousePos) noexcept override;
 
+    void initHighlighters() noexcept;
     void updatedOpponentMove(
         ChessMove::Detail const &nativeMoveDetail) noexcept;
   };

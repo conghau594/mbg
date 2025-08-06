@@ -167,7 +167,8 @@ namespace bgg
         !stateStack_.empty(),
         "You should not pop a board state while the state stack is empty");
 
-    stateStack_.back()->onExit();
+    auto &currentState = stateStack_.back();
+    currentState->onExit();
     stateStack_.pop_back();
 
     if (!stateStack_.empty())

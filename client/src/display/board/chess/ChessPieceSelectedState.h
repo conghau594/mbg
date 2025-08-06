@@ -31,7 +31,7 @@ namespace bgg
     int originalSelectedItemZOrder_;
 
     TileCoords selectedTile_;
-    TileCoords enPassantTile_;
+    TileCoords enPassantDestination_;
     TileCoords lastHoveredTile_;
 
   public:

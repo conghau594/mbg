@@ -23,8 +23,8 @@ namespace bgg
 
   public:
     TileMap(std::shared_ptr<const BaseTextureAtlas> mapTextureAtlas,
-              sf::Vector2i mapSizeInTiles,
-              std::vector<int> const &tileLayout);
+            sf::Vector2i mapSizeInTiles,
+            std::vector<int> const &tileLayout);
 
     void setVisible(bool visible) noexcept;
     void setScale(sf::Vector2f const &factors) noexcept;
@@ -58,6 +58,7 @@ namespace bgg
     void fitItemToTile(
         BoardItem &item,
         sf::Vector2i const &tile,
+        bool visible = true,
         sf::Vector2f const &tileArea = {1.0f, 1.0f}) const noexcept;
 
   private:

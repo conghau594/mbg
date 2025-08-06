@@ -31,25 +31,28 @@ namespace bgg
   class ChessItemMove
   {
   public:
-    class Detail;
-
+    Side color;
     TileCoords fromTile;
     TileCoords toTile;
-    std::optional<EntityType> promote;
+    std::optional<EntityType> promotedPiece;
   };
 
-  class ChessItemMove::Detail
+  class ChessMoveDetailAdapter
   {
     ChessMove::Detail nativeMoveDetail_;
     std::function<TileCoords(Position const &)> posToTileConverter_;
 
   public:
-    Detail(
+    ChessMoveDetailAdapter(
         ChessMove::Detail nativeMoveDetail,
         std::function<TileCoords(Position const &)> posToTileConverter) noexcept
         : nativeMoveDetail_(std::move(nativeMoveDetail)),
           posToTileConverter_(std::move(posToTileConverter))
     {
+      BOOST_ASSERT_MSG(
+          posToTileConverter_, "The posToTileConverter_ cannot be null");
+      BOOST_ASSERT_MSG(
+          !nativeMoveDetail_.isEmpty(), "The nativeMoveDetail_ cannot be empty");
     }
 
     auto getNativeMoveDetail() const noexcept -> ChessMove::Detail const &
@@ -57,19 +60,9 @@ namespace bgg
       return nativeMoveDetail_;
     }
 
-    auto isEmpty() const noexcept -> bool
+    auto getMoveNumber() const noexcept -> int const &
     {
-      return nativeMoveDetail_.isEmpty();
-    }
-
-    void setEmpty() noexcept
-    {
-      return nativeMoveDetail_.setEmpty();
-    }
-
-    auto isValid() const noexcept -> bool
-    {
-      return !nativeMoveDetail_.is<ChessMove::Invalid>();
+      return ChessMove::getMoveNumber(nativeMoveDetail_);
     }
 
     auto getSourceTile() const noexcept -> TileCoords
@@ -123,14 +116,15 @@ namespace bgg
       }
     }
 
-    auto getCastlingRookMove() const noexcept -> std::optional<std::pair<TileCoords, TileCoords>>
+    auto getCastlingRookMove() const noexcept
+        -> std::optional<std::pair<TileCoords, TileCoords>>
     {
-      auto rookSource = ChessMove::getRookSourceSquare(nativeMoveDetail_);
-      auto rookDest = ChessMove::getRookDestinationSquare(nativeMoveDetail_);
-      if (rookSource && rookDest)
+      auto rookMove = ChessMove::getCastlingRookMove(nativeMoveDetail_);
+
+      if (rookMove)
       {
-        return std::make_pair(
-            posToTileConverter_(*rookSource), posToTileConverter_(*rookDest));
+        return std::make_pair(posToTileConverter_(rookMove->first),
+                              posToTileConverter_(rookMove->second));
       }
       else
       {
@@ -148,11 +142,6 @@ namespace bgg
       {
         return std::nullopt;
       }
-    }
-
-    auto getErrorMessage() const noexcept -> std::string
-    {
-      return ChessMove::getErrorMessage(nativeMoveDetail_);
     }
   };
 } // namespace bgg

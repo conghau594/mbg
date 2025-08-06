@@ -85,7 +85,7 @@ namespace bgg
       return;
     }
 
-    std::shared_ptr<IBoardViewState>
+    std::shared_ptr<IBoardViewState> &&
         pieceSelectedState = std::make_shared<ChessPieceSelectedState>(
             gameBoard_, gameRule_, tileMap_, itemStore_, targetedTile);
     gameBoard_->pushState(pieceSelectedState, mousePos);

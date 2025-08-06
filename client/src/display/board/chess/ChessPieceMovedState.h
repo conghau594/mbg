@@ -32,7 +32,7 @@ namespace bgg
     BoardItem *allyCheckHighlighter_;
     bool allyCheckHighlighterVisibility_; ///< the original visibility of allyCheckHighlighter_
 
-    ChessItemMove::Detail pendingItemMoveDetail_;
+    std::optional<ChessMoveDetailAdapter> pendingMoveDetail_;
 
   public:
     ChessPieceMovedState(
@@ -46,6 +46,7 @@ namespace bgg
     void onEnter(sf::Vector2i const &mousePos) noexcept override;
     void onServerMessage(ServerMessage const &msg) noexcept override;
 
+    void initHighlighters() noexcept;
     void previewMoveAction() noexcept;
     void revertMoveAction() noexcept;
     void finalizeMoveAction() noexcept;

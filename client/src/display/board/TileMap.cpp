@@ -190,6 +190,7 @@ namespace bgg
   void TileMap::fitItemToTile(
       BoardItem &item,
       sf::Vector2i const &tile,
+      bool visible,
       sf::Vector2f const &tileArea) const noexcept
   {
     sf::IntRect tileRect = tileToScreenRect(tile);
@@ -199,7 +200,7 @@ namespace bgg
     item.scale(scaleFactors);
 
     item.setPosition(tileRect.position);
-    item.setVisible(true);
+    item.setVisible(visible);
 
     //==========
     // SPDLOG_DEBUG(
