@@ -38,14 +38,13 @@ namespace bgg
       std::make_pair(-1, -1)};
 
   NormalChessPiece::NormalChessPiece(
-      IChessRule *board,
+      IChessRule const *rule,
       EntityType const &type,
       Side const &color,
       Position const &square,
       std::vector<std::pair<int, int>> moveVectorList,
       int maxMoveVectorFactor) noexcept
-      : Piece(type, color, square),
-        board_(board),
+      : Piece(rule, type, color, square),
         moveVectorList_(std::move(moveVectorList)),
         maxMoveVectorFactor_(maxMoveVectorFactor)
   {
@@ -54,9 +53,18 @@ namespace bgg
     BGG_VALIDATE_SQUARE(square);
   }
 
-  auto NormalChessPiece::clone() const noexcept -> std::shared_ptr<Piece>
+  NormalChessPiece::NormalChessPiece(
+      NormalChessPiece const &other, IChessRule const *rule) noexcept
+      : Piece(rule, other.getType(), other.getSide(), other.getPosition()),
+        moveVectorList_(other.moveVectorList_),
+        maxMoveVectorFactor_(other.maxMoveVectorFactor_)
   {
-    return std::make_shared<NormalChessPiece>(*this);
+  }
+
+  auto NormalChessPiece::clone(IChessRule const *rule) const noexcept
+      -> std::shared_ptr<Piece>
+  {
+    return std::make_shared<NormalChessPiece>(*this, rule);
   }
 
   auto NormalChessPiece::canMove() const noexcept -> bool
@@ -67,7 +75,8 @@ namespace bgg
     {
       Position nextSquare{file + dFile, rank + dRank};
 
-      auto positionStatus = board_->getPositionStatus(nextSquare, getSide());
+      IChessRule const *rule = getRule();
+      auto positionStatus = rule->getPositionStatus(nextSquare, getSide());
       if (positionStatus == Position::Status::OPPONENT ||
           positionStatus == Position::Status::EMPTY)
       {
@@ -82,22 +91,32 @@ namespace bgg
   {
     int const &file = getPosition().getFile();
     int const &rank = getPosition().getRank();
+    IChessRule const *rule = getRule();
     for (auto const &[dFile, dRank] : moveVectorList_)
     {
+      if (dRank * (file - square.getFile()) != dFile * (rank - square.getRank()))
+      {
+        continue;
+      }
+
       Position nextSquare{file, rank};
       for (int i = 0; i < maxMoveVectorFactor_; ++i)
       {
         nextSquare.getFile() += dFile;
         nextSquare.getRank() += dRank;
+        auto positionStatus = rule->getPositionStatus(nextSquare, getSide());
         if (square == nextSquare)
         {
-          auto positionStatus = board_->getPositionStatus(nextSquare, getSide());
-          if (positionStatus == Position::Status::EMPTY ||
-              positionStatus == Position::Status::OPPONENT)
+          if (positionStatus == Position::Status::OPPONENT ||
+              positionStatus == Position::Status::EMPTY)
           {
             return true;
           }
           return false;
+        }
+        else if (positionStatus != Position::Status::EMPTY)
+        {
+          break;
         }
       }
     }
@@ -112,23 +131,7 @@ namespace bgg
       return false;
     }
 
-    int const &file = getPosition().getFile();
-    int const &rank = getPosition().getRank();
-    for (auto const &[dFile, dRank] : moveVectorList_)
-    {
-      Position nextSquare{file, rank};
-      for (int i = 0; i < maxMoveVectorFactor_; ++i)
-      {
-        nextSquare.getFile() += dFile;
-        nextSquare.getRank() += dRank;
-        if (piece.getPosition() == nextSquare)
-        {
-          return true;
-        }
-      }
-    }
-
-    return false;
+    return canMoveTo(piece.getPosition());
   }
 
   auto NormalChessPiece::collectReachablePositions() const noexcept
@@ -138,6 +141,7 @@ namespace bgg
 
     int const &file = getPosition().getFile();
     int const &rank = getPosition().getRank();
+    IChessRule const *rule = getRule();
     for (auto const &[dFile, dRank] : moveVectorList_)
     {
       Position nextSquare{file, rank};
@@ -146,7 +150,7 @@ namespace bgg
         nextSquare.getFile() += dFile;
         nextSquare.getRank() += dRank;
 
-        auto positionStatus = board_->getPositionStatus(nextSquare, getSide());
+        auto positionStatus = rule->getPositionStatus(nextSquare, getSide());
         if (positionStatus == Position::Status::EMPTY)
         {
           reachable.quietPositions.emplace_back(nextSquare);
@@ -165,16 +169,11 @@ namespace bgg
     return reachable;
   }
 
-  auto NormalChessPiece::getBoard() const noexcept -> IChessRule *
-  {
-    return board_;
-  }
-
-  Knight::Knight(IChessRule *board,
+  Knight::Knight(IChessRule const *rule,
                  Side const &color,
                  Position const &square) noexcept
       : NormalChessPiece(
-            board,
+            rule,
             chess::KNIGHT,
             color,
             square,
@@ -183,11 +182,11 @@ namespace bgg
   {
   }
 
-  Bishop::Bishop(IChessRule *board,
+  Bishop::Bishop(IChessRule const *rule,
                  Side const &color,
                  Position const &square) noexcept
       : NormalChessPiece(
-            board,
+            rule,
             chess::BISHOP,
             color,
             square,
@@ -196,11 +195,11 @@ namespace bgg
   {
   }
 
-  Rook::Rook(IChessRule *board,
+  Rook::Rook(IChessRule const *rule,
              Side const &color,
              Position const &square) noexcept
       : NormalChessPiece(
-            board,
+            rule,
             chess::ROOK,
             color,
             square,
@@ -209,11 +208,11 @@ namespace bgg
   {
   }
 
-  Queen::Queen(IChessRule *board,
+  Queen::Queen(IChessRule const *rule,
                Side const &color,
                Position const &square) noexcept
       : NormalChessPiece(
-            board,
+            rule,
             chess::QUEEN,
             color,
             square,
@@ -222,25 +221,30 @@ namespace bgg
   {
   }
 
-  King::King(IChessRule *board,
+  King::King(IChessRule const *rule,
              Side const &color,
              Position const &square) noexcept
       : NormalChessPiece(
-            board,
+            rule,
             chess::KING,
             color,
             square,
             KING_QUEEN_MOVE_VECTORS,
             1),
-        initialRookSquares_{
-            Position{color == chess::WHITE ? "a1" : "a8"},
-            Position{color == chess::WHITE ? "h1" : "h8"}}
+        initialRookSquares_{{color == chess::WHITE ? "a1" : "a8"},
+                            {color == chess::WHITE ? "h1" : "h8"}}
   {
   }
 
-  auto King::clone() const noexcept -> std::shared_ptr<Piece>
+  King::King(King const &other, IChessRule const *rule) noexcept
+      : NormalChessPiece(other, rule),
+        initialRookSquares_(other.initialRookSquares_)
   {
-    return std::make_shared<King>(*this);
+  }
+
+  auto King::clone(IChessRule const *rule) const noexcept -> std::shared_ptr<Piece>
+  {
+    return std::make_shared<King>(*this, rule);
   }
 
   auto King::canMoveTo(Position const &square) const noexcept -> bool
@@ -250,22 +254,16 @@ namespace bgg
       return NormalChessPiece::canMoveTo(square);
     }
 
-    IChessRule *board = getBoard();
-    for (Position const &rookSquare : initialRookSquares_)
+    // IChessRule *rule = getRule();
+    for (Position const &rookSource : initialRookSquares_)
     {
-      auto rook = board->findPiece(rookSquare);
-      if (rook == nullptr ||
-          rook->isMoved() ||
-          rook->getType() != chess::ROOK ||
-          rook->getSide() != getSide())
+      auto rookDestination = findRookCastlingDestination(rookSource);
+      if (!rookDestination)
       {
         continue;
       }
 
-      Position destination{
-          (1 + getPosition().getFile() + rookSquare.getFile()) / 2,
-          getPosition().getRank()};
-      if (square == destination)
+      if (square == *rookDestination)
       {
         return true;
       }
@@ -283,18 +281,14 @@ namespace bgg
       return reachable;
     }
 
-    IChessRule *board = getBoard();
     for (Position const &rookSource : initialRookSquares_)
     {
-      auto rook = board->findPiece(rookSource);
-      if (rook == nullptr ||
-          rook->isMoved() ||
-          rook->getPosition().getRank() != getPosition().getRank() ||
-          rook->getType() != chess::ROOK ||
-          rook->getSide() != getSide())
+      auto rookDestination = findRookCastlingDestination(rookSource);
+      if (!rookDestination)
       {
         continue;
       }
+
       Position kingDestination = chess::getCastlingKingDestination(rookSource);
       reachable.specialPositions.emplace_back(kingDestination);
     }
@@ -302,11 +296,55 @@ namespace bgg
     return reachable;
   }
 
-  Pawn::Pawn(IChessRule *board,
+  auto King::findRookCastlingDestination(Position const &rookSource) const noexcept -> std::optional<Position>
+  {
+    IChessRule const *rule = getRule();
+    auto rook = rule->findPiece(rookSource);
+    if (isMoved() ||
+        rook == nullptr ||
+        rook->isMoved() ||
+        rook->getSide() != getSide() ||
+        rook->getType() != chess::ROOK)
+    {
+      return std::nullopt;
+    }
+
+    int const &kingFile = getPosition().getFile();
+    int const &kingRank = getPosition().getRank();
+    int const &rookFile = rook->getPosition().getFile();
+
+    BOOST_ASSERT_MSG(
+        kingFile != rookFile,
+        "The files of king and rook cannot be the same");
+
+    if (kingFile < rookFile)
+    {
+      for (int file = 1 + kingFile; file < rookFile; ++file)
+      {
+        if (rule->findPiece(Position(file, kingRank)))
+        {
+          return std::nullopt;
+        }
+      }
+    }
+    else // if (kingFile > rookFile)
+    {
+      for (int file = 1 + rookFile; file < kingFile; ++file)
+      {
+        if (rule->findPiece(Position(file, kingRank)))
+        {
+          return std::nullopt;
+        }
+      }
+    }
+
+    return Position{(1 + kingFile + rookFile) / 2, kingRank};
+  }
+
+  Pawn::Pawn(IChessRule const *rule,
              Side const &color,
              Position const &square) noexcept
-      : Piece(chess::PAWN, color, square),
-        board_(board),
+      : Piece(rule, chess::PAWN, color, square),
         step_(chess::getPawnStep(color)),
         enPassantRank_(chess::getEnPassantRank(color))
   {
@@ -314,41 +352,43 @@ namespace bgg
     BGG_VALIDATE_SQUARE(square);
   }
 
-  auto Pawn::clone() const noexcept -> std::shared_ptr<Piece>
+  Pawn::Pawn(Pawn const &other, IChessRule const *rule) noexcept
+      : Piece(rule, chess::PAWN, other.getSide(), other.getPosition()),
+        step_(other.step_),
+        enPassantRank_(other.enPassantRank_)
   {
-    return std::make_shared<Pawn>(*this);
+  }
+
+  auto Pawn::clone(IChessRule const *rule) const noexcept -> std::shared_ptr<Piece>
+  {
+    return std::make_shared<Pawn>(*this, rule);
   }
 
   auto Pawn::canMove() const noexcept -> bool
   {
     int const &file = getPosition().getFile();
     int const &rank = getPosition().getRank();
-    Position forwardSquare(file, rank + step_);
-    if (!board_->findPiece(forwardSquare))
-    {
-      return true;
-    }
+    IChessRule const *rule = getRule();
 
     Position normalCaptureSquares[2]{
         {file - 1, rank + step_},
         {file + 1, rank + step_}};
     for (auto const &square : normalCaptureSquares)
     {
-      if (board_->getPositionStatus(square, getSide()) == Position::Status::OPPONENT)
+      auto squareStatus = rule->getPositionStatus(square, getSide());
+      if (squareStatus == Position::Status::OPPONENT)
       {
         return true;
       }
     }
 
-    if (!isMoved())
+    Position forwardSquare(file, rank + step_);
+    if (!rule->findPiece(forwardSquare))
     {
-      Position twoSquaresForward(file, rank + 2 * step_);
-      if (!board_->findPiece(twoSquaresForward))
-      {
-        return true;
-      }
+      return true;
     }
-    else if (findEnPassantDestination())
+
+    if (findEnPassantDestination())
     {
       return true;
     }
@@ -360,10 +400,11 @@ namespace bgg
   {
     int const &file = getPosition().getFile();
     int const &rank = getPosition().getRank();
+    IChessRule const *rule = getRule();
     Position forwardSquare(file, rank + step_);
     if (square == forwardSquare)
     {
-      if (!board_->findPiece(forwardSquare))
+      if (!rule->findPiece(forwardSquare))
       {
         return true;
       }
@@ -377,7 +418,7 @@ namespace bgg
     {
       if (square == captureSquare)
       {
-        auto captureSquareStatus = board_->getPositionStatus(
+        auto captureSquareStatus = rule->getPositionStatus(
             captureSquare, getSide());
         if (captureSquareStatus == Position::Status::OPPONENT)
         {
@@ -392,7 +433,7 @@ namespace bgg
       Position twoSquaresForward(file, rank + 2 * step_);
       if (square == twoSquaresForward)
       {
-        if (!board_->findPiece(twoSquaresForward))
+        if (!rule->findPiece(twoSquaresForward))
         {
           return true;
         }
@@ -451,32 +492,34 @@ namespace bgg
     ReachablePosInfo reachable;
     int const &file = getPosition().getFile();
     int const &rank = getPosition().getRank();
-    Position forwardSquare(file, rank + step_);
-    if (!board_->findPiece(forwardSquare))
-    {
-      reachable.quietPositions.emplace_back(forwardSquare);
-    }
-
+    IChessRule const *rule = getRule();
     Position normalCaptureSquares[2]{
         {file - 1, rank + step_},
         {file + 1, rank + step_}};
     for (auto const &square : normalCaptureSquares)
     {
-      if (board_->getPositionStatus(square, getSide()) == Position::Status::OPPONENT)
+      auto squareStatus = rule->getPositionStatus(square, getSide());
+      if (squareStatus == Position::Status::OPPONENT)
       {
         reachable.capturePositions.emplace_back(square);
       }
     }
 
-    if (!isMoved())
+    Position forwardSquare(file, rank + step_);
+    if (!rule->findPiece(forwardSquare))
     {
-      Position twoSquaresForward(file, rank + 2 * step_);
-      if (!board_->findPiece(twoSquaresForward))
+      reachable.quietPositions.emplace_back(forwardSquare);
+      if (!isMoved())
       {
-        reachable.quietPositions.emplace_back(twoSquaresForward);
+        Position twoSquaresForward(file, rank + 2 * step_);
+        if (!rule->findPiece(twoSquaresForward))
+        {
+          reachable.quietPositions.emplace_back(twoSquaresForward);
+        }
       }
     }
-    else if (auto enPassantDestination = findEnPassantDestination())
+
+    if (auto enPassantDestination = findEnPassantDestination())
     {
       reachable.specialPositions.emplace_back(*enPassantDestination);
     }
@@ -488,6 +531,7 @@ namespace bgg
   {
     int const &file = getPosition().getFile();
     int const &rank = getPosition().getRank();
+    IChessRule const *rule = getRule();
     if (enPassantRank_ != rank)
     {
       return std::nullopt;
@@ -507,7 +551,7 @@ namespace bgg
 
       auto initialPosOfCapturedPawn = Position{
           destination.getFile(), destination.getRank() + step_};
-      auto lastMove = board_->getLastMove().getIf<ChessMove::Normal>();
+      auto lastMove = rule->getLastMove().getIf<ChessMove::Normal>();
       if (lastMove == nullptr ||
           lastMove->fromSquare != initialPosOfCapturedPawn ||
           lastMove->movedPiece != chess::PAWN ||
@@ -523,7 +567,7 @@ namespace bgg
   }
 
   auto ChessPieceFactory::createPiece(
-      IChessRule *board,
+      IChessRule *rule,
       EntityType type,
       Side color,
       Position square) const noexcept -> std::shared_ptr<Piece>
@@ -534,27 +578,27 @@ namespace bgg
 
     if (type == chess::PAWN)
     {
-      return std::make_shared<Pawn>(board, color, square);
+      return std::make_shared<Pawn>(rule, color, square);
     }
     else if (type == chess::KNIGHT)
     {
-      return std::make_shared<Knight>(board, color, square);
+      return std::make_shared<Knight>(rule, color, square);
     }
     else if (type == chess::BISHOP)
     {
-      return std::make_shared<Bishop>(board, color, square);
+      return std::make_shared<Bishop>(rule, color, square);
     }
     else if (type == chess::ROOK)
     {
-      return std::make_shared<Rook>(board, color, square);
+      return std::make_shared<Rook>(rule, color, square);
     }
     else if (type == chess::QUEEN)
     {
-      return std::make_shared<Queen>(board, color, square);
+      return std::make_shared<Queen>(rule, color, square);
     }
     else if (type == chess::KING)
     {
-      return std::make_shared<King>(board, color, square);
+      return std::make_shared<King>(rule, color, square);
     }
     else
     {

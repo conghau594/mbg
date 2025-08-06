@@ -43,8 +43,8 @@ namespace bgg
 
   ChessRule::ChessRule(ChessRule const &other) noexcept
       : pieceFactory_(other.pieceFactory_),
-        whitePieces_(other.whitePieces_),
-        blackPieces_(other.blackPieces_),
+        whitePieces_(other.whitePieces_, this),
+        blackPieces_(other.blackPieces_, this),
         removedPieces_{},
         whiteKing_{nullptr},
         blackKing_{nullptr},
@@ -53,6 +53,10 @@ namespace bgg
   {
     for (auto const &piece : whitePieces_)
     {
+      // SPDLOG_DEBUG("{} {} at {}",
+      //              piece->getSide().toString(),
+      //              piece->getType().toString(),
+      //              piece->getPosition().toString());
       if (piece->getType() == chess::KING)
       {
         whiteKing_ = piece;
@@ -62,6 +66,10 @@ namespace bgg
 
     for (auto const &piece : blackPieces_)
     {
+      // SPDLOG_DEBUG("{} {} at {}",
+      //              piece->getSide().toString(),
+      //              piece->getType().toString(),
+      //              piece->getPosition().toString());
       if (piece->getType() == chess::KING)
       {
         blackKing_ = piece;
@@ -71,7 +79,7 @@ namespace bgg
 
     for (auto const &[moveNumber, piece] : other.removedPieces_)
     {
-      removedPieces_.emplace(moveNumber, piece->clone());
+      removedPieces_.emplace(moveNumber, piece->clone(this));
     }
   }
 
@@ -89,8 +97,6 @@ namespace bgg
       Position const &square, Side const &color) const noexcept
       -> Position::Status
   {
-    PieceSet const &pieceSet = getPieceSet(color);
-
     int const &file = square.getFile();
     int const &rank = square.getRank();
 
@@ -102,18 +108,20 @@ namespace bgg
       return Position::Status::OUT_OF_BOARD;
     }
 
-    auto piece = pieceSet.findPiece(square);
-    if (!piece)
-    {
-      return Position::Status::EMPTY;
-    }
-
-    if (piece->getSide() == color)
+    PieceSet const &allyPieceSet = getPieceSet(color);
+    if (allyPieceSet.findPiece(square))
     {
       return Position::Status::ALLY;
     }
 
-    return Position::Status::OPPONENT;
+    auto opponentColor = chess::getOpponentColor(color);
+    PieceSet const &enemyPieceSet = getPieceSet(opponentColor);
+    if (enemyPieceSet.findPiece(square))
+    {
+      return Position::Status::OPPONENT;
+    }
+
+    return Position::Status::EMPTY;
   }
 
   auto ChessRule::collectPieces(Side const &color) const noexcept
@@ -244,6 +252,9 @@ namespace bgg
     PieceSet &opponentPieceSet = getPieceSet(chess::getOpponentColor(color));
 
     auto movedPiece = allyPieceSet.findPiece(fromSquare);
+    BOOST_ASSERT_MSG(
+        movedPiece, "There must be a moved piece at the 'from square'");
+
     allyPieceSet.removePiece(fromSquare);
     if (auto capturedPieceType = ChessMove::getCapturedPieceType(moveDetail))
     {
@@ -330,8 +341,8 @@ namespace bgg
       BOOST_ASSERT_MSG(
           foundPiece != removedPieces_.end(),
           "There must be a captured piece in removedPieces_ at 'moveNumber'");
-      removedPieces_.erase(foundPiece);
       opponentPieceSet.addPiece(foundPiece->second);
+      removedPieces_.erase(foundPiece);
 
       if (auto enPassantCaptureSqr =
               ChessMove::getEnPassantCaptureSquare(moveDetail))
@@ -445,17 +456,22 @@ namespace bgg
     {
       moveDetail = tryParseNormalMove(
           move, movedPieceType, pieceAtDestination, reachable);
-    }
 
-    if (moveDetail.isEmpty())
-    {
-      if (movedPieceType == chess::PAWN)
+      if (moveDetail.isEmpty())
       {
-        moveDetail = tryParseEnPassantMove(move, movedPieceType, reachable);
-      }
-      else if (movedPieceType == chess::KING)
-      {
-        moveDetail = tryParseCastlingMove(move, movedPieceType, pieceAtDestination, reachable);
+        if (movedPieceType == chess::PAWN)
+        {
+          moveDetail = tryParseEnPassantMove(move, movedPieceType, reachable);
+        }
+        else if (movedPieceType == chess::KING)
+        {
+          moveDetail = tryParseCastlingMove(
+              move, movedPieceType, pieceAtDestination, reachable);
+        }
+        else
+        {
+          throwDefaultMoveError(move, movedPieceType);
+        }
       }
     }
 
@@ -561,12 +577,8 @@ namespace bgg
       }
     }
 
-    throw std::logic_error(std::format(
-        "{} {} from '{}' cannot reach to square '{}'",
-        move.color.toString(),
-        movedPieceType.toString(),
-        move.fromSquare.toString(),
-        move.toSquare.toString()));
+    throwDefaultMoveError(move, movedPieceType);
+    return ChessMove::Detail{};
   }
 
   auto ChessRule::tryParseEnPassantMove(
@@ -574,13 +586,6 @@ namespace bgg
       EntityType const &movedPieceType,
       ReachablePosInfo const &reachable) const -> ChessMove::Detail
   {
-    std::logic_error defaultException(std::format(
-        "{} {} from '{}' cannot reach to square '{}'",
-        move.color.toString(),
-        movedPieceType.toString(),
-        move.fromSquare.toString(),
-        move.toSquare.toString()));
-
     if (reachable.specialPositions.empty())
     {
       int dRank = move.toSquare.getRank() - move.fromSquare.getRank();
@@ -595,7 +600,7 @@ namespace bgg
             move.toSquare.toString()));
       }
 
-      throw defaultException;
+      throwDefaultMoveError(move, movedPieceType);
     }
 
     Position const &enPassantDestination = reachable.specialPositions.back();
@@ -616,7 +621,7 @@ namespace bgg
       };
     }
 
-    throw defaultException;
+    throwDefaultMoveError(move, movedPieceType);
   }
 
   auto ChessRule::tryParseCastlingMove(
@@ -625,13 +630,6 @@ namespace bgg
       std::shared_ptr<Piece> const &pieceAtDestination,
       ReachablePosInfo const &reachable) const -> ChessMove::Detail
   {
-    std::logic_error defaultException(std::format(
-        "{} {} from '{}' cannot reach to square '{}'",
-        move.color.toString(),
-        movedPieceType.toString(),
-        move.fromSquare.toString(),
-        move.toSquare.toString()));
-
     Position midwaySquare{
         (move.toSquare.getFile() + move.fromSquare.getFile()) / 2,
         (move.toSquare.getRank() + move.fromSquare.getRank()) / 2};
@@ -662,7 +660,7 @@ namespace bgg
         }
       }
 
-      throw defaultException;
+      throwDefaultMoveError(move, movedPieceType);
     }
 
     for (auto &square : reachable.specialPositions)
@@ -727,21 +725,21 @@ namespace bgg
 
       //=============================================================
       //
-      auto [rookSource, rookDestination] = chess::getCastlingRookMove(move.toSquare);
+      auto [rookSrc, rookDst] = chess::getCastlingRookMove(move.toSquare);
       return ChessMove::Castling{
           -1, ///< deferred
           move.color,
           move.fromSquare,
           move.toSquare,
           movedPieceType,
-          rookSource,
-          rookDestination,
+          rookSrc,
+          rookDst,
           Position{},             ///< deferred
           Side::Status::UNDEFINED ///< deferred
       };
     }
 
-    throw defaultException;
+    throwDefaultMoveError(move, movedPieceType);
   }
 
   auto ChessRule::findAttackers(
@@ -769,9 +767,9 @@ namespace bgg
   auto ChessRule::isStalemated(Side const &color) const noexcept -> bool
   {
     ChessRule cloneRule(*this);
-    PieceSet const &pieceSet = cloneRule.getPieceSet(color);
+    auto allyPieceList = collectPieces(color);
     auto const &allyKing = cloneRule.getKing(color);
-    for (auto const &piece : pieceSet)
+    for (auto const &piece : allyPieceList)
     {
       ReachablePosInfo reachable = cloneRule.collectReachableSquares(
           piece->getPosition(), color);
@@ -796,6 +794,7 @@ namespace bgg
         {
           return false;
         }
+
         cloneRule.revertLastMoveCommit();
       }
 
@@ -866,5 +865,17 @@ namespace bgg
       }
     }
     return true;
+  }
+
+  void ChessRule::throwDefaultMoveError(
+      ChessMove const &move, EntityType const &movedPieceType)
+  {
+    std::logic_error defaultException(std::format(
+        "{} {} from '{}' cannot reach to square '{}'",
+        move.color.toString(),
+        movedPieceType.toString(),
+        move.fromSquare.toString(),
+        move.toSquare.toString()));
+    throw defaultException;
   }
 } // namespace bgg

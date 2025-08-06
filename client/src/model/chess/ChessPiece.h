@@ -13,32 +13,34 @@ namespace bgg
 
   class NormalChessPiece : public Piece
   {
-    IChessRule *const board_;
     const std::vector<std::pair<int, int>> moveVectorList_;
     const int maxMoveVectorFactor_;
 
   public:
     NormalChessPiece(
-        IChessRule *board,
+        IChessRule const *rule,
         EntityType const &type,
         Side const &color,
         Position const &square,
         std::vector<std::pair<int, int>> moveVectorList,
         int maxMoveVectorFactor) noexcept;
 
+    NormalChessPiece(NormalChessPiece const &other,
+                     IChessRule const *rule) noexcept;
+
   protected:
-    auto clone() const noexcept -> std::shared_ptr<Piece> override;
+    auto clone(IChessRule const *rule) const noexcept
+        -> std::shared_ptr<Piece> override;
     auto canMove() const noexcept -> bool override;
     auto canMoveTo(Position const &square) const noexcept -> bool override;
     auto canCapture(Piece const &piece) const noexcept -> bool override;
     auto collectReachablePositions() const noexcept -> ReachablePosInfo override;
-    [[nodiscard]] auto getBoard() const noexcept -> IChessRule *;
   };
 
   class Knight final : public NormalChessPiece
   {
   public:
-    Knight(IChessRule *board,
+    Knight(IChessRule const *rule,
            Side const &color,
            Position const &square) noexcept;
   };
@@ -46,7 +48,7 @@ namespace bgg
   class Bishop final : public NormalChessPiece
   {
   public:
-    Bishop(IChessRule *board,
+    Bishop(IChessRule const *rule,
            Side const &color,
            Position const &square) noexcept;
   };
@@ -54,7 +56,7 @@ namespace bgg
   class Rook final : public NormalChessPiece
   {
   public:
-    Rook(IChessRule *board,
+    Rook(IChessRule const *rule,
          Side const &color,
          Position const &square) noexcept;
   };
@@ -62,7 +64,7 @@ namespace bgg
   class Queen final : public NormalChessPiece
   {
   public:
-    Queen(IChessRule *board,
+    Queen(IChessRule const *rule,
           Side const &color,
           Position const &square) noexcept;
   };
@@ -72,35 +74,45 @@ namespace bgg
     const Position initialRookSquares_[2];
 
   public:
-    King(IChessRule *board,
+    King(IChessRule const *rule,
          Side const &color,
          Position const &square) noexcept;
+    King(King const &other, IChessRule const *rule) noexcept;
 
   private:
-    auto clone() const noexcept -> std::shared_ptr<Piece> override;
-    auto canMoveTo(Position const &square) const noexcept -> bool override;
+    auto clone(IChessRule const *rule) const noexcept
+        -> std::shared_ptr<Piece> override;
+    auto canMoveTo(Position const &square) const noexcept
+        -> bool override;
     auto collectReachablePositions() const noexcept
         -> ReachablePosInfo override;
+
+    /**
+     * \return the destination of rook if castling with the rook is possible
+     */
+    auto findRookCastlingDestination(Position const &rookSource) const noexcept
+        -> std::optional<Position>;
   };
 
   class Pawn : public Piece
   {
-    IChessRule *const board_;
     int const step_;
     int const enPassantRank_;
 
   public:
-    Pawn(IChessRule *board,
+    Pawn(IChessRule const *rule,
          Side const &color,
          Position const &square) noexcept;
+    Pawn(Pawn const &other, IChessRule const *rule) noexcept;
 
   private:
-    auto clone() const noexcept -> std::shared_ptr<Piece> override;
+    auto clone(IChessRule const *rule) const noexcept -> std::shared_ptr<Piece> override;
     auto canMove() const noexcept -> bool override;
     auto canMoveTo(Position const &square) const noexcept -> bool override;
     auto canCapture(Piece const &pos) const noexcept -> bool override;
     auto collectReachablePositions() const noexcept
         -> ReachablePosInfo override;
+
     [[nodiscard]] auto findEnPassantDestination() const noexcept
         -> std::optional<Position>;
   };
@@ -109,7 +121,7 @@ namespace bgg
   {
   public:
     [[nodiscard]] auto createPiece(
-        IChessRule *board,
+        IChessRule *rule,
         EntityType type,
         Side color,
         Position square) const noexcept -> std::shared_ptr<Piece>;

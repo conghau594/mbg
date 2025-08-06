@@ -96,6 +96,9 @@ namespace bgg
 				bool onlyFirst = false) const noexcept
 				-> std::list<std::shared_ptr<Piece>>;
 		auto isStalemated(Side const &color) const noexcept -> bool;
+
+		static void throwDefaultMoveError(
+				ChessMove const &move, EntityType const &movedPieceType);
 	};
 
 } // namespace bgg

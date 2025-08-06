@@ -124,7 +124,7 @@ namespace bgg
 			else // if (kingDestination.getFile() == int('g'))
 			{
 				return {Position(chess::LAST_FILE, kingDestination.getRank()),
-								Position(int('g'), kingDestination.getRank())};
+								Position(int('f'), kingDestination.getRank())};
 			}
 		}
 
