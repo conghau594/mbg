@@ -11,6 +11,7 @@
 
 namespace bgg
 {
+  class IChessRule;
   class ReachablePosInfo final
   {
   public:
@@ -21,16 +22,19 @@ namespace bgg
 
   class Piece
   {
+    IChessRule const *rule_;
     EntityType const type_;
     Side const side_;
     Position position_;
     int moveCount_;
 
   public:
-    constexpr Piece(EntityType const &type,
+    constexpr Piece(IChessRule const *rule,
+                    EntityType const &type,
                     Side const &side,
                     Position const &pos) noexcept
-        : type_(type),
+        : rule_(rule),
+          type_(type),
           side_(side),
           position_(pos),
           moveCount_(0)
@@ -39,10 +43,10 @@ namespace bgg
 
     virtual ~Piece()
     {
-      SPDLOG_INFO("A {} {} at '{}' has destroyed",
-                  side_.toString(),
-                  type_.toString(),
-                  position_.toString());
+      // SPDLOG_INFO("A {} {} at '{}' has destroyed",
+      //             side_.toString(),
+      //             type_.toString(),
+      //             position_.toString());
     }
 
     [[nodiscard]] constexpr auto getPosition() const noexcept -> Position const &
@@ -82,17 +86,24 @@ namespace bgg
     {
       return type_;
     }
-
     virtual void move(Position const &newPosition) noexcept
     {
       ++moveCount_;
       position_ = newPosition;
     }
 
-    [[nodiscard]] virtual auto clone() const -> std::shared_ptr<Piece> = 0;
+    [[nodiscard]] virtual auto clone(IChessRule const *rule) const
+        -> std::shared_ptr<Piece> = 0;
     [[nodiscard]] virtual auto canMove() const -> bool = 0;
     [[nodiscard]] virtual auto canMoveTo(Position const &pos) const -> bool = 0;
     [[nodiscard]] virtual auto canCapture(Piece const &piece) const -> bool = 0;
-    [[nodiscard]] virtual auto collectReachablePositions() const -> ReachablePosInfo = 0;
+    [[nodiscard]] virtual auto collectReachablePositions() const
+        -> ReachablePosInfo = 0;
+
+  protected:
+    [[nodiscard]] auto getRule() const noexcept -> IChessRule const *
+    {
+      return rule_;
+    }
   };
 } // namespace bgg

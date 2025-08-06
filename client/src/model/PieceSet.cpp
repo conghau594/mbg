@@ -4,11 +4,11 @@
 
 namespace bgg
 {
-  PieceSet::PieceSet(PieceSet const &other) noexcept
+  PieceSet::PieceSet(PieceSet const &other, IChessRule const *rule) noexcept
   {
     for (auto const &piece : other)
     {
-      pieces_.emplace(piece->clone());
+      pieces_.emplace(piece->clone(rule));
     }
   }
 
@@ -105,12 +105,12 @@ namespace bgg
 
   auto PieceSet::begin() const noexcept -> PieceSet::Iter
   {
-    return Iter(pieces_.cbegin(), &pieces_);
+    return Iter(pieces_.begin(), &pieces_);
   }
 
   auto PieceSet::end() const noexcept -> PieceSet::Iter
   {
-    return Iter(pieces_.cend(), &pieces_);
+    return Iter(pieces_.end(), &pieces_);
   }
 
   /////////////////////////////////////////////////////////////////////////////

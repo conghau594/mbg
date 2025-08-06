@@ -55,7 +55,10 @@ namespace bgg
     class Iter;
 
     PieceSet() noexcept = default;
-    PieceSet(PieceSet const &other) noexcept;
+    PieceSet(PieceSet const &other, IChessRule const *rule) noexcept;
+
+    PieceSet(PieceSet const &other) = delete;
+    PieceSet(PieceSet &&other) = delete;
 
     void addPiece(std::shared_ptr<Piece> piece) noexcept;
 
