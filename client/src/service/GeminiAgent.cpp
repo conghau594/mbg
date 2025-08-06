@@ -104,7 +104,7 @@ namespace bgg
 
     if (responseText)
     {
-      SPDLOG_DEBUG("Gemini responses: {}", *responseText);
+      SPDLOG_DEBUG("Gemini response: {}", *responseText);
     }
 
     return responseText;

@@ -25,7 +25,6 @@ namespace bgg
 
     std::shared_ptr<GeminiAgent> agent_;
     Side agentColor_;
-    Side allyColor_;
     std::atomic_int maxPromptRetries_;
 
     std::shared_ptr<IChessRule> chessRule_;
