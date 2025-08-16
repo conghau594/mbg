@@ -1,10 +1,10 @@
-// QuickAppFactory.h
+// QuickChessAppFactory.h
 #pragma once
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <fstream>
 
-#include "GameAppFactory.h"
+#include "IAppFactory.h"
 #include "GameApp.h"
 
 #include "service/ChessGameService.h"
@@ -17,12 +17,12 @@
 #include "base/EnvUtils.h"
 namespace bgg
 {
-	class QuickAppFactory final : public GameAppFactory
+	class QuickChessAppFactory final : public IAppFactory
 	{
 		int gameType_;
 
 	public:
-		QuickAppFactory(int gameType) : gameType_(gameType) {}
+		QuickChessAppFactory(int gameType) : gameType_(gameType) {}
 
 		auto createGameApp() noexcept -> GameApp override
 		{
@@ -53,7 +53,11 @@ namespace bgg
 			window->setVerticalSyncEnabled(true);
 
 			// parse API key from an .env file
+#ifdef _DEBUG
 			std::map<std::string, std::string> envMap = utils::parseEnvFile("D:/src/.env");
+#else
+			std::map<std::string, std::string> envMap = utils::parseEnvFile("./.env");
+#endif
 			auto envIter = envMap.find("GEMINI_API_KEY");
 			std::string geminiApiKey;
 			if (envIter == envMap.end())
