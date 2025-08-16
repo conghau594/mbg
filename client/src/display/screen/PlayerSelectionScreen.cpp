@@ -9,11 +9,12 @@
 
 #include "base/Logger.h"
 #include "model/PlayerType.h"
+#include "model/GameType.h"
 #include "service/GameService.h"
 
 #include "display/IDisplay.h"
 #include "BaseScreen.h"
-#include "GameFindingScreen.h"
+#include "SideSelectionScreen.h"
 
 namespace bgg
 {
@@ -32,19 +33,10 @@ namespace bgg
 
   void PlayerSelectionScreen::doExit() noexcept
   {
-    getServerMsgHandler().resetHandler<FindGameAcceptedNotification>();
   }
 
   void PlayerSelectionScreen::doEnter() noexcept
   {
-    getServerMsgHandler().setHandler<FindGameAcceptedNotification>(
-        [this](FindGameAcceptedNotification const &response) -> bool
-        {
-          onFindGameAcceptedNotification(response);
-          SPDLOG_INFO("A message of type '{}' has been handled by '{}'",
-                      typeid(response).name(), typeid(*this).name());
-          return true;
-        });
   }
 
   void PlayerSelectionScreen::update(sf::Time const &elapsed) noexcept
@@ -61,8 +53,19 @@ namespace bgg
     if (pressedButtonIndex_ >= 0 &&
         pressedButtonIndex_ < int(playerTypeNames_.size()))
     {
-      playerType_ = pressedButtonIndex_;
-      sendFindGameRequest();
+      int playerType = pressedButtonIndex_;
+      if (playerType != PlayerType::HUMAN)
+      {
+        if (gameType_ == GameType::CHESS)
+        {
+          std::vector<std::string> sideTypeNames{"White", "Black"};
+          std::shared_ptr<IScreen>
+              sideSelectionScreen = std::make_shared<SideSelectionScreen>(
+                  getWindow(), gameDisplay_, sideTypeNames, gameType_, playerType);
+
+          gameDisplay_->pushScreen(sideSelectionScreen);
+        }
+      } // deactivate();
     }
     else if (pressedButtonIndex_ == int(playerTypeNames_.size())) // if Back button is pressed
     {
@@ -105,7 +108,7 @@ namespace bgg
     int constexpr FONT_VENITE_ADOREMUS_24 = 2;
     ImFont *font24 = ImGui::GetIO().Fonts->Fonts[FONT_VENITE_ADOREMUS_24];
     ImGui::PushFont(font24);
-    ImGui::Text("Play with . . .");
+    ImGui::Text("Play  with . . .");
     ImGui::PopFont();
 
     for (size_t i = 0; i < playerTypeNames_.size(); ++i)
@@ -129,50 +132,5 @@ namespace bgg
 
     ImGui::End();
     ImGui::PopFont();
-  }
-
-  void PlayerSelectionScreen::sendFindGameRequest() noexcept
-  {
-    FindGameRequest request{"", gameType_, playerType_};
-    gameDisplay_->send(request);
-    std::shared_ptr<IScreenInternal> waitScreen = std::make_shared<MessageScreen>(
-        getWindow(), "Sending request...");
-
-    changeSubscreen(waitScreen);
-  }
-
-  void PlayerSelectionScreen::onFindGameAcceptedNotification(
-      FindGameAcceptedNotification const &response) noexcept
-  {
-    ErrorCode const &errcode = response.errcode;
-    if (errcode.value == 0)
-    {
-      std::shared_ptr<IScreenInternal> findingScreen = std::make_shared<GameFindingScreen>(
-          getWindow(), gameDisplay_, gameType_, playerType_);
-
-      changeSubscreen(nullptr);
-      gameDisplay_->pushScreen(findingScreen);
-    }
-    else
-    {
-      std::vector<std::string> &&buttonLabels{"Retry", "Cancel"};
-      std::vector<std::function<void()>> &&buttonCallbacks{
-          [this]()
-          {
-            sendFindGameRequest();
-          },
-          [this]()
-          {
-            changeSubscreen(nullptr);
-          }};
-
-      std::string message = errcode.message + " (" +
-                            std::to_string(errcode.value) + ")";
-
-      std::shared_ptr<IScreenInternal> retryScreen = std::make_shared<MessageScreen>(
-          getWindow(), message, buttonLabels, buttonCallbacks);
-
-      changeSubscreen(retryScreen);
-    }
   }
 } // namespace bgg

@@ -49,13 +49,15 @@ namespace bgg
     getWindow()->display();
 
     // handle button presses
-    if (pressedButtonIndex_ >= 0 && pressedButtonIndex_ < int(gameNames_.size()))
+    if (pressedButtonIndex_ >= 0 &&
+        pressedButtonIndex_ < int(gameNames_.size()))
     {
       int gameType = pressedButtonIndex_;
       std::vector<std::string> playerTypeNames(
           std::begin(PlayerType::NAMES), std::end(PlayerType::NAMES));
-      std::shared_ptr<IScreen> playerSelectionScreen = std::make_shared<PlayerSelectionScreen>(
-          getWindow(), gameDisplay_, playerTypeNames, gameType);
+      std::shared_ptr<IScreen>
+          playerSelectionScreen = std::make_shared<PlayerSelectionScreen>(
+              getWindow(), gameDisplay_, playerTypeNames, gameType);
 
       gameDisplay_->pushScreen(playerSelectionScreen);
       // deactivate();
