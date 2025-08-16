@@ -551,7 +551,10 @@ namespace bgg
 
       auto initialPosOfCapturedPawn = Position{
           destination.getFile(), destination.getRank() + step_};
-      auto lastMove = rule->getLastMove().getIf<ChessMove::Normal>();
+
+      BOOST_ASSERT_MSG(
+          rule->getLastMove(), "Cannot capture en passant at the first move");
+      auto lastMove = rule->getLastMove()->getIf<ChessMove::Normal>();
       if (lastMove == nullptr ||
           lastMove->fromSquare != initialPosOfCapturedPawn ||
           lastMove->movedPiece != chess::PAWN ||

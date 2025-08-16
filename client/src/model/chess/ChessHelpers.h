@@ -121,10 +121,14 @@ namespace bgg
 				return {Position(chess::FIRST_FILE, kingDestination.getRank()),
 								Position(int('d'), kingDestination.getRank())};
 			}
-			else // if (kingDestination.getFile() == int('g'))
+			else if (kingDestination.getFile() == int('g'))
 			{
 				return {Position(chess::LAST_FILE, kingDestination.getRank()),
 								Position(int('f'), kingDestination.getRank())};
+			}
+			else
+			{
+				return {Position(-1, -1), Position(-1, -1)}; // Invalid castling
 			}
 		}
 

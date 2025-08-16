@@ -35,7 +35,7 @@ namespace bgg
 
 		auto getMoveCount() const noexcept -> int override;
 
-		auto getLastMove() const noexcept -> ChessMove::Detail const & override;
+		auto getLastMove() const noexcept -> std::optional<ChessMove::Detail> override;
 
 		auto getPositionStatus(
 				Position const &square, Side const &color) const noexcept

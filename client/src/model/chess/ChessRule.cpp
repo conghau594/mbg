@@ -88,8 +88,12 @@ namespace bgg
     return moveCount_;
   }
 
-  auto ChessRule::getLastMove() const noexcept -> ChessMove::Detail const &
+  auto ChessRule::getLastMove() const noexcept -> std::optional<ChessMove::Detail>
   {
+    if (moveHistory_.empty())
+    {
+      return std::nullopt;
+    }
     return moveHistory_.back();
   }
 
@@ -417,6 +421,11 @@ namespace bgg
       -> ChessMove::Detail
   {
     chess::validateStandardChessMove(move);
+    SPDLOG_DEBUG(
+        "Trying to parse move: {} from {} to {}",
+        move.color.toString(),
+        move.fromSquare.toString(),
+        move.toSquare.toString());
 
     Side opponentColor = chess::getOpponentColor(move.color);
     auto movedPiece = findPiece(move.fromSquare);
@@ -484,6 +493,16 @@ namespace bgg
       std::shared_ptr<Piece> const &capturedPiece,
       ReachablePosInfo const &reachable) const -> ChessMove::Detail
   {
+    if (movedPieceType == chess::PAWN &&
+        move.toSquare.getRank() == chess::getPromotionRank(move.color))
+    {
+      throw std::logic_error(std::format(
+          "{} pawn at '{}' must promote when it moves to the square {}",
+          move.color.toString(),
+          move.fromSquare.toString(),
+          move.toSquare.toString()));
+    }
+
     for (auto &square : reachable.quietPositions)
     {
       if (square == move.toSquare)
@@ -538,7 +557,7 @@ namespace bgg
       throw std::logic_error(std::format(
           "{} pawn cannot promote when it has only just reached rank '{}'",
           move.color.toString(),
-          move.toSquare.getRank()));
+          char(move.toSquare.getRank())));
     }
 
     for (auto &square : reachable.quietPositions)
@@ -630,13 +649,11 @@ namespace bgg
       std::shared_ptr<Piece> const &pieceAtDestination,
       ReachablePosInfo const &reachable) const -> ChessMove::Detail
   {
-    Position midwaySquare{
-        (move.toSquare.getFile() + move.fromSquare.getFile()) / 2,
-        (move.toSquare.getRank() + move.fromSquare.getRank()) / 2};
-
     if (reachable.specialPositions.empty())
     {
       int dFile = move.toSquare.getFile() - move.fromSquare.getFile();
+      int step = dFile > 0 ? 1 : -1;
+
       if (std::abs(dFile) == 2)
       {
         if (pieceAtDestination != nullptr)
@@ -648,15 +665,21 @@ namespace bgg
               pieceAtDestination->getType().toString()));
         }
 
-        if (auto blockingPiece = findPiece(midwaySquare))
+        for (int file = move.fromSquare.getFile() + step;
+             file != move.toSquare.getFile();
+             file += step)
         {
-          throw std::logic_error(std::format(
-              "{} cannot castle because there is a {} {} blocking "
-              "their king's path at square '{}'",
-              move.color.toString(),
-              blockingPiece->getSide().toString(),
-              blockingPiece->getType().toString(),
-              midwaySquare.toString()));
+          Position midwaySquare{file, move.fromSquare.getRank()};
+          if (auto blockingPiece = findPiece(midwaySquare))
+          {
+            throw std::logic_error(std::format(
+                "{} cannot castle because there is a {} {} blocking "
+                "their king's path at square '{}'",
+                move.color.toString(),
+                blockingPiece->getSide().toString(),
+                blockingPiece->getType().toString(),
+                midwaySquare.toString()));
+          }
         }
       }
 
@@ -670,11 +693,12 @@ namespace bgg
         continue;
       }
 
+      ChessRule cloneRule(*this);
+      Piece const &allyKing = cloneRule.getKing(move.color);
+
       //=============================================================
       //
-      Side opponentColor = chess::getOpponentColor(move.color);
-      Piece const &allyKing = getKing(move.color);
-      auto attackerList = findAttackers(allyKing, true);
+      auto attackerList = cloneRule.findAttackers(allyKing, true);
       if (!attackerList.empty())
       {
         auto &attacker = attackerList.back();
@@ -688,7 +712,10 @@ namespace bgg
 
       //=============================================================
       //
-      ChessRule cloneRule(*this);
+      Position midwaySquare{
+          (move.fromSquare.getFile() + move.toSquare.getFile()) / 2,
+          move.toSquare.getRank()};
+
       cloneRule.commitMove(ChessMove::generateMinimalNormalMove(
           ChessMove{move.color, move.fromSquare, midwaySquare, std::nullopt},
           false));
@@ -699,7 +726,7 @@ namespace bgg
         throw std::logic_error(std::format(
             "{} cannot castle because the midway square '{}' is "
             "under attack by the opponent's {} from '{}'",
-            attacker->getSide().toString(),
+            move.color.toString(),
             midwaySquare.toString(),
             attacker->getType().toString(),
             attacker->getPosition().toString()));
@@ -711,6 +738,7 @@ namespace bgg
       // TODO: consider remove this step because this check is implemented
       // at ChessRule::tryMove(ChessMove const &move) const
       cloneRule.commitMove(ChessMove::generateMinimalNormalMove(move, false));
+      attackerList = cloneRule.findAttackers(allyKing, true);
       if (!attackerList.empty())
       {
         auto &attacker = attackerList.back();
