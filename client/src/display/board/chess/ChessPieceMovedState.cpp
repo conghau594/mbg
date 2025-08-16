@@ -51,7 +51,6 @@ namespace bgg
           itemMove.fromTile.x, itemMove.fromTile.y,
           itemMove.fromTile.x, itemMove.fromTile.y,
           e.what());
-      return;
     }
   }
 

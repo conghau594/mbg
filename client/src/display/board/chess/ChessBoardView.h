@@ -24,9 +24,7 @@ namespace sf
 }
 namespace bgg
 {
-  class ChessBoardView final
-      : public IChessBoardView,
-        public std::enable_shared_from_this<IChessBoardView>
+  class ChessBoardView final : public IChessBoardView
   {
     std::list<std::shared_ptr<IBoardViewState>> stateStack_;
     std::shared_ptr<IBoardViewState> lastBoardState_;
@@ -35,7 +33,7 @@ namespace bgg
     std::shared_ptr<TileMap> tileMap_;
     std::shared_ptr<ItemStore> itemStore_;
 
-    ItemStore::Entry persistentHighlighters_[3]; ///< includes 2 last move highlighters ([0], [1]) and check highlighter ([2])
+    ItemStore::Entry persistentHighlighters_[3]; ///< includes 2 last-move highlighters ([0], [1]) and check highlighter ([2])
 
     std::function<void(ClientRequest const &)> requestSender_;
 

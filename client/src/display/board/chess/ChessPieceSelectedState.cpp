@@ -42,21 +42,17 @@ namespace bgg
         utils::toString(ChessTextureCell::CHOICE_HIGHLIGHTER),
         false);
 
-    bool somethingWrong = true;
     auto itemEntry = gameRule_->getItemEntry(selectedTile_);
     if (!itemEntry.isNull())
     {
       selectedItemEntry_ = itemEntry;
       originalSelectedItemZOrder_ = itemStore_->getZOrder(selectedItemEntry_);
       itemStore_->changeZOrder(selectedItemEntry_, ZOrder::FOURTH_LAYER);
-
-      somethingWrong = false;
     }
 
     if (auto reachableTileInfo = gameRule_->collectReachableTiles(selectedTile_))
     {
       addHighlighters(reachableTileInfo.value());
-      somethingWrong = false;
 
       // SPDLOG_DEBUG(
       //     "There are {} reachable tiles from tile ({}, {}) obtained by '{}'",
@@ -66,10 +62,6 @@ namespace bgg
       //     selectedTile_.x, selectedTile_.y,
       //     "?" /*ChessPiece::toString(gameRule_->getItemT Entry(selectedTile_).value())*/);
     }
-
-    BOOST_ASSERT_MSG(!somethingWrong,
-                     "Something wrong: there is no reachable tile from "
-                     "or no item at the selectedTile_");
   }
 
   void ChessPieceSelectedState::onEnter(sf::Vector2i const &mousePos) noexcept

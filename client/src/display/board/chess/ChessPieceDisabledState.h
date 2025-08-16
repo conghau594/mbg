@@ -38,7 +38,7 @@ namespace bgg
     void onEnter(sf::Vector2i const &mousePos) noexcept override;
 
     void initHighlighters() noexcept;
-    void updatedOpponentMove(
+    void updateOpponentMove(
         ChessMove::Detail const &nativeMoveDetail) noexcept;
   };
 } // namespace bgg

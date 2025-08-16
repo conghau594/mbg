@@ -32,7 +32,7 @@ namespace bgg
   {
     if (auto gameUpdatedNotif = msg.getIf<GameUpdatedNotification>())
     {
-      updatedOpponentMove(gameUpdatedNotif->opponentMoveDetail);
+      updateOpponentMove(gameUpdatedNotif->opponentMoveDetail);
       SPDLOG_INFO("A message of type 'GameUpdatedNotification' has been "
                   "handled by 'ChessPieceMovedState'");
     }
@@ -90,7 +90,7 @@ namespace bgg
   }
 
   /////////////////////////////////////////////////////////////////////////
-  void ChessPieceDisabledState::updatedOpponentMove(
+  void ChessPieceDisabledState::updateOpponentMove(
       ChessMove::Detail const &nativeMoveDetail) noexcept
   {
     if (nativeMoveDetail.isEmpty())
@@ -133,8 +133,9 @@ namespace bgg
 
       ///< change item of the moved item to the promoted one
       movedItemEntry.getItem() = itemStore_->createItem(
-          textureCellIndex,
-          promotedItemInfo->toString());
+          textureCellIndex, promotedItemInfo->toString());
+
+      tileMap_->fitItemToTile(*movedItemEntry, opponentToTile);
     }
     else if (auto enPassantCaptureTile =
                  opponentItemMoveDetail.getEnPassantCaptureTile())

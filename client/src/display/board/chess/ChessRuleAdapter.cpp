@@ -96,7 +96,7 @@ namespace bgg
     if (itemMoveDetail.getPromotedItemInfo())
     {
       ///< do nothing
-      ///< because the appearance change of 'movedItemEntry' must be done
+      ///< because the change of appearance of 'movedItemEntry' must be done
       ///< outside this class.
     }
     else if (auto captureTile = itemMoveDetail.getEnPassantCaptureTile())
