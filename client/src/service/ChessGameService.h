@@ -43,9 +43,7 @@ namespace bgg
   private:
     void emit(ServerMessage const &msg) noexcept override;
 
-    void validateMoveRequest(MoveRequest const &moveRqt, bool &gameFinished);
-
-    void sendChessGamePromptToAgent();
+    void requestMoveFromAgent();
 
     static auto chessMoveDetailToJsonStr(
         ChessMove::Detail const &moveAction) noexcept -> std::string;

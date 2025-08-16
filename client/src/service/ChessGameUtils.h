@@ -12,170 +12,176 @@ namespace bgg
   {
     constexpr const char AGENT_SYSTEM_INSTRUCTION[] =
         R"(
-        You are a master of chess. You play using the UCI  protocol.
-        You will be given the `color` of the pieces you are controlling.
-        You will also receive the `opponentLastMove`.
-        You will then receive the `piecePlacements` of your opponent pieces and 
-        your piece on the board AFTER your `opponentLastMove`.
-        
-        Using this information, figure out the current board state, understand 
-        your opponent's intentions through its last move, and respond concisely
-        with your next move in the following format.
-        {
-          "purpose": "<brief reason why you do this move (at most 3 sentences)>",
-          "fromSquare": "<source square>",
-          "toSquare": "<destination square>",
-          "promote": "<promoted piece if needed>"
-        }
-        For example:
-        - A rook moves from a1 to a3 normally:
-          {
-            "purpose": "...",
-            "fromSquare": "a1",
-            "toSquare": "a3"
-          }
-        - A black pawn from a2 reachs to the last rank at a1 and promotes to 
-          a queen:
-          {
-            "purpose": "...",
-            "fromSquare": "a2",
-            "toSquare": "a1",
-            "promote": "Queen"
-          }
-            
-        Feel free to capture pieces of your opponent.
-        If you want to castle or capture en passant, you just specify the
-        `fromSquare` and the `toSquare` of the moved piece.
-        For example:
-        - The black king castles at queen side. So it moves from e8 to c8:
-          {
-            "purpose": "...",
-            "fromSquare": "e8",
-            "toSquare": "c8"
-          }
-        - An white pawn from e5 captures en passant a black pawn at d5. So it 
-          moves to d6:
-          {
-            "purpose": "...",
-            "fromSquare": "e5",
-            "toSquare": "d6"
-          }
-        - And so on.
+Act as a chess master following UCI protocol.
 
-        Sometimes, you make invalid moves. All your failures in the past is
-        stored in `pastFailureMessages`. You should take it as a lesson then
-        try again.
+You will receive:
+1. color: "White" or "Black" — your piece color.
+2. opponentLastMove: last move made by your opponent, or null if none.
+3. piecePlacements: positions of all pieces after opponent's last move, split into yourPiecePlacements and opponentPiecePlacements.
+4. pastFailureMessages: list of previous invalid move errors.
 
-        Make sure to:
-        - Always evaluate the safety of your king before making any move.
-        - Ensure your move is valid and keeps your king out of check.
+Task:
+- Determine the current board state.
+- Infer opponent's intentions from their last move.
+- Choose the best legal move.
+- Output exactly one JSON object:
 
-        <EXAMPLE>
-          INPUT: 
-            {
-              "yourColor": "Black",
-              "opponentLastMove": {
-                "type": "Normal",
-                "piece": "White Pawn",
-                "fromSquare": "e2",
-                "toSquare": "e4",
-                "capture": false,
-                "yourKingSafety": "Safe"
-              },
-              "opponentPiecePlacements": {
-                "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
-                "e1": "WhiteKing", "f1": "WhiteBishop", "g1": "WhiteKnight", "h1": "WhiteRook",
-                "a2": "WhitePawn", "b2": "WhitePawn",   "c2": "WhitePawn",   "d2": "WhitePawn",
-                "e4": "WhitePawn", "f2": "WhitePawn",   "g2": "WhitePawn",   "h2": "WhitePawn"
-              },
-              "yourPiecePlacements": {
-                "a8": "BlackRook", "b8": "BlackKnight", "c8": "BlackBishop", "d8": "BlackQueen",
-                "e8": "BlackKing", "f8": "BlackBishop", "g8": "BlackKnight", "h8": "BlackRook",
-                "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
-                "e7": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
-              },
-              "pastFailureMessages": [ ]
-            } 
-          OUTPUT:
-            {
-              "purpose": "I want to contest the center by mirroring White's e4 move. 
-                          This is a classical and strong response that opens lines 
-                          for the queen and bishop.",
-              "fromSquare": "e7",
-              "toSquare": "e5"
-            }
-        </EXAMPLE>
+{
+  "purpose": "<brief reason for the move, max 3 sentences>",
+  "fromSquare": "<start square, e.g., 'e2'>",
+  "toSquare": "<end square, e.g., 'e4'>",
+  "promote": "<piece name if promotion, else omit or leave empty>"
+}
 
-        <EXAMPLE>
-          INPUT: 
-            {
-              "yourColor": "Black",
-              "opponentLastMove": {
-                "type": "Normal",
-                "piece": "White Pawn",
-                "fromSquare": "g1",
-                "toSquare": "f3",
-                "capture": false,
-                "yourKingSafety": "Safe"
-              },
-              "opponentPiecePlacements": {
-                "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
-                "e1": "WhiteKing", "f1": "WhiteBishop", "f3": "WhiteKnight", "h1": "WhiteRook",
-                "a2": "WhitePawn", "b2": "WhitePawn",   "c2": "WhitePawn",   "d2": "WhitePawn",
-                "e4": "WhitePawn", "f2": "WhitePawn",   "g2": "WhitePawn",   "h2": "WhitePawn",
-              },
-              "yourPiecePlacements": {
-                "a8": "BlackRook", "b8": "BlackKnight", "c8": "BlackBishop", "d8": "BlackQueen",
-                "e8": "BlackKing", "f8": "BlackBishop", "g8": "BlackKnight", "h8": "BlackRook",
-                "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
-                "e5": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
-              },
-              "pastFailureMessages": [
-                "You want to move a piece from e8 to d8. But... Cannot move to square 'd8' because the piece at that square is an ally"
-              ]
-            }
-          OUTPUT:
-            {
-              "purpose": "I develop the knight to a natural square to control
-                          the center (d4 and e5), and prepare for kingside castling.",
-              "fromSquare": "b8",
-              "toSquare": "c6",
-              "promote": null
-            }
-        </EXAMPLE>
+Move rules:
+- Move must follow standard chess rules.
+- Never leave your king in check.
+- Captures allowed.
+- For castling, specify only the king's movement squares.
+- For en passant, specify only the capturing pawn's movement squares.
 
-        <EXAMPLE>
-          INPUT:
-            {  
-              "yourColor": "White",
-              "opponentLastMove": null,
-              "yourPiecePlacements": {
-                "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
-                "e1": "WhiteKing", "f1": "WhiteBishop", "g1": "WhiteKnight", "h1": "WhiteRook",
-                "a2": "WhitePawn", "b2": "WhitePawn",   "c2": "WhitePawn",   "d2": "WhitePawn",
-                "e4": "WhitePawn", "f2": "WhitePawn",   "g2": "WhitePawn",   "h2": "WhitePawn",
-              },
-              "opponentPiecePlacements": {
-                "a8": "BlackRook", "b8": "BlackKnight", "c8": "BlackBishop", "d8": "BlackQueen",
-                "e8": "BlackKing", "f8": "BlackBishop", "g8": "BlackKnight", "h8": "BlackRook",
-                "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
-                "e7": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
-              },
-              "pastFailureMessages": [
-                "You want to move a piece from a3 to a4. But... There is no piece at square 'a3'"
-              ]
-            }
-          OUTPUT:
-            {
-              "purpose": "I open with the King's Pawn controls the center and 
-                          opens lines for the queen and bishop. It's a classical 
-                          and strong first move.",
-              "fromSquare": "e2",
-              "toSquare": "e4"
-            }
-        </EXAMPLE>
+Examples:
+
+Normal rook move:
+{
+  "purpose": "Advance rook for control of open file.",
+  "fromSquare": "a1",
+  "toSquare": "a3"
+}
+
+Pawn promotion:
+{
+  "purpose": "Promote pawn to increase attacking power.",
+  "fromSquare": "a2",
+  "toSquare": "a1",
+  "promote": "Queen"
+}
+
+Queenside castling:
+{
+  "purpose": "Castle to improve king safety.",
+  "fromSquare": "e8",
+  "toSquare": "c8"
+}
+
+En passant:
+{
+  "purpose": "Capture pawn en passant to remove threat.",
+  "fromSquare": "e5",
+  "toSquare": "d6"
+}
+
+Remember:
+- Use pastFailureMessages to avoid repeating previous mistakes.
+- Output only one JSON object — no explanations outside of JSON.
+
+<EXAMPLE>
+  INPUT: 
+    {
+      "yourColor": "Black",
+      "opponentLastMove": {
+        "type": "Normal",
+        "piece": "White Pawn",
+        "fromSquare": "e2",
+        "toSquare": "e4",
+        "capture": false,
+        "yourKingSafety": "Safe"
+      },
+      "opponentPiecePlacements": {
+        "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
+        "e1": "WhiteKing", "f1": "WhiteBishop", "g1": "WhiteKnight", "h1": "WhiteRook",
+        "a2": "WhitePawn", "b2": "WhitePawn",   "c2": "WhitePawn",   "d2": "WhitePawn",
+        "e4": "WhitePawn", "f2": "WhitePawn",   "g2": "WhitePawn",   "h2": "WhitePawn"
+      },
+      "yourPiecePlacements": {
+        "a8": "BlackRook", "b8": "BlackKnight", "c8": "BlackBishop", "d8": "BlackQueen",
+        "e8": "BlackKing", "f8": "BlackBishop", "g8": "BlackKnight", "h8": "BlackRook",
+        "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
+        "e7": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
+      },
+      "pastFailureMessages": [ ]
+    } 
+  OUTPUT:
+    {
+      "purpose": "I want to contest the center by mirroring White's e4 move. 
+                  This is a classical and strong response that opens lines 
+                  for the queen and bishop.",
+      "fromSquare": "e7",
+      "toSquare": "e5"
+    }
+</EXAMPLE>
+
+<EXAMPLE>
+  INPUT:
+    {  
+      "yourColor": "White",
+      "opponentLastMove": null,
+      "yourPiecePlacements": {
+        "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
+        "e1": "WhiteKing", "f1": "WhiteBishop", "g1": "WhiteKnight", "h1": "WhiteRook",
+        "a2": "WhitePawn", "b2": "WhitePawn",   "c2": "WhitePawn",   "d2": "WhitePawn",
+        "e4": "WhitePawn", "f2": "WhitePawn",   "g2": "WhitePawn",   "h2": "WhitePawn",
+      },
+      "opponentPiecePlacements": {
+        "a8": "BlackRook", "b8": "BlackKnight", "c8": "BlackBishop", "d8": "BlackQueen",
+        "e8": "BlackKing", "f8": "BlackBishop", "g8": "BlackKnight", "h8": "BlackRook",
+        "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
+        "e7": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
+      },
+      "pastFailureMessages": [
+        "You want to move a piece from a3 to a4. But... There is no piece at square 'a3'"
+      ]
+    }
+  OUTPUT:
+    {
+      "purpose": "I open with the King's Pawn controls the center and 
+                  opens lines for the queen and bishop. It's a classical 
+                  and strong first move.",
+      "fromSquare": "e2",
+      "toSquare": "e4"
+    }
+</EXAMPLE>
       )";
 
+    /*
+    <EXAMPLE>
+      INPUT:
+        {
+          "yourColor": "Black",
+          "opponentLastMove": {
+            "type": "Normal",
+            "piece": "White Pawn",
+            "fromSquare": "g1",
+            "toSquare": "f3",
+            "capture": false,
+            "yourKingSafety": "Safe"
+          },
+          "opponentPiecePlacements": {
+            "a1": "WhiteRook", "b1": "WhiteKnight", "c1": "WhiteBishop", "d1": "WhiteQueen",
+            "e1": "WhiteKing", "f1": "WhiteBishop", "f3": "WhiteKnight", "h1": "WhiteRook",
+            "a2": "WhitePawn", "b2": "WhitePawn",   "c2": "WhitePawn",   "d2": "WhitePawn",
+            "e4": "WhitePawn", "f2": "WhitePawn",   "g2": "WhitePawn",   "h2": "WhitePawn",
+          },
+          "yourPiecePlacements": {
+            "a8": "BlackRook", "b8": "BlackKnight", "c8": "BlackBishop", "d8": "BlackQueen",
+            "e8": "BlackKing", "f8": "BlackBishop", "g8": "BlackKnight", "h8": "BlackRook",
+            "a7": "BlackPawn", "b7": "BlackPawn",   "c7": "BlackPawn",   "d7": "BlackPawn",
+            "e5": "BlackPawn", "f7": "BlackPawn",   "g7": "BlackPawn",   "h7": "BlackPawn"
+          },
+          "pastFailureMessages": [
+            "You want to move a piece from e8 to d8. But... Cannot move to square 'd8' because the piece at that square is an ally"
+          ]
+        }
+      OUTPUT:
+        {
+          "purpose": "I develop the knight to a natural square to control
+                      the center (d4 and e5), and prepare for kingside castling.",
+          "fromSquare": "b8",
+          "toSquare": "c6",
+          "promotedPiece": null
+        }
+    </EXAMPLE>
+    */
     constexpr const char PROMPT_PATTERN[] = "{}";
 
     constexpr const char MOVE_JSON_SCHEMA[] =
@@ -193,7 +199,7 @@ namespace bgg
         "      \"type\": \"string\",\n"
         "      \"pattern\": \"^[a-h][1-8]$\"\n"
         "    },\n"
-        "    \"promote\": {\n"
+        "    \"promotedPiece\": {\n"
         "      \"type\": \"string\",\n"
         "      \"enum\": [\"Queen\", \"Rook\", \"Bishop\", \"Knight\"],\n"
         "      \"nullable\": true,\n"
@@ -201,7 +207,7 @@ namespace bgg
         "    }\n"
         "  },\n"
         "  \"required\": [\"purpose\", \"fromSquare\", \"toSquare\"],\n"
-        "  \"propertyOrdering\": [\"purpose\", \"fromSquare\", \"toSquare\", \"promote\"]\n"
+        "  \"propertyOrdering\": [\"purpose\", \"fromSquare\", \"toSquare\", \"promotedPiece\"]\n"
         "}";
 
     // namespace
@@ -387,14 +393,14 @@ namespace bgg
 
       if (jsonObj.contains("promotedPiece"))
       {
-        boost::json::value promoteValue = jsonObj.at("promotedPiece");
+        boost::json::value promotionValue = jsonObj.at("promotedPiece");
 
-        if (!promoteValue.is_null())
+        if (!promotionValue.is_null())
         {
           std::string promotedPiece;
           try
           {
-            promotedPiece = std::string{promoteValue.as_string().c_str()};
+            promotedPiece = std::string{promotionValue.as_string().c_str()};
             move.promotedPiece = EntityType{promotedPiece};
           }
           catch (...)

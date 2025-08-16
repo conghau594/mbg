@@ -23,6 +23,7 @@ namespace bgg
     std::string userId;
     int gameType;
     int playerType;
+    int side;
   };
 
   class CancelMatchmakingRequest final
