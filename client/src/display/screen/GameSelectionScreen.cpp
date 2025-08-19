@@ -8,7 +8,7 @@
 #include "model/GameType.h"
 #include "model/PlayerType.h"
 
-#include "service/GameService.h"
+#include "service/IGameServer.h"
 
 #include "GameSelectionScreen.h"
 #include "display/IDisplay.h"

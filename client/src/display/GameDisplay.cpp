@@ -49,6 +49,7 @@ namespace bgg
   {
     ImGui::SFML::Shutdown();
     unsubscribeServerMessages();
+    SPDLOG_DEBUG("GameDisplay has been destroyed.");
   }
 
   void GameDisplay::run()
@@ -73,6 +74,9 @@ namespace bgg
       }
       currentScreen_->update();
     }
+
+    clearScreens();
+    currentScreen_ = nullptr;
   }
 
   void GameDisplay::send(ClientRequest const &request) noexcept
@@ -139,5 +143,16 @@ namespace bgg
     lastScreen->onExit();
     lastScreen = std::move(newScreen);
     lastScreen->onEnter();
+  }
+
+  void GameDisplay::clearScreens() noexcept
+  {
+    if (screenStack_.empty())
+    {
+      return;
+    }
+
+    screenStack_.back()->onExit();
+    screenStack_.clear();
   }
 }

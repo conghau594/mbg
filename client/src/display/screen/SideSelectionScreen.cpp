@@ -8,7 +8,7 @@
 #include "model/GameType.h"
 #include "model/PlayerType.h"
 
-#include "service/GameService.h"
+#include "service/IGameServer.h"
 #include "base/Logger.h"
 
 #include "SideSelectionScreen.h"
@@ -35,7 +35,7 @@ namespace bgg
   {
   }
 
-  void SideSelectionScreen::doExit() noexcept
+  void SideSelectionScreen::doEnter() noexcept
   {
     getServerMsgHandler().setHandler<FindGameAcceptedNotification>(
         [this](FindGameAcceptedNotification const &response) -> bool
@@ -47,7 +47,7 @@ namespace bgg
         });
   }
 
-  void SideSelectionScreen::doEnter() noexcept
+  void SideSelectionScreen::doExit() noexcept
   {
     getServerMsgHandler().resetHandler<FindGameAcceptedNotification>();
   }
@@ -138,7 +138,7 @@ namespace bgg
 
   void SideSelectionScreen::sendFindGameRequest() noexcept
   {
-    FindGameRequest request{"", gameType_, playerType_, side_};
+    FindGameRequest &&request{"", gameType_, playerType_, side_};
     gameDisplay_->send(request);
     std::shared_ptr<IScreenInternal>
         waitScreen = std::make_shared<MessageScreen>(
@@ -155,7 +155,7 @@ namespace bgg
     {
       std::shared_ptr<IScreenInternal>
           findingScreen = std::make_shared<GameFindingScreen>(
-              getWindow(), gameDisplay_, gameType_, playerType_);
+              getWindow(), gameDisplay_);
 
       changeSubscreen(nullptr);
       gameDisplay_->pushScreen(findingScreen);

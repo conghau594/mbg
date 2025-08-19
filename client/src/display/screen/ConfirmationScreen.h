@@ -6,10 +6,12 @@
 #include <string>
 
 #include "MessageScreen.h"
+#include "base/Logger.h"
+
 namespace bgg
 {
   /**
-   * 
+   *
    * This screen differs from `MessageScreen` in that it does not allow
    * closing window.
    */
@@ -21,6 +23,11 @@ namespace bgg
         std::string message,
         std::vector<std::string> buttonLabels,
         std::vector<std::function<void()>> buttonCallbacks) noexcept;
+
+    ~ConfirmationScreen() noexcept
+    {
+      SPDLOG_DEBUG("ConfirmationScreen destructor called");
+    }
 
   private:
     inline void onWindowClosed() noexcept override;

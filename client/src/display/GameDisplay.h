@@ -43,6 +43,7 @@ namespace bgg
     void pushScreen(std::shared_ptr<IScreen> newScreen) noexcept override;
     void popScreen() noexcept override;
     void changeScreen(std::shared_ptr<IScreen> newScreen) noexcept override;
+    void clearScreens() noexcept override;
 
     void subscribeServerMessages();
     void unsubscribeServerMessages();

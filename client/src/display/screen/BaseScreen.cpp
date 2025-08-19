@@ -9,7 +9,7 @@
 #include <imgui-SFML.h> // for ImGui::SFML::* functions and SFML-specific overloads
 #include <imgui_internal.h>
 
-#include "service/GameService.h"
+#include "service/IGameServer.h"
 #include "display/IDisplay.h"
 #include "BaseScreen.h"
 #include "ConfirmationScreen.h"
@@ -128,18 +128,27 @@ namespace bgg
       std::string const &msg) noexcept
   {
     std::vector<std::string> &&buttonLabels{"Yes", "No"};
+    std::weak_ptr<IScreenInternal> parentScreenWeakPtr(parentScreen);
     std::vector<std::function<void()>> &&buttonCallbacks{
-        [window]()
+        [window, parentScreenWeakPtr]()
         {
+          if (auto parentScreen = parentScreenWeakPtr.lock())
+          {
+            parentScreen->changeSubscreen(nullptr);
+          }
           window->close();
         },
-        [parentScreen]()
+        [parentScreenWeakPtr]()
         {
-          parentScreen->changeSubscreen(nullptr);
+          if (auto parentScreen = parentScreenWeakPtr.lock())
+          {
+            parentScreen->changeSubscreen(nullptr);
+          }
         }};
 
-    std::shared_ptr<IScreenInternal> confirmationScreen = std::make_shared<ConfirmationScreen>(
-        window, msg, buttonLabels, buttonCallbacks);
+    std::shared_ptr<IScreenInternal>
+        confirmationScreen = std::make_shared<ConfirmationScreen>(
+            window, msg, buttonLabels, buttonCallbacks);
 
     parentScreen->changeSubscreen(confirmationScreen);
   }

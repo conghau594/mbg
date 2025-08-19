@@ -150,12 +150,35 @@ namespace bgg
     std::shared_ptr<IScreenInternal> resultScreen(new ConfirmationScreen(
         getWindow(), msg, buttonLabels, buttonCallbacks));
 
-    int constexpr WAIT_TIME_MS = 3000;
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME_MS));
+    // int constexpr WAIT_TIME_MS = 100;
+    // std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME_MS));
     changeSubscreen(resultScreen);
 
     buttonLabel_ = "Exit";
     gameFinished_ = true;
+  }
+
+  void GamePlayScreen::onResignGameResponse(ResignGameResponse const &response) noexcept
+  {
+    if (response.errcode.failed())
+    {
+      std::string msg = "Failed to resign the game: " + response.errcode.message;
+      std::vector<std::string> &&buttonLabels{"OK"};
+      std::vector<std::function<void()>> &&buttonCallbacks{
+          [this]()
+          {
+            changeSubscreen(nullptr);
+          }};
+
+      std::shared_ptr<IScreenInternal> errorScreen(new ConfirmationScreen(
+          getWindow(), msg, buttonLabels, buttonCallbacks));
+
+      changeSubscreen(errorScreen);
+    }
+    else
+    {
+      changeSubscreen(nullptr);
+    }
   }
 
   void GamePlayScreen::doEnter() noexcept
@@ -189,6 +212,16 @@ namespace bgg
           }
           return true;
         });
+
+    getServerMsgHandler().setHandler<ResignGameResponse>(
+        [this](ResignGameResponse const &response) -> bool
+        {
+          if (!gameFinished_)
+          {
+            onResignGameResponse(response);
+          }
+          return true;
+        });
   }
 
   void GamePlayScreen::doExit() noexcept
@@ -196,6 +229,7 @@ namespace bgg
     getServerMsgHandler().resetHandler<GameUpdatedNotification>();
     getServerMsgHandler().resetHandler<GameFinishedNotification>();
     getServerMsgHandler().resetHandler<MoveResponse>();
+    getServerMsgHandler().resetHandler<ResignGameResponse>();
   }
 
   void GamePlayScreen::layOutScreen() noexcept

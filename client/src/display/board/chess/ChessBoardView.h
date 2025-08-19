@@ -45,6 +45,11 @@ namespace bgg
         std::shared_ptr<ItemStore> itemStore,
         std::function<void(ClientRequest const &)> requestSender) noexcept;
 
+    ~ChessBoardView() noexcept
+    {
+      SPDLOG_DEBUG("ChessBoardView destructor called");
+    }
+
   private:
     void onWindowEvent(sf::Event const &event) noexcept override;
     void sendMoveRequest(MoveRequest const &move) noexcept override;

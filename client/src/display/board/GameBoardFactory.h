@@ -16,7 +16,15 @@
 
 namespace bgg
 {
-  class IChessRule;
+  class IBoardViewFactory
+  {
+  public:
+    virtual ~IBoardViewFactory() = default;
+
+    virtual auto create() const -> std::shared_ptr<IBoardView> = 0;
+  };
+
+    class IChessRule;
   // TODO: Make this class is specific to a single game, and a single texture.
 
   class GameBoardFactory final

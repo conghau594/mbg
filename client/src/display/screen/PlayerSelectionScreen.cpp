@@ -10,7 +10,7 @@
 #include "base/Logger.h"
 #include "model/PlayerType.h"
 #include "model/GameType.h"
-#include "service/GameService.h"
+#include "service/IGameServer.h"
 
 #include "display/IDisplay.h"
 #include "BaseScreen.h"
@@ -54,17 +54,28 @@ namespace bgg
         pressedButtonIndex_ < int(playerTypeNames_.size()))
     {
       int playerType = pressedButtonIndex_;
-      if (playerType != PlayerType::HUMAN)
+      if (playerType == PlayerType::GEMINI)
       {
+        std::vector<std::string> sideTypeNames;
         if (gameType_ == GameType::CHESS)
         {
-          std::vector<std::string> sideTypeNames{"White", "Black"};
-          std::shared_ptr<IScreen>
-              sideSelectionScreen = std::make_shared<SideSelectionScreen>(
-                  getWindow(), gameDisplay_, sideTypeNames, gameType_, playerType);
-
-          gameDisplay_->pushScreen(sideSelectionScreen);
+          sideTypeNames = {"White", "Black"};
         }
+        // else if (gameType_ == GameType::GO)
+        // {
+        //   sideTypeNames = {"Black", "White"};
+        // }
+        else
+        {
+          SPDLOG_ERROR("Unsupported game type: {}", gameType_);
+          return;
+        }
+
+        std::shared_ptr<IScreen>
+            sideSelectionScreen = std::make_shared<SideSelectionScreen>(
+                getWindow(), gameDisplay_, sideTypeNames, gameType_, playerType);
+
+        gameDisplay_->pushScreen(sideSelectionScreen);
       } // deactivate();
     }
     else if (pressedButtonIndex_ == int(playerTypeNames_.size())) // if Back button is pressed

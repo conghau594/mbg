@@ -23,6 +23,7 @@ namespace bgg
     virtual void pushScreen(std::shared_ptr<IScreen> newScreen) = 0;
     virtual void popScreen() = 0;
     virtual void changeScreen(std::shared_ptr<IScreen> newScreen) = 0;
+    virtual void clearScreens() = 0;
   };
 
 } // namespace bgg

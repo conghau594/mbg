@@ -2,6 +2,7 @@
 #pragma once
 
 #include "BaseScreen.h"
+#include "base/Logger.h"
 
 namespace bgg
 {
@@ -25,6 +26,11 @@ namespace bgg
         std::shared_ptr<IBoardView> gameBoard,
         int resignRegionHeight) noexcept;
 
+    ~GamePlayScreen() noexcept
+    {
+      SPDLOG_DEBUG("GamePlayScreen destructor called");
+    }
+
   private:
     void update(sf::Time const &elapsed) noexcept override;
 
@@ -33,6 +39,9 @@ namespace bgg
 
     void onGameFinishedNotification(
         GameFinishedNotification const &notif) noexcept;
+
+    void onResignGameResponse(
+        ResignGameResponse const &response) noexcept;
 
     void doEnter() noexcept override;
     void doExit() noexcept override;

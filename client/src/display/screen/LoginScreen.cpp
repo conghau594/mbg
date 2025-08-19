@@ -15,7 +15,7 @@
 
 #include "model/GameType.h"
 
-#include "service/GameService.h"
+#include "service/IGameServer.h"
 #include "service/ClientRequest.h"
 
 namespace bgg

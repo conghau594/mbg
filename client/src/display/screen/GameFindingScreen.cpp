@@ -12,6 +12,7 @@
 
 #include "service/ClientRequest.h"
 #include "service/ServerMessage.h"
+#include "model/chess/ChessRule.h"
 
 #include "display/board/GameBoardFactory.h"
 
@@ -19,9 +20,7 @@ namespace bgg
 {
   GameFindingScreen::GameFindingScreen(
       std::shared_ptr<sf::RenderWindow> window,
-      std::shared_ptr<IDisplay> gameDisplay,
-      int gameType,
-      int playerType)
+      std::shared_ptr<IDisplay> gameDisplay)
       : MessageScreen(
             std::move(window),
             "Waiting for oppenent...",
@@ -29,8 +28,6 @@ namespace bgg
             {[this]
              { sendCancelMatchmakingRequest(); }}),
         gameDisplay_(std::move(gameDisplay)),
-        gameType_(gameType),
-        playerType_(playerType),
         isCancelButtonPressed_(false)
   {
   }
@@ -68,29 +65,6 @@ namespace bgg
     MessageScreen::doExit();
     getServerMsgHandler().resetHandler<FindGameResponse>();
     getServerMsgHandler().resetHandler<CancelMatchmakingResponse>();
-  }
-
-  void GameFindingScreen::goToGamePlayScreen()
-  {
-    try
-    {
-      // TODO: Get value of `side` from GameStartedNotif from server
-      int side = 0;
-      //==============
-      // int resignRegionHeight = 60;
-      // sf::Vector2i wndSize = sf::Vector2i(getWindow()->getSize());
-      // std::shared_ptr<IBoardView> chessBoard = GameBoardFactory().create(
-      //     side, gameType_, sf::IntRect({0, 0}, wndSize));
-      // std::shared_ptr<IScreen> chessScreen = std::make_shared<GamePlayScreen>(
-      //     getWindow(), gameDisplay_, chessBoard, resignRegionHeight);
-
-      // gameDisplay_->changeScreen(chessScreen);
-    }
-    catch (std::exception const &e)
-    {
-      // TODO: need to handle this exception in detail
-      SPDLOG_CRITICAL("From GameFindingScreen::goToGamePlayScreen: {}", e.what());
-    }
   }
 
   void GameFindingScreen::sendCancelMatchmakingRequest() noexcept
@@ -133,14 +107,51 @@ namespace bgg
     ErrorCode const &errcode = response.errcode;
     if (errcode.value == 0) // no error -> the game is found
     {
-      goToGamePlayScreen();
+      if (response.gameType == GameType::CHESS)
+      {
 
-      return;
+        int constexpr RESIGN_REGION_HEIGHT = 80;
+        int constexpr BOARD_SIDE_LENGTH = 800;
+        getWindow()->setSize(
+            {BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH + RESIGN_REGION_HEIGHT});
+
+        sf::IntRect boardRect(
+            {0, RESIGN_REGION_HEIGHT}, {BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH});
+        std::shared_ptr<IChessRule>
+            chessRule = std::make_shared<ChessRule>(response.initialPlacements);
+
+        std::weak_ptr<IDisplay> gameDisplayWeakPtr(gameDisplay_);
+        auto requestSender = [gameDisplayWeakPtr](ClientRequest const &request) noexcept
+        {
+          if (auto gameDisplayPtr = gameDisplayWeakPtr.lock())
+          {
+            gameDisplayPtr->send(request);
+          }
+        };
+
+        std::shared_ptr<IBoardView> chessBoard = GameBoardFactory().createChessBoard(
+            std::move(chessRule),
+            boardRect,
+            std::move(requestSender),
+            response.yourSide,
+            response.yourSide == response.currentTurn);
+
+        std::shared_ptr<IScreen> chessScreen = std::make_shared<GamePlayScreen>(
+            getWindow(), gameDisplay_, chessBoard, RESIGN_REGION_HEIGHT);
+        changeSubscreen(nullptr);
+        gameDisplay_->changeScreen(chessScreen);
+
+        return;
+      }
+      else
+      {
+        SPDLOG_ERROR("Unsupported game type: {}", response.gameType);
+        return;
+      }
     }
     else
     {
-      std::string message = errcode.message + " (" +
-                            std::to_string(errcode.value) + ")";
+      auto message = std::format("{} ({})", errcode.message, errcode.value);
       auto okButtonCallback = [this]
       {
         changeSubscreen(nullptr);
