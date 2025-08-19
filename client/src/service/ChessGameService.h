@@ -2,13 +2,13 @@
 #pragma once
 
 #include <mutex>
+#include <functional>
 
-#include "GameService.h"
+#include "IGameService.h"
 
 #include "ClientEventBus.h"
 #include "ServerMessage.h"
 
-#include "base/ThreadPool.h"
 #include "model/Side.h"
 #include "model/chess/ChessMove.h"
 
@@ -17,33 +17,33 @@ namespace bgg
   class IChessRule;
   class GeminiAgent;
   class Piece;
-  class ChessGameService : public GameService
+  class ChessGameService : public IGameService
   {
-    utils::ThreadPool threadPool_;
-    std::shared_ptr<ClientEventBus> eventBus_;
-    std::vector<std::size_t> subscriptionIdList_;
-
     std::shared_ptr<GeminiAgent> agent_;
     Side agentColor_;
-    std::atomic_int maxPromptRetries_;
+    Side opponentColor_;
+    int const maxPromptRetries_;
 
     std::shared_ptr<IChessRule> chessRule_;
+    std::function<void(ServerMessage const &)> messageSender_;
+
     std::mutex mutexForThis_;
-    // std::string moveHistoryStr_;
+    std::atomic_bool gameFinished_;
 
   public:
     ChessGameService(
         std::string apiKey,
         std::shared_ptr<IChessRule> chessRule,
         Side const &agentColor,
-        std::shared_ptr<ClientEventBus> eventBus);
+        std::function<void(ServerMessage const &)> messageSender) noexcept;
 
     ~ChessGameService();
 
   private:
-    void emit(ServerMessage const &msg) noexcept override;
+    void handleRequest(ResignGameRequest const &request) override;
+    void handleRequest(MoveRequest const &moveRqt) override;
 
-    void requestMoveFromAgent();
+    void sendMoveRequestToAgent();
 
     static auto chessMoveDetailToJsonStr(
         ChessMove::Detail const &moveAction) noexcept -> std::string;

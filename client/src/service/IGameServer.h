@@ -1,14 +1,14 @@
-// GameService.h
+// IGameServer.h
 #pragma once
 
 #include "ServerMessage.h"
 
 namespace bgg
 {
-  class GameService
+  class IGameServer
   {
   public:
-    virtual ~GameService() = default;
+    virtual ~IGameServer() = default;
 
     virtual void emit(ServerMessage const &msg) = 0;
   };

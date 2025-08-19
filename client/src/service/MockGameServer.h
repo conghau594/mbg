@@ -1,10 +1,9 @@
-// MockGameService.h
+// MockGameServer.h
 #pragma once
 
-#include "GameService.h"
+#include "IGameServer.h"
 #include "ClientEventBus.h"
 #include "base/ThreadPool.h"
-
 
 namespace boost
 {
@@ -16,7 +15,7 @@ namespace boost
 
 namespace bgg
 {
-  class MockGameService : public GameService
+  class MockGameServer : public IGameServer
   {
     utils::ThreadPool threadPool_;
     std::shared_ptr<boost::uuids::random_generator> uuidGenerator_;
@@ -24,8 +23,8 @@ namespace bgg
     std::vector<std::size_t> subscriptionIdList_;
 
   public:
-    MockGameService(std::shared_ptr<ClientEventBus> eventBus);
-    ~MockGameService();
+    MockGameServer(std::shared_ptr<ClientEventBus> eventBus);
+    ~MockGameServer();
 
   private:
     void emit(ServerMessage const &msg) noexcept override;

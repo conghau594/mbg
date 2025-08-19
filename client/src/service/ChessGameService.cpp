@@ -17,132 +17,86 @@ namespace bgg
       std::string apiKey,
       std::shared_ptr<IChessRule> chessRule,
       Side const &agentColor,
-      std::shared_ptr<ClientEventBus> eventBus)
-      : threadPool_(3),
-        eventBus_(std::move(eventBus)),
-        subscriptionIdList_{},
-        agent_(std::make_shared<GeminiAgent>(
+      std::function<void(ServerMessage const &)> messageSender) noexcept
+      : agent_(std::make_shared<GeminiAgent>(
             std::move(apiKey),
             chess::AGENT_SYSTEM_INSTRUCTION,
             chess::MOVE_JSON_SCHEMA,
             chess::PROMPT_PATTERN)),
         agentColor_(std::move(agentColor)),
-        maxPromptRetries_(10),
-        chessRule_(std::move(chessRule))
-  // moveHistoryStr_{}
+        opponentColor_(chess::getOpponentColor(agentColor_)),
+        maxPromptRetries_(15),
+        chessRule_(std::move(chessRule)),
+        messageSender_(std::move(messageSender)),
+        gameFinished_(false)
   {
-    auto subscriptionId = eventBus_->subscribe<ClientRequest, MoveRequest>(
-        [this](MoveRequest const &moveRqt)
-        {
-          threadPool_.push(
-              [this, moveRqt]()
-              {
-                // auto future = threadPool_.push(
-                //     [this, moveRqt]()
-                //     {
-                std::lock_guard<std::mutex> lock(mutexForThis_);
-                ///< Validate the move request
-                try
-                {
-                  ChessMove::Detail moveDetail = chessRule_->tryMove(moveRqt.move);
+    BOOST_ASSERT_MSG(
+        agent_ != nullptr,
+        "GeminiAgent must not be null in ChessGameService.");
 
-                  chessRule_->commitMove(moveDetail);
+    BOOST_ASSERT_MSG(
+        chessRule_ != nullptr,
+        "IChessRule must not be null in ChessGameService.");
 
-                  if (ChessMove::getOpponentKingStatus(moveDetail) == Side::Status::CHECKMATED)
-                  {
-                    emit(GameFinishedNotification{"Win"});
-                    return; // Game is finished, no need to send prompt to agent
-                  }
-
-                  if (ChessMove::getOpponentKingStatus(moveDetail) == Side::Status::STALEMATED)
-                  {
-                    emit(GameFinishedNotification{"Draw"});
-                    return; // Game is finished, no need to send prompt to agent
-                  }
-
-                  // std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-                  emit(MoveResponse{ErrorCode{0, "MoveValidation", ""}});
-                }
-                catch (std::exception const &e)
-                {
-                  emit(MoveResponse{ErrorCode{-1, "MoveValidation", e.what()}});
-                  return;
-                }
-
-                requestMoveFromAgent();
-                //     });
-
-                // auto futureStatue = future.wait_for(std::chrono::seconds(3));
-                // if (futureStatue == std::future_status::timeout)
-                // {
-                //   SPDLOG_INFO("Timeout after 3s");
-                // }
-                // else
-                // {
-                //   SPDLOG_INFO("Thread done before timeout");
-                // }
-              });
-        });
-
-    if (!subscriptionId)
-    {
-      std::string msg = std::format(
-          "Cannot subscribe the client request of 'MoveRequest' from '{}'",
-          typeid(*this).name());
-      throw(std::runtime_error(msg));
-    }
-    subscriptionIdList_.emplace_back(*subscriptionId);
-
-    if (agentColor_ == chess::WHITE)
-    {
-      threadPool_.push(
-          [this]()
-          {
-            // auto future = threadPool_.push(
-            //     [this]()
-            //     {
-            std::lock_guard<std::mutex> lock(mutexForThis_);
-            requestMoveFromAgent();
-            //     });
-
-            // auto futureStatue = future.wait_for(std::chrono::seconds(3));
-            // if (futureStatue == std::future_status::timeout)
-            // {
-            //   SPDLOG_INFO("Timeout after 3s");
-            // }
-            // else
-            // {
-            //   SPDLOG_INFO("Thread done before timeout");
-            // }
-          });
-    }
-
-    // SPDLOG_INFO("'{}' has subscribed to client requests of type 'MoveRequest'",
-    //             typeid(*this).name());
+    BOOST_ASSERT_MSG(
+        messageSender_ != nullptr,
+        "Message sender must not be null in ChessGameService.");
   }
 
   ChessGameService::~ChessGameService()
   {
-    maxPromptRetries_ = 0; // stop any further attempts to send prompts
-    for (auto &id : subscriptionIdList_)
-    {
-      eventBus_->unsubscribe<ClientRequest>(id);
-    }
+    gameFinished_ = true;
+
     std::lock_guard<std::mutex> lock(mutexForThis_);
+    SPDLOG_DEBUG("ChessGameService has been destroyed.");
   }
 
-  void ChessGameService::emit(ServerMessage const &msg) noexcept
+  void ChessGameService::handleRequest(ResignGameRequest const & /*request*/)
   {
-    eventBus_->emit<ServerMessage>(msg);
+    gameFinished_ = true;
+    messageSender_(GameFinishedNotification{"Lose"});
   }
 
-  void ChessGameService::requestMoveFromAgent()
+  void ChessGameService::handleRequest(MoveRequest const &moveRqt)
+  {
+    std::lock_guard<std::mutex> lock(mutexForThis_);
+    ///< Validate the move request
+    if (moveRqt.move)
+    {
+      ChessMove::Detail moveDetail = chessRule_->tryMove(moveRqt.move.value());
+      try
+      {
+        messageSender_(MoveResponse{ErrorCode{0, "MoveValidation", ""}});
+        chessRule_->commitMove(moveDetail);
+
+        if (ChessMove::getOpponentKingStatus(moveDetail) == Side::Status::CHECKMATED)
+        {
+          messageSender_(GameFinishedNotification{"Win"});
+          return; // Game is finished, no need to send prompt to agent
+        }
+
+        if (ChessMove::getOpponentKingStatus(moveDetail) == Side::Status::STALEMATED)
+        {
+          messageSender_(GameFinishedNotification{"Draw"});
+          return; // Game is finished, no need to send prompt to agent
+        }
+      }
+      catch (std::exception const &e)
+      {
+        messageSender_(MoveResponse{ErrorCode{-1, "MoveValidation", e.what()}});
+        return;
+      }
+    }
+
+    sendMoveRequestToAgent();
+  }
+
+  void ChessGameService::sendMoveRequestToAgent()
   {
     auto agentPieceList = chessRule_->collectPieces(agentColor_);
     auto agentPiecePlacementsStr = piecePlacementsToJsonStr(agentPieceList);
 
-    auto opponentColor = chess::getOpponentColor(agentColor_);
-    auto opponentPieceList = chessRule_->collectPieces(opponentColor);
+    auto opponentPieceList = chessRule_->collectPieces(opponentColor_);
     auto opponentPiecePlacementsStr = piecePlacementsToJsonStr(opponentPieceList);
 
     // TODO: handle the error case when there are no piece placements
@@ -159,6 +113,12 @@ namespace bgg
 
     for (int i = 0; i < maxPromptRetries_; ++i)
     {
+      if (gameFinished_)
+      {
+        SPDLOG_DEBUG("Game is finished, stopping prompt attempts.");
+        return;
+      }
+
       std::string input = std::format(
           R"(
           {{
@@ -212,9 +172,6 @@ namespace bgg
       catch (std::exception const &e)
       {
         ///< handle the error case when 'agentMove' is invalid
-        // std::string promoveValue = responseMove.promote
-        //                                ? "\"" + *(responseMove.promote) + "\""
-        //                                : std::string("null");
         auto promotedPiece = ChessMove::getPromotedPieceType(agentMoveDetail);
         std::string promotionRelatedMsg;
         if (promotedPiece)
@@ -252,22 +209,19 @@ namespace bgg
       chessRule_->commitMove(agentMoveDetail);
 
       Side currentTurn = chess::getOpponentColor(agentColor_);
-      emit(GameUpdatedNotification{agentMoveDetail, currentTurn, currentTurn});
+      messageSender_(
+          GameUpdatedNotification{agentMoveDetail, currentTurn, currentTurn});
 
       if (ChessMove::getOpponentKingStatus(agentMoveDetail) ==
           Side::Status::CHECKMATED)
       {
-        emit(GameFinishedNotification{"Lose"});
+        messageSender_(GameFinishedNotification{"Lose"});
       }
       return;
     }
 
-    emit(GameFinishedNotification{"Error"});
+    messageSender_(GameFinishedNotification{"Error"});
     SPDLOG_ERROR("Completely failed to send prompt to the agent");
-    // TODO: handle the failure case after 100 times of try to send prompt to agent
-    // msg = e.what();
-    // errCodeValue = -1;
-    // emit(FailureNotif{ErrorCode{errCodeValue, "Mock", msg}});
   }
 
   auto ChessGameService::chessMoveDetailToJsonStr(
@@ -381,6 +335,7 @@ namespace bgg
       return "null";
     }
   }
+
   auto ChessGameService::piecePlacementsToJsonStr(
       std::list<std::shared_ptr<Piece>> const &piecePlacements) noexcept -> std::string
   {

@@ -1,18 +1,18 @@
-// MockGameService.cpp
+// MockGameServer.cpp
 #include <numeric>
 #include <format>
 #include <boost/uuid.hpp>
 
 #include "base/Logger.h"
 #include "base/RandomUtils.h"
-#include "MockGameService.h"
+#include "MockGameServer.h"
 
 #include "model/chess/ChessHelpers.h"
 #include "model/GameType.h"
 
 namespace bgg
 {
-  MockGameService::MockGameService(std::shared_ptr<ClientEventBus> eventBus)
+  MockGameServer::MockGameServer(std::shared_ptr<ClientEventBus> eventBus)
       : threadPool_(2),
         uuidGenerator_(std::make_shared<boost::uuids::random_generator>()),
         eventBus_(std::move(eventBus))
@@ -47,16 +47,22 @@ namespace bgg
     }(std::make_index_sequence<ClientRequest::Pack::Count>{});
   }
 
-  MockGameService::~MockGameService()
+  MockGameServer::~MockGameServer()
   {
+    for (auto &id : subscriptionIdList_)
+    {
+      eventBus_->unsubscribe<ClientRequest>(id);
+    }
+
+    SPDLOG_DEBUG("MockGameServer has been destroyed.");
   }
 
-  void MockGameService::emit(ServerMessage const &msg) noexcept
+  void MockGameServer::emit(ServerMessage const &msg) noexcept
   {
     eventBus_->emit<ServerMessage>(msg);
   }
 
-  void MockGameService::sendRequest(LoginRequest const & /*loginRqt*/) noexcept
+  void MockGameServer::sendRequest(LoginRequest const & /*loginRqt*/) noexcept
   {
     threadPool_.push(
         [this]()
@@ -91,7 +97,7 @@ namespace bgg
         });
   }
 
-  void MockGameService::sendRequest(FindGameRequest const & /*findGameRqt*/) noexcept
+  void MockGameServer::sendRequest(FindGameRequest const & /*findGameRqt*/) noexcept
   {
     threadPool_.push(
         [this]()
@@ -142,7 +148,7 @@ namespace bgg
         });
   }
 
-  void MockGameService::sendRequest(CancelMatchmakingRequest const & /*cancelMatchmakingRqt*/) noexcept
+  void MockGameServer::sendRequest(CancelMatchmakingRequest const & /*cancelMatchmakingRqt*/) noexcept
   {
     threadPool_.push(
         [this]()
@@ -164,7 +170,7 @@ namespace bgg
         });
   }
 
-  void MockGameService::sendRequest(MoveRequest const & /*commitMoveRqt*/) noexcept
+  void MockGameServer::sendRequest(MoveRequest const & /*commitMoveRqt*/) noexcept
   {
     threadPool_.push(
         [this]()
@@ -208,7 +214,7 @@ namespace bgg
         });
   }
 
-  void MockGameService::sendRequest(ResignGameRequest const & /*resignGameRqt*/) noexcept
+  void MockGameServer::sendRequest(ResignGameRequest const & /*resignGameRqt*/) noexcept
   {
     threadPool_.push(
         [this]()
@@ -229,7 +235,7 @@ namespace bgg
         });
   }
 
-  void MockGameService::simulateNetworkLatencyAndFailure(
+  void MockGameServer::simulateNetworkLatencyAndFailure(
       int failurePercent /*=0*/, int minDelay /*=100*/, int maxDelay /*=2000*/)
   {
     std::this_thread::sleep_for(

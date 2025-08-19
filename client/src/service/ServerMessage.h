@@ -31,7 +31,7 @@ namespace bgg
     int gameType;
 
     std::list<std::tuple<EntityType, Side, Position>> initialPlacements;
-    Side yourColor;
+    Side yourSide;
     Side currentTurn;
   };
 
@@ -45,7 +45,7 @@ namespace bgg
   {
   public:
     ChessMove::Detail opponentMoveDetail;
-    Side yourColor;
+    Side yourSide;
     Side currentTurn;
   };
 

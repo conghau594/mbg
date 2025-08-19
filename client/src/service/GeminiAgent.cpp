@@ -3,6 +3,7 @@
 #include <map>
 #include <sstream>
 #include <chrono>
+#include <future>
 
 #include <boost/beast/version.hpp>
 #include <boost/asio/connect.hpp>
@@ -48,6 +49,19 @@ namespace bgg
   auto GeminiAgent::sendPrompt(std::string_view prompt) noexcept
       -> std::optional<std::string>
   {
+    for (auto it = abandonedResponses_.begin();
+         it != abandonedResponses_.end();)
+    {
+      if (it->wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+      {
+        it = abandonedResponses_.erase(it);
+      }
+      else
+      {
+        ++it;
+      }
+    }
+
     http::response<http::dynamic_body> response;
     try
     {
@@ -58,12 +72,32 @@ namespace bgg
       http::write(*sslStream_, request);
 
       // Read response
-      beast::flat_buffer buffer;
 
       //=======================================================================
       // measure time to read response:
       auto start = std::chrono::steady_clock::now();
-      http::read(*sslStream_, buffer, response);
+
+      auto future = std::async(
+          std::launch::async,
+          [this]() -> http::response<http::dynamic_body>
+          {
+            beast::flat_buffer buffer;
+            http::response<http::dynamic_body> returnedResponse;
+            http::read(*sslStream_, buffer, returnedResponse);
+            return returnedResponse;
+          });
+
+      int constexpr TIME_OUT_IN_SEC = 60;
+      auto futureStatus = future.wait_for(std::chrono::seconds(TIME_OUT_IN_SEC));
+      if (futureStatus == std::future_status::timeout)
+      {
+        abandonedResponses_.emplace_back(std::move(future));
+        SPDLOG_ERROR("Request timed out");
+        return std::nullopt;
+      }
+
+      response = future.get();
+
       auto duration = std::chrono::steady_clock::now() - start;
       SPDLOG_INFO(
           "Time to read response: {}s",
@@ -162,7 +196,7 @@ namespace bgg
 
       if (ec)
       {
-        throw beast::system_error{ec};
+        SPDLOG_WARN("Failed to close SSL stream: {}", ec.message());
       }
     }
     catch (const std::exception &e)

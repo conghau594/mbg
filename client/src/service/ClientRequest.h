@@ -38,7 +38,7 @@ namespace bgg
     std::string userId;
     std::string gameId;
 
-    ChessMove move;
+    std::optional<ChessMove> move;
   };
 
   class ResignGameRequest final

@@ -2,8 +2,11 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <format>
 #include <string_view>
+#include <list>
+#include <future>
 
 #include <boost/json.hpp>
 #include <boost/beast/ssl.hpp>
@@ -22,6 +25,8 @@ namespace bgg
 
   class GeminiAgent
   {
+    std::list<std::future<http::response<http::dynamic_body>>> abandonedResponses_;
+
     std::string apiKey_;
     std::string systemInstruction_;
     std::string promptPattern_;
