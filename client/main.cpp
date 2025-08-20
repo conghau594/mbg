@@ -1,15 +1,17 @@
 #include <memory>
-#include "app/ChessAppFactory.h"
-#include "app/QuickAppFactory.h"
+#include "app/GameAppFactory.h"
+#include "app/MockAppFactory.h"
+#include "app/QuickChessAppFactory.h"
 
 #include "base/Logger.h"
 /**
  * GAME_TYPE:
+ *  -2: Mocked game
  *  -1: All games
  *   0: ChessGame
  *
  */
-#define GAME_TYPE 0
+#define GAME_TYPE -1
 
 int main()
 {
@@ -17,12 +19,20 @@ int main()
 
   try
   {
-#if defined(GAME_TYPE)
-#if (GAME_TYPE < 0)
-    std::shared_ptr<bgg::GameAppFactory> appFactory = std::make_shared<bgg::ChessAppFactory>();
-#else
-    std::shared_ptr<bgg::GameAppFactory> appFactory = std::make_shared<bgg::QuickAppFactory>(GAME_TYPE);
+#if !defined(GAME_TYPE)
+    SPDLOG_ERROR("GAME_TYPE is not defined!");
+    return -1;
 #endif
+
+#if (GAME_TYPE == -2)
+    std::shared_ptr<bgg::IAppFactory>
+        appFactory = std::make_shared<bgg::MockAppFactory>();
+#elif (GAME_TYPE == -1)
+    std::shared_ptr<bgg::IAppFactory>
+        appFactory = std::make_shared<bgg::GameAppFactory>();
+#else
+    std::shared_ptr<bgg::IAppFactory>
+        appFactory = std::make_shared<bgg::QuickChessAppFactory>(GAME_TYPE);
 #endif
 
     bgg::GameApp app = appFactory->createGameApp();

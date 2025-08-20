@@ -72,7 +72,10 @@ namespace bgg
     subscriptionId = eventBus_->subscribe<ClientRequest, ResignGameRequest>(
         [this](ResignGameRequest const &request)
         {
-          currentService_->handleRequest(request);
+          if (currentService_)
+          {
+            currentService_->handleRequest(request);
+          }
 
           SPDLOG_INFO(
               "A client request of type 'ResignGameRequest' has come to '{}'",
@@ -139,11 +142,11 @@ namespace bgg
 
     if (findGameRqt.gameType == GameType::CHESS)
     {
-      Side yourSide = chess::WHITE;
+      Side playerSide = chess::WHITE;
       Side agentSide = chess::BLACK;
       if (findGameRqt.side == 1)
       {
-        yourSide = chess::BLACK;
+        playerSide = chess::BLACK;
         agentSide = chess::WHITE;
       }
 
@@ -164,11 +167,11 @@ namespace bgg
           {0, "", "Mock"}, // error code
           findGameRqt.gameType,
           standardPiecePlacements, // initialBoard
-          yourSide,                // yourSide
+          playerSide,              // yourSide
           chess::WHITE             // currentTurn
       });
 
-      if (agentSide == chess::WHITE)
+      if (playerSide == chess::BLACK)
       {
         eventBus_->emit(MoveRequest{
             "",          // userId

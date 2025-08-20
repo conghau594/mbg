@@ -113,12 +113,6 @@ namespace bgg
 
     for (int i = 0; i < maxPromptRetries_; ++i)
     {
-      if (gameFinished_)
-      {
-        SPDLOG_DEBUG("Game is finished, stopping prompt attempts.");
-        return;
-      }
-
       std::string input = std::format(
           R"(
           {{
@@ -136,7 +130,13 @@ namespace bgg
 
       SPDLOG_DEBUG("Sending prompt to agent: {}", input);
 
-      std::optional<std::string> agentResponse = agent_->sendPromptWithArgs(input);
+      auto agentResponse = agent_->sendPromptWithArgs(input);
+      if (gameFinished_)
+      {
+        SPDLOG_DEBUG("Game is finished, stopping prompt attempts.");
+        return;
+      }
+
       if (!agentResponse)
       {
         SPDLOG_WARN(
@@ -177,7 +177,7 @@ namespace bgg
         if (promotedPiece)
         {
           promotionRelatedMsg =
-              " and promoted that piece to " + promotedPiece->toString();
+              " and promote that piece to " + promotedPiece->toString();
         }
 
         std::string failureMsg = std::format(

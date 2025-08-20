@@ -8,12 +8,15 @@
 #include "GameApp.h"
 
 #include "service/ChessGameService.h"
+#include "service/ClientRequest.h"
+
 #include "display/GameDisplay.h"
 #include "display/screen/GamePlayScreen.h"
 #include "display/board/GameBoardFactory.h"
 
 #include "peeb/EventBus.hpp"
 #include "model/chess/ChessRule.h"
+#include "model/PlayerType.h"
 #include "base/EnvUtils.h"
 namespace bgg
 {
@@ -68,6 +71,7 @@ namespace bgg
 			{
 				geminiApiKey = envIter->second;
 			}
+
 			std::shared_ptr<ClientEventBus>
 					eventBus = std::make_shared<ClientEventBus>();
 			std::shared_ptr<IDisplay>
@@ -120,32 +124,35 @@ namespace bgg
 			};
 
 			//============================
-			std::shared_ptr<IChessRule> chessRuleAtServer = std::make_shared<ChessRule>(
-					findGameResponse.initialPlacements);
+			std::shared_ptr<IGameServer>
+					gameServer = std::make_shared<MultiGameServer>(eventBus);
 
-			Side &&agentColor = chess::getOpponentColor(findGameResponse.yourColor);
-			std::shared_ptr<GameService>
-					gameService = std::make_shared<ChessGameService>(
-							std::move(geminiApiKey), chessRuleAtServer, agentColor, eventBus);
+			FindGameRequest request{
+					"", GameType::CHESS, PlayerType::GEMINI, 0};
+			eventBus->emit(request);
 
 			sf::IntRect boardRect(
 					{0, RESIGN_REGION_HEIGHT}, {BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH});
 
-			auto requestSender = [gameDisplay](ClientRequest const &request) noexcept
+			std::weak_ptr<IDisplay> gameDisplayWeakPtr(gameDisplay);
+			auto requestSender = [gameDisplayWeakPtr](ClientRequest const &request) noexcept
 			{
-				gameDisplay->send(request);
+				if (auto gameDisplayPtr = gameDisplayWeakPtr.lock())
+				{
+					gameDisplayPtr->send(request);
+				}
 			};
 
 			//============================
-			auto chessRuleAtClient = std::make_shared<ChessRule>(
-					findGameResponse.initialPlacements);
+			std::shared_ptr<IChessRule>
+					chessRuleAtClient = std::make_shared<ChessRule>(standardPiecePlacements);
 
 			std::shared_ptr<IBoardView> chessBoard = GameBoardFactory().createChessBoard(
 					std::move(chessRuleAtClient),
 					boardRect,
 					std::move(requestSender),
-					findGameResponse.yourColor,
-					findGameResponse.yourColor == findGameResponse.currentTurn);
+					findGameResponse.yourSide,
+					findGameResponse.yourSide == findGameResponse.currentTurn);
 
 			std::shared_ptr<IScreen> chessScreen = std::make_shared<GamePlayScreen>(
 					window, gameDisplay, chessBoard, RESIGN_REGION_HEIGHT);
@@ -153,7 +160,7 @@ namespace bgg
 			gameDisplay->pushScreen(chessScreen);
 
 			// return GameApp object
-			return GameApp(gameDisplay, gameService);
+			return GameApp(gameDisplay, gameServer);
 		}
 	};
 } // namespace bgg

@@ -21,12 +21,12 @@ namespace utils
 #ifdef _DEBUG
       spdlog::set_level(spdlog::level::trace);
 #else
-      spdlog::set_level(spdlog::level::warn);
+      spdlog::set_level(spdlog::level::debug);
 #endif
 
-      // // change log pattern
-      // // spdlog::set_pattern("[%H:%M:%S] [%t] [%s:%# %!()]\n%^ - [%l] %v%$");
-      // spdlog::set_pattern("%^[%l] %v%$ [%H:%M:%S] [%t] [%s:%#]");
+      // change log pattern
+      // spdlog::set_pattern("[%H:%M:%S] [%t] [%s:%# %!()]\n%^ - [%l] %v%$");
+      spdlog::set_pattern("%^[%l] %v%$ [%H:%M:%S] [%t] [%s:%#]");
 
       // // spdlog usage
       // SPDLOG_INFO("Welcome to spdlog!");

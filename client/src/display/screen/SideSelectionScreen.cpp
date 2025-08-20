@@ -173,8 +173,8 @@ namespace bgg
             changeSubscreen(nullptr);
           }};
 
-      std::string message = errcode.message + " (" +
-                            std::to_string(errcode.value) + ")";
+      std::string message = std::format(
+          "{} ({})", errcode.message, errcode.value);
 
       std::shared_ptr<IScreenInternal> retryScreen = std::make_shared<MessageScreen>(
           getWindow(), message, buttonLabels, buttonCallbacks);

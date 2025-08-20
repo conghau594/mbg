@@ -1,18 +1,18 @@
-// ChessAppFactory.h
+// MockAppFactory.h
 #pragma once
 #include <SFML/Graphics/RenderWindow.hpp>
 
 #include "IAppFactory.h"
 #include "GameApp.h"
 
-#include "service/MockGameService.h"
+#include "service/MockGameServer.h"
 #include "display/GameDisplay.h"
 #include "display/screen/LoginScreen.h"
 
 #include "peeb/EventBus.hpp"
 namespace bgg
 {
-  class ChessAppFactory final : public IAppFactory
+  class MockAppFactory final : public IAppFactory
   {
   public:
     auto createGameApp() noexcept -> GameApp override
@@ -36,9 +36,9 @@ namespace bgg
 
       std::shared_ptr<ClientEventBus>
           eventBus = std::make_shared<ClientEventBus>();
-      // create GameService object
-      std::shared_ptr<GameService>
-          gameService = std::make_shared<MockGameService>(eventBus);
+      // create IGameServer object
+      std::shared_ptr<IGameServer>
+          gameServer = std::make_shared<MockGameServer>(eventBus);
 
       // create IDisplay object
       std::shared_ptr<IDisplay> gameDisplay = std::make_shared<GameDisplay>(
@@ -50,7 +50,7 @@ namespace bgg
       gameDisplay->pushScreen(initialScreen);
 
       // return GameApp object
-      return GameApp(gameDisplay, gameService);
+      return GameApp(gameDisplay, gameServer);
     }
   };
 } // namespace bgg
