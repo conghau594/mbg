@@ -4,7 +4,7 @@
 
 namespace bgg
 {
-  auto ChessMove::getMoveNumber(Detail const &moveDetail) noexcept -> int const &
+  auto ChessMove::Detail::getMoveNumber() const noexcept -> int const &
   {
     auto moveNumberVisitor = []<typename T>(T const &concreteDetail)
         -> int const &
@@ -18,13 +18,13 @@ namespace bgg
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'moveNumber' member");
       std::terminate();
-      // return chess::WHITE;
+      return -1; // This line is unreachable but keeps the compiler happy
     };
 
-    return moveDetail.visit(moveNumberVisitor);
+    return visit(moveNumberVisitor);
   }
 
-  auto ChessMove::getColor(ChessMove::Detail const &moveDetail) noexcept
+  auto ChessMove::Detail::getColor() const noexcept
       -> Side const &
   {
     auto colorVisitor = []<typename T>(T const &concreteDetail)
@@ -39,13 +39,13 @@ namespace bgg
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'side' member");
       std::terminate();
-      // return chess::WHITE;
+      return Side{"\0\0"}; // This line is unreachable but keeps the compiler happy
     };
 
-    return moveDetail.visit(colorVisitor);
+    return visit(colorVisitor);
   }
 
-  auto ChessMove::getMovedPieceType(ChessMove::Detail const &moveDetail) noexcept
+  auto ChessMove::Detail::getMovedPieceType() const noexcept
       -> EntityType const &
   {
     auto movedPieceVisitor = []<typename T>(T const &concreteDetail)
@@ -60,12 +60,13 @@ namespace bgg
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'movedPiece' member");
       std::terminate();
+      return EntityType{"\0\0"}; // This line is unreachable but keeps the compiler happy
     };
 
-    return moveDetail.visit(movedPieceVisitor);
+    return visit(movedPieceVisitor);
   }
 
-  auto ChessMove::getSourceSquare(ChessMove::Detail const &moveDetail) noexcept
+  auto ChessMove::Detail::getSourceSquare() const noexcept
       -> Position const &
   {
     auto sourceSquareVisitor = []<typename T>(T const &concreteDetail)
@@ -80,12 +81,13 @@ namespace bgg
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'fromSquare' member");
       std::terminate();
+      return Position{"\0\0"}; // This line is unreachable but keeps the compiler happy
     };
 
-    return moveDetail.visit(sourceSquareVisitor);
+    return visit(sourceSquareVisitor);
   }
 
-  auto ChessMove::getDestinationSquare(ChessMove::Detail const &moveDetail) noexcept
+  auto ChessMove::Detail::getDestinationSquare() const noexcept
       -> Position const &
   {
     auto destinationSquareVisitor = []<typename T>(T const &concreteDetail)
@@ -100,12 +102,13 @@ namespace bgg
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'toSquare' member");
       std::terminate();
+      return Position{"\0\0"}; // This line is unreachable but keeps the compiler happy
     };
 
-    return moveDetail.visit(destinationSquareVisitor);
+    return visit(destinationSquareVisitor);
   }
 
-  auto ChessMove::getOpponentKingSquare(ChessMove::Detail const &moveDetail) noexcept
+  auto ChessMove::Detail::getOpponentKingSquare() const noexcept
       -> Position const &
   {
     auto opponentKingSquareVisitor = []<typename T>(T const &concreteDetail)
@@ -120,12 +123,13 @@ namespace bgg
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'opponentKingSquare' member");
       std::terminate();
+      return Position{"\0\0"}; // This line is unreachable but keeps the compiler happy
     };
 
-    return moveDetail.visit(opponentKingSquareVisitor);
+    return visit(opponentKingSquareVisitor);
   }
 
-  auto ChessMove::getOpponentKingStatus(ChessMove::Detail const &moveDetail) noexcept
+  auto ChessMove::Detail::getOpponentKingStatus() const noexcept
       -> Side::Status const &
   {
     auto opponentKingStateVisitor = []<typename T>(T const &concreteDetail)
@@ -140,13 +144,14 @@ namespace bgg
       BOOST_ASSERT_MSG(
           false, "The move detail must have the 'opponentKingStatus' member");
       std::terminate();
+      return Side::Status::UNDEFINED; // This line is unreachable but keeps the compiler happy
     };
 
-    return moveDetail.visit(opponentKingStateVisitor);
+    return visit(opponentKingStateVisitor);
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  void ChessMove::setMoveNumber(Detail &moveDetail, int moveNumber) noexcept
+  void ChessMove::Detail::setMoveNumber(int moveNumber) noexcept
   {
     auto moveNumberVisitor = [&moveNumber]<typename T>(T &concreteDetail)
     {
@@ -160,15 +165,13 @@ namespace bgg
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'moveNumber' member");
       std::terminate();
-      // return chess::WHITE;
     };
 
-    moveDetail.visit(moveNumberVisitor);
+    visit(moveNumberVisitor);
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  void ChessMove::setColor(
-      Detail &moveDetail, Side const &newColor) noexcept
+  void ChessMove::Detail::setColor(Side const &newColor) noexcept
   {
     auto colorVisitor = [&newColor]<typename T>(T &concreteDetail)
     {
@@ -182,14 +185,12 @@ namespace bgg
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'side' member");
       std::terminate();
-      // return chess::WHITE;
     };
 
-    moveDetail.visit(colorVisitor);
+    visit(colorVisitor);
   }
 
-  void ChessMove::setMovedPieceType(
-      Detail &moveDetail, EntityType const &newType) noexcept
+  void ChessMove::Detail::setMovedPieceType(EntityType const &newType) noexcept
   {
     auto movedPieceVisitor = [&newType]<typename T>(T &concreteDetail)
     {
@@ -205,11 +206,10 @@ namespace bgg
       std::terminate();
     };
 
-    moveDetail.visit(movedPieceVisitor);
+    visit(movedPieceVisitor);
   }
 
-  void ChessMove::setSourceSquare(
-      Detail &moveDetail, Position const &newSquare) noexcept
+  void ChessMove::Detail::setSourceSquare(Position const &newSquare) noexcept
   {
     auto sourceSquareVisitor = [&newSquare]<typename T>(T &concreteDetail)
     {
@@ -225,11 +225,10 @@ namespace bgg
       std::terminate();
     };
 
-    moveDetail.visit(sourceSquareVisitor);
+    visit(sourceSquareVisitor);
   }
 
-  void ChessMove::setDestinationSquare(
-      Detail &moveDetail, Position const &newSquare) noexcept
+  void ChessMove::Detail::setDestinationSquare(Position const &newSquare) noexcept
   {
     auto destinationSquareVisitor = [&newSquare]<typename T>(T &concreteDetail)
     {
@@ -245,11 +244,10 @@ namespace bgg
       std::terminate();
     };
 
-    moveDetail.visit(destinationSquareVisitor);
+    visit(destinationSquareVisitor);
   }
 
-  void ChessMove::setOpponentKingSquare(
-      Detail &moveDetail, Position const &newSquare) noexcept
+  void ChessMove::Detail::setOpponentKingSquare(Position const &newSquare) noexcept
   {
     auto opponentKingSquareVisitor = [&newSquare]<typename T>(T &concreteDetail)
     {
@@ -265,11 +263,10 @@ namespace bgg
       std::terminate();
     };
 
-    moveDetail.visit(opponentKingSquareVisitor);
+    visit(opponentKingSquareVisitor);
   }
 
-  void ChessMove::setOpponentKingStatus(
-      Detail &moveDetail, Side::Status const &newStatus) noexcept
+  void ChessMove::Detail::setOpponentKingStatus(Side::Status const &newStatus) noexcept
   {
     auto opponentKingStateVisitor = [&newStatus]<typename T>(T &concreteDetail)
     {
@@ -285,12 +282,12 @@ namespace bgg
       std::terminate();
     };
 
-    moveDetail.visit(opponentKingStateVisitor);
+    visit(opponentKingStateVisitor);
   }
 
   /////////////////////////////////////////////////////////////////////////////
 
-  auto ChessMove::getCapturedPieceType(ChessMove::Detail const &moveDetail) noexcept
+  auto ChessMove::Detail::getCapturedPieceType() const noexcept
       -> std::optional<EntityType>
   {
     auto capturedPieceVisitor = []<typename T>(T const &concreteDetail)
@@ -305,10 +302,10 @@ namespace bgg
       return std::nullopt;
     };
 
-    return moveDetail.visit(capturedPieceVisitor);
+    return visit(capturedPieceVisitor);
   }
 
-  auto ChessMove::getPromotedPieceType(ChessMove::Detail const &moveDetail) noexcept
+  auto ChessMove::Detail::getPromotedPieceType() const noexcept
       -> std::optional<EntityType>
   {
     auto promotedPieceVisitor = []<typename T>(T const &concreteDetail)
@@ -323,10 +320,10 @@ namespace bgg
       return std::nullopt;
     };
 
-    return moveDetail.visit(promotedPieceVisitor);
+    return visit(promotedPieceVisitor);
   }
 
-  auto ChessMove::getCastlingRookMove(Detail const &moveDetail) noexcept
+  auto ChessMove::Detail::getCastlingRookMove() const noexcept
       -> std::optional<std::pair<Position, Position>>
   {
     auto rookSourceVisitor = []<typename T>(T const &concreteDetail)
@@ -343,10 +340,10 @@ namespace bgg
       return std::nullopt;
     };
 
-    return moveDetail.visit(rookSourceVisitor);
+    return visit(rookSourceVisitor);
   }
 
-  auto ChessMove::getEnPassantCaptureSquare(ChessMove::Detail const &moveDetail) noexcept
+  auto ChessMove::Detail::getEnPassantCaptureSquare() const noexcept
       -> std::optional<Position>
   {
     auto enPassantCaptureSquareVisitor = []<typename T>(T const &concreteDetail)
@@ -361,7 +358,7 @@ namespace bgg
       return std::nullopt;
     };
 
-    return moveDetail.visit(enPassantCaptureSquareVisitor);
+    return visit(enPassantCaptureSquareVisitor);
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -445,6 +442,6 @@ namespace bgg
   //     std::terminate();
   //   };
 
-  //   return moveDetail.visit(errorMessageVisitor);
+  //   return visit(errorMessageVisitor);
   // }
 } // namespace bgg

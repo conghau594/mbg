@@ -12,150 +12,151 @@
 
 namespace bgg
 {
-    /////////////////////////////////////////////////////////////////////////////
-    class ChessMove
-    {
-    public:
-        Side color;
-        Position fromSquare;
-        Position toSquare;
-        std::optional<EntityType> promotedPiece;
+	/////////////////////////////////////////////////////////////////////////////
+	class ChessMove
+	{
+	public:
+		Side color;
+		Position fromSquare;
+		Position toSquare;
+		std::optional<EntityType> promotedPiece;
 
-        /////////////////////////////////////////////////////////////////////////////
-        class Normal
-        {
-        public:
-            int moveNumber;
-            Side color;
+		/////////////////////////////////////////////////////////////////////////////
+		class Normal
+		{
+		public:
+			int moveNumber;
+			Side color;
 
-            Position fromSquare;
-            Position toSquare;
-            EntityType movedPiece;
+			Position fromSquare;
+			Position toSquare;
+			EntityType movedPiece;
 
-            std::optional<EntityType> capturedPiece;
-            Position opponentKingSquare;
-            Side::Status opponentKingStatus;
-        };
+			std::optional<EntityType> capturedPiece;
+			Position opponentKingSquare;
+			Side::Status opponentKingStatus;
+		};
 
-        /** \brief just for Pawns
-         *
-         */
-        class Promotion
-        {
-        public:
-            int moveNumber;
-            Side color;
+		/** \brief just for Pawns
+		 *
+		 */
+		class Promotion
+		{
+		public:
+			int moveNumber;
+			Side color;
 
-            Position fromSquare;
-            Position toSquare;
-            EntityType movedPiece;
+			Position fromSquare;
+			Position toSquare;
+			EntityType movedPiece;
 
-            EntityType promotedPiece; ///< the piece name, is one of: Queen, Rook, Bishop, Knight
+			EntityType promotedPiece; ///< the piece name, is one of: Queen, Rook, Bishop, Knight
 
-            std::optional<EntityType> capturedPiece;
-            Position opponentKingSquare;
-            Side::Status opponentKingStatus;
-        };
+			std::optional<EntityType> capturedPiece;
+			Position opponentKingSquare;
+			Side::Status opponentKingStatus;
+		};
 
-        /** \brief just for Pawns
-         *
-         */
-        class EnPassant
-        {
-        public:
-            int moveNumber;
-            Side color;
+		/** \brief just for Pawns
+		 *
+		 */
+		class EnPassant
+		{
+		public:
+			int moveNumber;
+			Side color;
 
-            Position fromSquare;
-            Position toSquare;
-            EntityType movedPiece;
+			Position fromSquare;
+			Position toSquare;
+			EntityType movedPiece;
 
-            Position enPassantCaptureSquare;
-            EntityType capturedPiece;
+			Position enPassantCaptureSquare;
+			EntityType capturedPiece;
 
-            Position opponentKingSquare;
-            Side::Status opponentKingStatus;
-        };
+			Position opponentKingSquare;
+			Side::Status opponentKingStatus;
+		};
 
-        /** \brief just for Kings
-         *
-         */
-        class Castling
-        {
-        public:
-            int moveNumber;
-            Side color;
+		/** \brief just for Kings
+		 *
+		 */
+		class Castling
+		{
+		public:
+			int moveNumber;
+			Side color;
 
-            Position fromSquare;
-            Position toSquare;
-            EntityType movedPiece;
+			Position fromSquare;
+			Position toSquare;
+			EntityType movedPiece;
 
-            Position rookSource;
-            Position rookDestination;
+			Position rookSource;
+			Position rookDestination;
 
-            Position opponentKingSquare;
-            Side::Status opponentKingStatus;
-        };
+			Position opponentKingSquare;
+			Side::Status opponentKingStatus;
+		};
 
-        using Detail = Variant<
-            // Invalid,
-            Normal,
-            Promotion,
-            EnPassant,
-            Castling>;
+		class Detail;
 
-        static auto getMoveNumber(Detail const &moveDetail) noexcept
-            -> int const &;
-        static auto getColor(Detail const &moveDetail) noexcept
-            -> Side const &;
-        static auto getMovedPieceType(Detail const &moveDetail) noexcept
-            -> EntityType const &;
-        static auto getSourceSquare(Detail const &moveDetail) noexcept
-            -> Position const &;
-        static auto getDestinationSquare(Detail const &moveDetail) noexcept
-            -> Position const &;
-        static auto getOpponentKingSquare(Detail const &moveDetail) noexcept
-            -> Position const &;
-        static auto getOpponentKingStatus(Detail const &moveDetail) noexcept
-            -> Side::Status const &;
+		static auto generateMinimalNormalMove(
+				ChessMove const &move,
+				bool shouldCapture) noexcept -> ChessMove::Normal;
+		static auto generateMinimalPromotionMove(
+				ChessMove const &move,
+				bool shouldCapture) noexcept -> ChessMove::Promotion;
+		static auto generateMinimalEnPassantMove(
+				ChessMove const &move,
+				Position const &enPassantCaptureSquare) noexcept -> ChessMove::EnPassant;
+		static auto generateMinimalCastlingMove(
+				ChessMove const &move,
+				Position const &rookSource,
+				Position const &rookDestination) noexcept -> ChessMove::Castling;
+	};
 
-        static void setMoveNumber(
-            Detail &moveDetail, int moveNumber) noexcept;
-        static void setColor(
-            Detail &moveDetail, Side const &newColor) noexcept;
-        static void setMovedPieceType(
-            Detail &moveDetail, EntityType const &newType) noexcept;
-        static void setSourceSquare(
-            Detail &moveDetail, Position const &newSquare) noexcept;
-        static void setDestinationSquare(
-            Detail &moveDetail, Position const &newSquare) noexcept;
-        static void setOpponentKingSquare(
-            Detail &moveDetail, Position const &newSquare) noexcept;
-        static void setOpponentKingStatus(
-            Detail &moveDetail, Side::Status const &newStatus) noexcept;
+	class ChessMove::Detail
+			: public Variant<Normal, Promotion, EnPassant, Castling>
+	{
+	public:
+		constexpr Detail() noexcept = default;
 
-        static auto getCapturedPieceType(Detail const &moveDetail) noexcept
-            -> std::optional<EntityType>;
-        static auto getPromotedPieceType(Detail const &moveDetail) noexcept
-            -> std::optional<EntityType>;
-        static auto getCastlingRookMove(Detail const &moveDetail) noexcept
-            -> std::optional<std::pair<Position, Position>>;
-        static auto getEnPassantCaptureSquare(Detail const &moveDetail) noexcept
-            -> std::optional<Position>;
+		template <typename U>
+		constexpr Detail(U const &data) noexcept
+				: Variant<Normal, Promotion, EnPassant, Castling>(data)
+		{
+		}
 
-        static auto generateMinimalNormalMove(
-            ChessMove const &move,
-            bool shouldCapture) noexcept -> ChessMove::Normal;
-        static auto generateMinimalPromotionMove(
-            ChessMove const &move,
-            bool shouldCapture) noexcept -> ChessMove::Promotion;
-        static auto generateMinimalEnPassantMove(
-            ChessMove const &move,
-            Position const &enPassantCaptureSquare) noexcept -> ChessMove::EnPassant;
-        static auto generateMinimalCastlingMove(
-            ChessMove const &move,
-            Position const &rookSource,
-            Position const &rookDestination) noexcept -> ChessMove::Castling;
-    };
+		auto getMoveNumber() const noexcept
+				-> int const &;
+		auto getColor() const noexcept
+				-> Side const &;
+		auto getMovedPieceType() const noexcept
+				-> EntityType const &;
+		auto getSourceSquare() const noexcept
+				-> Position const &;
+		auto getDestinationSquare() const noexcept
+				-> Position const &;
+		auto getOpponentKingSquare() const noexcept
+				-> Position const &;
+		auto getOpponentKingStatus() const noexcept
+				-> Side::Status const &;
+
+		void setMoveNumber(int moveNumber) noexcept;
+		void setColor(Side const &newColor) noexcept;
+		void setMovedPieceType(EntityType const &newType) noexcept;
+		void setSourceSquare(Position const &newSquare) noexcept;
+		void setDestinationSquare(Position const &newSquare) noexcept;
+		void setOpponentKingSquare(Position const &newSquare) noexcept;
+		void setOpponentKingStatus(Side::Status const &newStatus) noexcept;
+
+		auto getCapturedPieceType() const noexcept
+				-> std::optional<EntityType>;
+		auto getPromotedPieceType() const noexcept
+				-> std::optional<EntityType>;
+		auto getCastlingRookMove() const noexcept
+				-> std::optional<std::pair<Position, Position>>;
+		auto getEnPassantCaptureSquare() const noexcept
+				-> std::optional<Position>;
+	};
 
 } // namespace bgg

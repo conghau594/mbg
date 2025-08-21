@@ -62,40 +62,40 @@ namespace bgg
 
     auto getMoveNumber() const noexcept -> int const &
     {
-      return ChessMove::getMoveNumber(nativeMoveDetail_);
+      return nativeMoveDetail_.getMoveNumber();
     }
 
     auto getSourceTile() const noexcept -> TileCoords
     {
-      return posToTileConverter_(ChessMove::getSourceSquare(nativeMoveDetail_));
+      return posToTileConverter_(nativeMoveDetail_.getSourceSquare());
     }
 
     auto getDestinationTile() const noexcept -> TileCoords
     {
-      return posToTileConverter_(ChessMove::getDestinationSquare(nativeMoveDetail_));
+      return posToTileConverter_(nativeMoveDetail_.getDestinationSquare());
     }
 
     auto getOpponentKingTile() const noexcept -> TileCoords
     {
-      return posToTileConverter_(ChessMove::getOpponentKingSquare(nativeMoveDetail_));
+      return posToTileConverter_(nativeMoveDetail_.getOpponentKingSquare());
     }
     auto getOpponentKingStatus() const noexcept -> Side::Status
     {
-      return ChessMove::getOpponentKingStatus(nativeMoveDetail_);
+      return nativeMoveDetail_.getOpponentKingStatus();
     }
 
     auto getMovedItemInfo() const noexcept -> ItemInfo
     {
       return ItemInfo{
-          ChessMove::getMovedPieceType(nativeMoveDetail_),
-          ChessMove::getColor(nativeMoveDetail_)};
+          nativeMoveDetail_.getMovedPieceType(),
+          nativeMoveDetail_.getColor()};
     }
 
     auto getCapturedItemInfo() const noexcept -> std::optional<ItemInfo>
     {
-      if (auto capturedPieceType = ChessMove::getCapturedPieceType(nativeMoveDetail_))
+      if (auto capturedPieceType = nativeMoveDetail_.getCapturedPieceType())
       {
-        Side allyColor = ChessMove::getColor(nativeMoveDetail_);
+        Side allyColor = nativeMoveDetail_.getColor();
         return ItemInfo{*capturedPieceType, chess::getOpponentColor(allyColor)};
       }
       else
@@ -106,9 +106,9 @@ namespace bgg
 
     auto getPromotedItemInfo() const noexcept -> std::optional<ItemInfo>
     {
-      if (auto promotedPieceType = ChessMove::getPromotedPieceType(nativeMoveDetail_))
+      if (auto promotedPieceType = nativeMoveDetail_.getPromotedPieceType())
       {
-        return ItemInfo{*promotedPieceType, ChessMove::getColor(nativeMoveDetail_)};
+        return ItemInfo{*promotedPieceType, nativeMoveDetail_.getColor()};
       }
       else
       {
@@ -119,7 +119,7 @@ namespace bgg
     auto getCastlingRookMove() const noexcept
         -> std::optional<std::pair<TileCoords, TileCoords>>
     {
-      auto rookMove = ChessMove::getCastlingRookMove(nativeMoveDetail_);
+      auto rookMove = nativeMoveDetail_.getCastlingRookMove();
 
       if (rookMove)
       {
@@ -134,7 +134,7 @@ namespace bgg
 
     auto getEnPassantCaptureTile() const noexcept -> std::optional<TileCoords>
     {
-      if (auto enPassantSquare = ChessMove::getEnPassantCaptureSquare(nativeMoveDetail_))
+      if (auto enPassantSquare = nativeMoveDetail_.getEnPassantCaptureSquare())
       {
         return posToTileConverter_(*enPassantSquare);
       }

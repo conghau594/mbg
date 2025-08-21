@@ -214,29 +214,29 @@ namespace bgg
           attacker->getPosition().toString()));
     }
 
-    ChessMove::setOpponentKingSquare(moveDetail, opponentKing.getPosition());
+    moveDetail.setOpponentKingSquare(opponentKing.getPosition());
     auto opponentKingAttackers = cloneRule.findAttackers(opponentKing, true);
     bool isStalemated = cloneRule.isStalemated(opponentColor);
     if (opponentKingAttackers.empty())
     {
       if (isStalemated)
       {
-        ChessMove::setOpponentKingStatus(moveDetail, Side::Status::STALEMATED);
+        moveDetail.setOpponentKingStatus(Side::Status::STALEMATED);
       }
       else
       {
-        ChessMove::setOpponentKingStatus(moveDetail, Side::Status::SAFE);
+        moveDetail.setOpponentKingStatus(Side::Status::SAFE);
       }
     }
     else
     {
       if (isStalemated)
       {
-        ChessMove::setOpponentKingStatus(moveDetail, Side::Status::CHECKMATED);
+        moveDetail.setOpponentKingStatus(Side::Status::CHECKMATED);
       }
       else
       {
-        ChessMove::setOpponentKingStatus(moveDetail, Side::Status::IN_CHECK);
+        moveDetail.setOpponentKingStatus(Side::Status::IN_CHECK);
       }
     }
 
@@ -248,9 +248,9 @@ namespace bgg
     BOOST_ASSERT_MSG(!moveDetail.isEmpty(), "Cannot commit an empty move");
     ++moveCount_;
 
-    Side const &color = ChessMove::getColor(moveDetail);
-    Position const &fromSquare = ChessMove::getSourceSquare(moveDetail);
-    Position const &toSquare = ChessMove::getDestinationSquare(moveDetail);
+    Side const &color = moveDetail.getColor();
+    Position const &fromSquare = moveDetail.getSourceSquare();
+    Position const &toSquare = moveDetail.getDestinationSquare();
 
     PieceSet &allyPieceSet = getPieceSet(color);
     PieceSet &opponentPieceSet = getPieceSet(chess::getOpponentColor(color));
@@ -260,13 +260,13 @@ namespace bgg
         movedPiece, "There must be a moved piece at the 'from square'");
 
     allyPieceSet.removePiece(fromSquare);
-    if (auto capturedPieceType = ChessMove::getCapturedPieceType(moveDetail))
+    if (auto capturedPieceType = moveDetail.getCapturedPieceType())
     {
       std::shared_ptr<Piece> capturedPiece;
       Position captureSquare;
 
       if (auto enPassantCaptureSqr =
-              ChessMove::getEnPassantCaptureSquare(moveDetail))
+              moveDetail.getEnPassantCaptureSquare())
       {
         captureSquare = *enPassantCaptureSqr;
       }
@@ -287,7 +287,7 @@ namespace bgg
       opponentPieceSet.removePiece(captureSquare);
     }
 
-    if (auto promotedPieceType = ChessMove::getPromotedPieceType(moveDetail))
+    if (auto promotedPieceType = moveDetail.getPromotedPieceType())
     {
       auto newPiece = pieceFactory_.createPiece(
           this, *promotedPieceType, color, toSquare);
@@ -302,7 +302,7 @@ namespace bgg
       movedPiece->move(toSquare);
       allyPieceSet.addPiece(movedPiece);
 
-      if (auto rookMove = ChessMove::getCastlingRookMove(moveDetail))
+      if (auto rookMove = moveDetail.getCastlingRookMove())
       {
         auto rook = findPiece(rookMove->first);
         allyPieceSet.removePiece(rookMove->first);
@@ -311,7 +311,7 @@ namespace bgg
       }
     }
 
-    ChessMove::setMoveNumber(moveDetail, moveCount_);
+    moveDetail.setMoveNumber(moveCount_);
     moveHistory_.emplace_back(std::move(moveDetail));
     return moveCount_;
   }
@@ -323,15 +323,15 @@ namespace bgg
         "Cannot use this function when there is no committed move before");
 
     auto &moveDetail = moveHistory_.back();
-    int const &moveNumber = ChessMove::getMoveNumber(moveDetail);
+    int const &moveNumber = moveDetail.getMoveNumber();
     BOOST_ASSERT_MSG(
         moveNumber == moveCount_,
         "Need to ensure the moveCount_ and the moveNumber stored in "
         "the moveDetail are the same");
 
-    Side const &color = ChessMove::getColor(moveDetail);
-    Position const &fromSquare = ChessMove::getSourceSquare(moveDetail);
-    Position const &toSquare = ChessMove::getDestinationSquare(moveDetail);
+    Side const &color = moveDetail.getColor();
+    Position const &fromSquare = moveDetail.getSourceSquare();
+    Position const &toSquare = moveDetail.getDestinationSquare();
 
     PieceSet &allyPieceSet = getPieceSet(color);
     PieceSet &opponentPieceSet = getPieceSet(chess::getOpponentColor(color));
@@ -339,7 +339,7 @@ namespace bgg
     auto piece = allyPieceSet.findPiece(toSquare);
     allyPieceSet.removePiece(toSquare);
 
-    if (auto capturedPieceType = ChessMove::getCapturedPieceType(moveDetail))
+    if (auto capturedPieceType = moveDetail.getCapturedPieceType())
     {
       auto foundPiece = removedPieces_.find(moveNumber);
       BOOST_ASSERT_MSG(
@@ -349,7 +349,7 @@ namespace bgg
       removedPieces_.erase(foundPiece);
 
       if (auto enPassantCaptureSqr =
-              ChessMove::getEnPassantCaptureSquare(moveDetail))
+              moveDetail.getEnPassantCaptureSquare())
       {
         SPDLOG_DEBUG("Restore en passant captured piece");
       }
@@ -358,7 +358,7 @@ namespace bgg
       }
     }
 
-    if (auto promotedPieceInfo = ChessMove::getPromotedPieceType(moveDetail))
+    if (auto promotedPieceInfo = moveDetail.getPromotedPieceType())
     {
       auto foundPiece = removedPieces_.find(~moveNumber);
       BOOST_ASSERT_MSG(
@@ -373,7 +373,7 @@ namespace bgg
       piece->setMoveInfo(fromSquare, piece->getMoveCount() - 1); ///< revert move info to the previous state
       allyPieceSet.addPiece(piece);
 
-      if (auto rookMove = ChessMove::getCastlingRookMove(moveDetail))
+      if (auto rookMove = moveDetail.getCastlingRookMove())
       {
         auto rook = findPiece(rookMove->second);
         allyPieceSet.removePiece(rookMove->second);
@@ -641,6 +641,7 @@ namespace bgg
     }
 
     throwDefaultMoveError(move, movedPieceType);
+    return ChessMove::Detail{};
   }
 
   auto ChessRule::tryParseCastlingMove(
@@ -768,6 +769,7 @@ namespace bgg
     }
 
     throwDefaultMoveError(move, movedPieceType);
+    return ChessMove::Detail{};
   }
 
   auto ChessRule::findAttackers(
