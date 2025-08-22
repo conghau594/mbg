@@ -77,5 +77,20 @@
       "jobs": 8,
       "verbose": false
     }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "configurePreset": "vs2022",
+      "output": {
+        "outputOnFailure": true
+      },
+      "environment": {
+        "GTEST_COLOR": "1"   
+      },
+      "execution": {
+        "jobs": 8
+      }
+    }
   ]
 }

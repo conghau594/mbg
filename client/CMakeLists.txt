@@ -2,6 +2,11 @@
 cmake_minimum_required(VERSION 3.28)
 project(bggclient LANGUAGES CXX)
 
+message(STATUS "############################################################")
+message(STATUS "CMakeLists.txt for 'bggclient' in ${CMAKE_CURRENT_SOURCE_DIR}")
+
+
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE CACHE BOOL "")
 set(BOOST_SUPERPROJECT_VERSION "1.88.0")
@@ -12,15 +17,15 @@ include(FetchContent)
 # FetchContent for SFML                                                       #
 ###############################################################################
 FetchContent_Declare(SFML
-  GIT_REPOSITORY https://github.com/SFML/SFML.git
-  GIT_TAG 3.0.1
-  GIT_SHALLOW ON
-  EXCLUDE_FROM_ALL
-  SYSTEM
-)
-FetchContent_MakeAvailable(SFML)
-FetchContent_GetProperties(SFML POPULATED SFML_POPULATED)
-message(STATUS "+ SFML populated: ${SFML_POPULATED}")
+    GIT_REPOSITORY https://github.com/SFML/SFML.git
+    GIT_TAG 3.0.1
+    GIT_SHALLOW ON
+    EXCLUDE_FROM_ALL
+    SYSTEM
+  )
+  FetchContent_MakeAvailable(SFML)
+  FetchContent_GetProperties(SFML POPULATED SFML_POPULATED)
+  message(STATUS "+ SFML populated: ${SFML_POPULATED}")
 
 ###############################################################################
 # FetchContent for ImGui                                                      #
@@ -599,6 +604,10 @@ FetchContent_MakeAvailable(BoostOptional)
 FetchContent_GetProperties(BoostOptional POPULATED BoostOptional_POPULATED)
 message(STATUS "+ BoostOptional populated: ${BoostOptional_POPULATED}")
  
+
+message(STATUS "CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
+message(STATUS "CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
+
 ###############################################################################
 # Fetch Boost::beast                                                      #
 ###############################################################################
@@ -851,12 +860,13 @@ FetchContent_MakeAvailable(BoostTypeof)
 FetchContent_GetProperties(BoostTypeof POPULATED BoostTypeof_POPULATED)
 message(STATUS "+ BoostTypeof populated: ${BoostTypeof_POPULATED}")
 
+
 ###############################################################################
-# Fetch OpenSSL::SSL OpenSSL::Crypto                                                  #
+# Fetch OpenSSL::SSL OpenSSL::Crypto                                          #
 ###############################################################################
 FetchContent_Declare(OpenSSL
   GIT_REPOSITORY https://github.com/janbar/openssl-cmake.git
-  GIT_TAG        master
+  GIT_TAG        1.1.1w-20250419
   GIT_SHALLOW    ON
   EXCLUDE_FROM_ALL
   SYSTEM
@@ -865,6 +875,13 @@ FetchContent_MakeAvailable(OpenSSL)
 FetchContent_GetProperties(OpenSSL POPULATED OpenSSL_POPULATED)
 message(STATUS "+ OpenSSL populated: ${OpenSSL_POPULATED}")
 
+#add_subdirectory(${openssl_SOURCE_DIR} ${openssl_BINARY_DIR})
+
+# set(OPENSSL_ROOT_DIR ${OpenSSL_BINARY_DIR})
+# set(OPENSSL_INCLUDE_DIR "${OpenSSL_BINARY_DIR}/include")
+# set(OPENSSL_INCLUDE_DIR "${OpenSSL_BINARY_DIR}/lib")
+# set(OPENSSL_USE_STATIC_LIBS TRUE)  # nếu build static
+# message(STATUS "+ OpenSSL_BINARY_DIR: ${OpenSSL_BINARY_DIR}")
 
 ###############################################################################
 # Configure Build Process                                           #
@@ -921,7 +938,7 @@ endif()
 # Detect and print source files                                               #
 # TODO: Use a more robust method to detect source files                       #
 ###############################################################################
-file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
   src/*.cpp
   src/*.h
 )
@@ -929,9 +946,20 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
 message(STATUS "---------------------")
 message(STATUS "List of source files:")
 message(STATUS "---------------------")
-foreach(src_file ${SOURCES})
+foreach(src_file ${SRC_FILES})
   message(STATUS "+ ${src_file}")
 endforeach()
+
+
+###############################################################################
+# Activate testing if BUILD_TESTING is ON                                     #
+###############################################################################
+option(BUILD_TESTING "Build tests" ON)
+if(BUILD_TESTING)
+  include(CTest)
+  add_subdirectory(tests)
+endif()
+
 
 ###############################################################################
 # Add executable and link libraries                                           #
@@ -939,21 +967,21 @@ endforeach()
 
 add_executable(bggclient 
   main.cpp
-  ${SOURCES}
+  ${SRC_FILES}
 )
 
 target_compile_features(bggclient PRIVATE cxx_std_20)
 target_link_libraries(bggclient PRIVATE
-  SFML::Graphics 
-  SFML::Audio 
-  SFML::Window
-  SFML::System
-  SFML::Main
-  ImGui-SFML::ImGui-SFML
-  Boost::assert
-  Boost::uuid
-  Boost::beast
-  Boost::json
+  sfml-graphics 
+  sfml-audio 
+  sfml-window
+  sfml-system
+  sfml-main
+  ImGui-SFML
+  boost_assert
+  boost_uuid
+  boost_beast
+  boost_json
   ssl 
   crypto
   spdlog
@@ -988,6 +1016,7 @@ print_all_targets_recursive(${CMAKE_SOURCE_DIR})
 
 get_target_property(INCLUDE_DIRS bggclient INCLUDE_DIRECTORIES)
 message(STATUS "Include directories for bggclient: ${INCLUDE_DIRS}")
+
 
 ###############################################################################
 # Add necessary macros                                                        #
