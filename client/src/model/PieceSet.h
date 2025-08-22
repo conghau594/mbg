@@ -60,6 +60,7 @@ namespace bgg
     PieceSet(PieceSet const &other) = delete;
     PieceSet(PieceSet &&other) = delete;
 
+    [[nodiscard]] auto getPieceCount() const noexcept -> int;
     void addPiece(std::shared_ptr<Piece> piece) noexcept;
 
     auto removePiece(Position const &pos) noexcept -> bool;

@@ -12,6 +12,11 @@ namespace bgg
     }
   }
 
+  auto PieceSet::getPieceCount() const noexcept -> int
+  {
+    return static_cast<int>(pieces_.size());
+  }
+
   /////////////////////////////////////////////////////////////////////////////
   void PieceSet::addPiece(std::shared_ptr<Piece> piece) noexcept
   {
