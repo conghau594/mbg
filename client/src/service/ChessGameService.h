@@ -43,7 +43,7 @@ namespace bgg
     void handleRequest(ResignGameRequest const &request) override;
     void handleRequest(MoveRequest const &moveRqt) override;
 
-    void sendMoveRequestToAgent();
+    auto sendMoveRequestToAgent() -> ChessMove::Detail;
 
     static auto chessMoveDetailToJsonStr(
         ChessMove::Detail const &moveAction) noexcept -> std::string;

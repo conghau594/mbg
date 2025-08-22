@@ -5,8 +5,6 @@
 #include <mutex>
 #include <format>
 #include <string_view>
-#include <list>
-#include <future>
 
 #include <boost/json.hpp>
 #include <boost/beast/ssl.hpp>
@@ -17,6 +15,7 @@
 
 namespace bgg
 {
+  namespace asio = boost::asio;
   namespace net = boost::asio;
   namespace beast = boost::beast;
   namespace ssl = boost::asio::ssl;
@@ -25,8 +24,6 @@ namespace bgg
 
   class GeminiAgent
   {
-    std::list<std::future<http::response<http::dynamic_body>>> abandonedResponses_;
-
     std::string apiKey_;
     std::string systemInstruction_;
     std::string promptPattern_;
@@ -62,7 +59,6 @@ namespace bgg
           std::string_view(promptPattern_),
           std::make_format_args(std::forward<decltype(args)>(args)...));
 
-      // SPDLOG_DEBUG(formattedPrompt);
       return sendPrompt(formattedPrompt);
     }
 
@@ -72,9 +68,12 @@ namespace bgg
 
     void openSslStream();
     void closeSslStream() noexcept;
-    auto createHtmlRequest(std::string_view prompt) -> http::request<http::string_body>;
+    [[nodiscard]] auto createHtmlRequest(std::string_view prompt) const
+        -> http::request<http::string_body>;
 
-    static void
-    printTokenUsage(boost::json::object const &jsonObj) noexcept;
+    static void printTokenUsage(boost::json::object const &jsonObj) noexcept;
+    [[nodiscard]] static auto parseResponse(
+        http::response<http::dynamic_body> const &response) noexcept
+        -> std::optional<std::string>;
   };
 } // namespace bgg

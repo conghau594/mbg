@@ -69,13 +69,13 @@ namespace bgg
         messageSender_(MoveResponse{ErrorCode{0, "MoveValidation", ""}});
         chessRule_->commitMove(moveDetail);
 
-        if (ChessMove::getOpponentKingStatus(moveDetail) == Side::Status::CHECKMATED)
+        if (moveDetail.getOpponentKingStatus() == Side::Status::CHECKMATED)
         {
           messageSender_(GameFinishedNotification{"Win"});
           return; // Game is finished, no need to send prompt to agent
         }
 
-        if (ChessMove::getOpponentKingStatus(moveDetail) == Side::Status::STALEMATED)
+        if (moveDetail.getOpponentKingStatus() == Side::Status::STALEMATED)
         {
           messageSender_(GameFinishedNotification{"Draw"});
           return; // Game is finished, no need to send prompt to agent
@@ -88,10 +88,29 @@ namespace bgg
       }
     }
 
-    sendMoveRequestToAgent();
+    auto agentMoveDetail = sendMoveRequestToAgent();
+
+    if (!agentMoveDetail.isEmpty())
+    {
+      chessRule_->commitMove(agentMoveDetail);
+
+      Side currentTurn = chess::getOpponentColor(agentColor_);
+      messageSender_(
+          GameUpdatedNotification{agentMoveDetail, currentTurn, currentTurn});
+
+      if (agentMoveDetail.getOpponentKingStatus() == Side::Status::CHECKMATED)
+      {
+        messageSender_(GameFinishedNotification{"Lose"});
+      }
+    }
+    else
+    {
+      messageSender_(GameFinishedNotification{"Error"});
+      SPDLOG_ERROR("Completely failed to send prompt to the agent");
+    }
   }
 
-  void ChessGameService::sendMoveRequestToAgent()
+  auto ChessGameService::sendMoveRequestToAgent() -> ChessMove::Detail
   {
     auto agentPieceList = chessRule_->collectPieces(agentColor_);
     auto agentPiecePlacementsStr = piecePlacementsToJsonStr(agentPieceList);
@@ -99,8 +118,12 @@ namespace bgg
     auto opponentPieceList = chessRule_->collectPieces(opponentColor_);
     auto opponentPiecePlacementsStr = piecePlacementsToJsonStr(opponentPieceList);
 
-    // TODO: handle the error case when there are no piece placements
-    // emit(MoveResponse{ErrorCode{-1, "Mock", "No piece placements found"}});
+    BOOST_ASSERT_MSG(
+        !agentPieceList.empty(),
+        "Agent's piece placements must not be empty.");
+    BOOST_ASSERT_MSG(
+        !opponentPieceList.empty(),
+        "Opponent's piece placements must not be empty.");
 
     ///< send the prompt to the agent]
     auto lastMove = chessRule_->getLastMove();
@@ -134,7 +157,7 @@ namespace bgg
       if (gameFinished_)
       {
         SPDLOG_DEBUG("Game is finished, stopping prompt attempts.");
-        return;
+        return ChessMove::Detail{};
       }
 
       if (!agentResponse)
@@ -168,11 +191,12 @@ namespace bgg
       try
       {
         agentMoveDetail = chessRule_->tryMove(agentMove);
+        return agentMoveDetail;
       }
       catch (std::exception const &e)
       {
         ///< handle the error case when 'agentMove' is invalid
-        auto promotedPiece = ChessMove::getPromotedPieceType(agentMoveDetail);
+        auto promotedPiece = agentMoveDetail.getPromotedPieceType();
         std::string promotionRelatedMsg;
         if (promotedPiece)
         {
@@ -204,24 +228,9 @@ namespace bgg
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         continue;
       }
-
-      // moveHistoryStr_ += ",\"" + uicResponseMove + "\"";
-      chessRule_->commitMove(agentMoveDetail);
-
-      Side currentTurn = chess::getOpponentColor(agentColor_);
-      messageSender_(
-          GameUpdatedNotification{agentMoveDetail, currentTurn, currentTurn});
-
-      if (ChessMove::getOpponentKingStatus(agentMoveDetail) ==
-          Side::Status::CHECKMATED)
-      {
-        messageSender_(GameFinishedNotification{"Lose"});
-      }
-      return;
     }
 
-    messageSender_(GameFinishedNotification{"Error"});
-    SPDLOG_ERROR("Completely failed to send prompt to the agent");
+    return ChessMove::Detail{};
   }
 
   auto ChessGameService::chessMoveDetailToJsonStr(

@@ -41,6 +41,7 @@ namespace bgg
   GeminiAgent::~GeminiAgent()
   {
     closeSslStream();
+    SPDLOG_DEBUG("GeminiAgent has been destroyed.");
   }
 
   /**
@@ -49,19 +50,6 @@ namespace bgg
   auto GeminiAgent::sendPrompt(std::string_view prompt) noexcept
       -> std::optional<std::string>
   {
-    for (auto it = abandonedResponses_.begin();
-         it != abandonedResponses_.end();)
-    {
-      if (it->wait_for(std::chrono::seconds(0)) == std::future_status::ready)
-      {
-        it = abandonedResponses_.erase(it);
-      }
-      else
-      {
-        ++it;
-      }
-    }
-
     http::response<http::dynamic_body> response;
     try
     {
@@ -71,46 +59,84 @@ namespace bgg
       http::request<http::string_body> request = createHtmlRequest(prompt);
       http::write(*sslStream_, request);
 
-      // Read response
-
       //=======================================================================
-      // measure time to read response:
-      auto start = std::chrono::steady_clock::now();
-
-      auto future = std::async(
-          std::launch::async,
-          [this]() -> http::response<http::dynamic_body>
+      // create timer to cancel the read operation if it takes too long
+      int constexpr TIME_OUT_IN_SEC = 60;
+      asio::steady_timer timer(ioContext_, std::chrono::seconds(TIME_OUT_IN_SEC));
+      timer.async_wait(
+          [this](beast::error_code ec)
           {
-            beast::flat_buffer buffer;
-            http::response<http::dynamic_body> returnedResponse;
-            http::read(*sslStream_, buffer, returnedResponse);
-            return returnedResponse;
+            if (!ec)
+            {
+              SPDLOG_WARN("Timeout occurred, closing socket...");
+              if (sslStream_)
+              {
+                sslStream_->next_layer().close();
+                // sslStream_->lowest_layer().cancel();
+              }
+            }
+            else
+            {
+              SPDLOG_WARN(
+                  "Timer error: {} (code: {})", ec.message(), ec.value());
+            }
           });
 
-      int constexpr TIME_OUT_IN_SEC = 60;
-      auto futureStatus = future.wait_for(std::chrono::seconds(TIME_OUT_IN_SEC));
-      if (futureStatus == std::future_status::timeout)
-      {
-        abandonedResponses_.emplace_back(std::move(future));
-        SPDLOG_ERROR("Request timed out");
-        return std::nullopt;
-      }
+      auto start = std::chrono::steady_clock::now();
+      std::thread timerThread(
+          [this]
+          {
+            ioContext_.run();
+            SPDLOG_DEBUG("Timer thread finished running.");
+          });
 
-      response = future.get();
+      // Read the response asynchronously
+      beast::error_code ec;
+      beast::flat_buffer buffer;
+      http::read(*sslStream_, buffer, response, ec);
+
+      timer.cancel();
+      if (timerThread.joinable())
+      {
+        timerThread.join();
+      }
+      ioContext_.restart();
 
       auto duration = std::chrono::steady_clock::now() - start;
       SPDLOG_INFO(
-          "Time to read response: {}s",
+          "Response time: {}s",
           std::chrono::duration<double>(duration).count());
       //=======================================================================
+
+      if (ec.failed())
+      {
+        SPDLOG_ERROR(
+            "Connection error: {} (code: {})", ec.message(), ec.value());
+        sslStream_ = nullptr;
+        return std::nullopt;
+        // throw boost::system::system_error(ec);
+      }
     }
-    catch (const beast::system_error &e)
+    catch (const boost::system::system_error &e)
     {
-      SPDLOG_ERROR("Connection error: {} (code: {})", e.what(), e.code().value());
+      SPDLOG_ERROR(
+          "Connection error: {} (code: {})", e.what(), e.code().value());
       closeSslStream();
       return std::nullopt;
     }
 
+    auto responseText = parseResponse(response);
+    if (responseText)
+    {
+      SPDLOG_DEBUG("Gemini response: {}", *responseText);
+    }
+    return responseText;
+  }
+
+  auto GeminiAgent::parseResponse(
+      http::response<http::dynamic_body> const &response) noexcept
+      -> std::optional<std::string>
+  {
     json::value jsonResponse;
     std::optional<std::string> responseText{std::nullopt};
     try
@@ -136,11 +162,6 @@ namespace bgg
       SPDLOG_DEBUG("Json response on error: {}", oss.str());
     }
 
-    if (responseText)
-    {
-      SPDLOG_DEBUG("Gemini response: {}", *responseText);
-    }
-
     return responseText;
   }
 
@@ -154,8 +175,6 @@ namespace bgg
         ioContext_, sslContext_);
 
     // prepare connection objects
-    int constexpr TIME_OUT_IN_SEC = 60;
-    sslStream_->next_layer().expires_after(std::chrono::seconds(TIME_OUT_IN_SEC));
     // if (SSL_ctrl(sslStream_.native_handle(),
     //              SSL_CTRL_SET_TLSEXT_HOSTNAME,
     //              TLSEXT_NAMETYPE_host_name,
@@ -194,20 +213,20 @@ namespace bgg
         ec.assign(0, ec.category());
       }
 
-      if (ec)
+      if (ec.failed())
       {
-        SPDLOG_WARN("Failed to close SSL stream: {}", ec.message());
+        throw boost::system::system_error(ec);
       }
     }
-    catch (const std::exception &e)
+    catch (const boost::system::system_error &e)
     {
-      SPDLOG_WARN("Failed to close SSL stream: {}", e.what());
+      SPDLOG_WARN("Failed to close SSL stream: {} (code: {})", e.what(), e.code().value());
     }
 
-    sslStream_ = nullptr; // Release the stream
+    sslStream_ = nullptr;
   }
 
-  auto GeminiAgent::createHtmlRequest(std::string_view prompt)
+  auto GeminiAgent::createHtmlRequest(std::string_view prompt) const
       -> http::request<http::string_body>
   {
     ///< Build correct JSON request body according to Gemini API spec
@@ -269,7 +288,8 @@ namespace bgg
     return request;
   }
 
-  void GeminiAgent::printTokenUsage(boost::json::object const &jsonObj) noexcept
+  void GeminiAgent::printTokenUsage(
+      boost::json::object const &jsonObj) noexcept
   {
     if (!jsonObj.contains("usageMetadata"))
     {

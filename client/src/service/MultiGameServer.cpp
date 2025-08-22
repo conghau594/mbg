@@ -17,7 +17,7 @@ namespace bgg
   {
     //=============================
     auto subscriptionId = eventBus_->subscribe<ClientRequest, LoginRequest>(
-        [this](LoginRequest const &request)
+        [this](LoginRequest const & /*request*/)
         {
           emit(LoginResponse{ErrorCode{0, "", ""}, ""});
           SPDLOG_INFO(
@@ -115,11 +115,9 @@ namespace bgg
     eventBus_->emit(FindGameAcceptedNotification{ErrorCode{0, "", ""}});
 
     // parse API key from an .env file
-#ifdef _DEBUG
     std::map<std::string, std::string> envMap = utils::parseEnvFile("D:/src/.env");
-#else
-    std::map<std::string, std::string> envMap = utils::parseEnvFile("./.env");
-#endif
+    envMap.merge(utils::parseEnvFile("./.env"));
+
     auto envIter = envMap.find("GEMINI_API_KEY");
     std::string geminiApiKey;
     if (envIter == envMap.end())
