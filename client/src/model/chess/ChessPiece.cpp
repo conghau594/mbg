@@ -249,9 +249,9 @@ namespace bgg
 
   auto King::canMoveTo(Position const &square) const noexcept -> bool
   {
-    if (isMoved())
+    if (NormalChessPiece::canMoveTo(square))
     {
-      return NormalChessPiece::canMoveTo(square);
+      return true;
     }
 
     // IChessRule *rule = getRule();
@@ -263,7 +263,7 @@ namespace bgg
         continue;
       }
 
-      if (square == *rookDestination)
+      if (square == chess::getCastlingKingDestination(rookSource))
       {
         return true;
       }
@@ -296,7 +296,8 @@ namespace bgg
     return reachable;
   }
 
-  auto King::findRookCastlingDestination(Position const &rookSource) const noexcept -> std::optional<Position>
+  auto King::findRookCastlingDestination(
+      Position const &rookSource) const noexcept -> std::optional<Position>
   {
     IChessRule const *rule = getRule();
     auto rook = rule->findPiece(rookSource);
@@ -424,7 +425,13 @@ namespace bgg
         {
           return true;
         }
-        return false;
+        else if (auto enPassantDestination = findEnPassantDestination())
+        {
+          if (square == *enPassantDestination)
+          {
+            return true;
+          }
+        }
       }
     }
 
@@ -433,18 +440,12 @@ namespace bgg
       Position twoSquaresForward(file, rank + 2 * step_);
       if (square == twoSquaresForward)
       {
-        if (!rule->findPiece(twoSquaresForward))
+        if (!rule->findPiece(forwardSquare) &&
+            !rule->findPiece(twoSquaresForward))
         {
           return true;
         }
         return false;
-      }
-    }
-    else if (auto enPassantDestination = findEnPassantDestination())
-    {
-      if (square == *enPassantDestination)
-      {
-        return true;
       }
     }
 

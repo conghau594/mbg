@@ -206,12 +206,24 @@ namespace bgg
     if (!allyKingAttackers.empty())
     {
       auto &attacker = allyKingAttackers.back();
-      throw std::logic_error(std::format(
-          "{} cannot do this move because their king is in check "
-          "by the opponent's {} from '{}'",
-          move.color.toString(),
-          attacker->getType().toString(),
-          attacker->getPosition().toString()));
+      if (allyKing.getPosition() == move.toSquare)
+      {
+        throw std::logic_error(std::format(
+            "{} King cannot do this move because the destination is under "
+            "attack by the opponent's {} from '{}'",
+            move.color.toString(),
+            attacker->getType().toString(),
+            attacker->getPosition().toString()));
+      }
+      else
+      {
+        throw std::logic_error(std::format(
+            "{} cannot do this move because their king is in check "
+            "by the opponent's {} from '{}'",
+            move.color.toString(),
+            attacker->getType().toString(),
+            attacker->getPosition().toString()));
+      }
     }
 
     moveDetail.setOpponentKingSquare(opponentKing.getPosition());
@@ -900,12 +912,11 @@ namespace bgg
   void ChessRule::throwDefaultMoveError(
       ChessMove const &move, EntityType const &movedPieceType)
   {
-    std::logic_error defaultException(std::format(
+    throw std::logic_error(std::format(
         "{} {} from '{}' cannot reach to square '{}'",
         move.color.toString(),
         movedPieceType.toString(),
         move.fromSquare.toString(),
         move.toSquare.toString()));
-    throw defaultException;
   }
 } // namespace bgg

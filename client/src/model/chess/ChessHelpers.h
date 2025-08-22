@@ -128,13 +128,22 @@ namespace bgg
 			}
 			else
 			{
-				return {Position(-1, -1), Position(-1, -1)}; // Invalid castling
+				BOOST_ASSERT_MSG(false, "Invalid castling king destination");
+				return {Position(-1, -1), Position(-1, -1)};
 			}
 		}
 
 		constexpr auto getCastlingKingDestination(Position const &rookSource)
 				-> Position
 		{
+			BOOST_ASSERT_MSG(
+					false ||
+							rookSource == Position{"a1"} ||
+							rookSource == Position{"h1"} ||
+							rookSource == Position{"a8"} ||
+							rookSource == Position{"h8"},
+					"Rook source square must be 'a1', 'h1', 'a8' or 'h8' for castling");
+
 			constexpr int KING_SOURCE_FILE = int('e');
 			return Position{(1 + KING_SOURCE_FILE + rookSource.getFile()) / 2,
 											rookSource.getRank()};
