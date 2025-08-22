@@ -93,23 +93,30 @@ namespace bgg
                                  int(ImGuiWindowFlags_AlwaysAutoResize) |
                                  int(ImGuiWindowFlags_NoMove);
 
-    ImVec2 constexpr BUTTON_SIZE(400.0f, 70.0f);
+    ImVec2 constexpr BUTTON_SIZE(300.0f, 60.0f);
     ImVec2 constexpr DUMMY_SIZE(0.0f, 10.0f);
 
     ImGui::Begin("Select Game", nullptr, IM_GUI_FLAGS);
 
+    int constexpr FONT_VENITE_ADOREMUS_24 = 2;
+    ImFont *font24 = ImGui::GetIO().Fonts->Fonts[FONT_VENITE_ADOREMUS_24];
+    ImGui::PushFont(font24);
+    ImGui::Text("Select  game . . .");
+    ImGui::PopFont();
+
     for (size_t i = 0; i < gameNames_.size(); ++i)
     {
+      ImGui::Dummy(DUMMY_SIZE);
       if (ImGui::Button(gameNames_[i].c_str(), BUTTON_SIZE) &&
           pressedButtonIndex_ < 0)
       {
         pressedButtonIndex_ = int(i); // Only allow one button to be pressed at a time
       }
-      ImGui::Dummy(DUMMY_SIZE);
     }
 
+    ImGui::Dummy(ImVec2(DUMMY_SIZE.x * 2.0f, DUMMY_SIZE.y * 2.0f));
     ImGui::Separator();
-    ImGui::Dummy(DUMMY_SIZE);
+    ImGui::Dummy(ImVec2(DUMMY_SIZE.x * 2.0f, DUMMY_SIZE.y * 2.0f));
 
     if (ImGui::Button("Quit", BUTTON_SIZE) && pressedButtonIndex_ < 0)
     {
