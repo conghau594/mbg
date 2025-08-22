@@ -4,7 +4,7 @@
 #ifdef _DEBUG
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 #else
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_WARN
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
 #endif
 
 #include <spdlog/spdlog.h>

@@ -10,7 +10,7 @@ namespace bgg
 {
   ///////////////////////////////////////////////////////////////////////////////
   template <typename... T>
-  class Variant final
+  class Variant
   {
   public:
     using Pack = ppt::Pack<std::monostate, T...>;
