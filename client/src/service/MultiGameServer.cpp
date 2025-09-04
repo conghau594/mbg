@@ -103,6 +103,7 @@ namespace bgg
     {
       eventBus_->unsubscribe<ClientRequest>(id);
     }
+    SPDLOG_DEBUG("MultiGameServer has been destroyed.");
   }
 
   void MultiGameServer::emit(ServerMessage const &msg) noexcept

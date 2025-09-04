@@ -57,7 +57,16 @@ namespace bgg
 		auto findPiece(Position const &square) const noexcept
 				-> std::shared_ptr<Piece> override;
 
-		// Tries to execute a move and returns the action taken
+		/**
+		 * \brief Tries to parse and validate the given move.
+		 *
+		 * \return move detail if the move is valid, otherwise throws an exception
+		 * 				 (never return an empty move detail).
+		 *
+		 * \throw std::invalid_argument if the move is invalid
+		 *
+		 * \throw std::logic_error if the move would leave the player's king in check
+		 */
 		auto tryMove(ChessMove const &move) const -> ChessMove::Detail override;
 
 		auto commitMove(ChessMove::Detail moveDetail) noexcept -> int override;

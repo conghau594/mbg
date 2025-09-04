@@ -17,8 +17,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'moveNumber' member");
-      std::terminate();
-      return -1; // This line is unreachable but keeps the compiler happy
+      std::abort();
     };
 
     return visit(moveNumberVisitor);
@@ -38,8 +37,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'side' member");
-      std::terminate();
-      return Side{"\0\0"}; // This line is unreachable but keeps the compiler happy
+      std::abort();
     };
 
     return visit(colorVisitor);
@@ -59,8 +57,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'movedPiece' member");
-      std::terminate();
-      return EntityType{"\0\0"}; // This line is unreachable but keeps the compiler happy
+      std::abort();
     };
 
     return visit(movedPieceVisitor);
@@ -80,8 +77,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'fromSquare' member");
-      std::terminate();
-      return Position{"\0\0"}; // This line is unreachable but keeps the compiler happy
+      std::abort();
     };
 
     return visit(sourceSquareVisitor);
@@ -101,8 +97,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'toSquare' member");
-      std::terminate();
-      return Position{"\0\0"}; // This line is unreachable but keeps the compiler happy
+      std::abort();
     };
 
     return visit(destinationSquareVisitor);
@@ -122,8 +117,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'opponentKingSquare' member");
-      std::terminate();
-      return Position{"\0\0"}; // This line is unreachable but keeps the compiler happy
+      std::abort();
     };
 
     return visit(opponentKingSquareVisitor);
@@ -143,8 +137,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have the 'opponentKingStatus' member");
-      std::terminate();
-      return Side::Status::UNDEFINED; // This line is unreachable but keeps the compiler happy
+      std::abort();
     };
 
     return visit(opponentKingStateVisitor);
@@ -164,7 +157,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'moveNumber' member");
-      std::terminate();
+      std::abort();
     };
 
     visit(moveNumberVisitor);
@@ -184,7 +177,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'side' member");
-      std::terminate();
+      std::abort();
     };
 
     visit(colorVisitor);
@@ -203,7 +196,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'movedPiece' member");
-      std::terminate();
+      std::abort();
     };
 
     visit(movedPieceVisitor);
@@ -222,7 +215,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'fromSquare' member");
-      std::terminate();
+      std::abort();
     };
 
     visit(sourceSquareVisitor);
@@ -241,7 +234,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'toSquare' member");
-      std::terminate();
+      std::abort();
     };
 
     visit(destinationSquareVisitor);
@@ -260,7 +253,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have an the 'opponentKingSquare' member");
-      std::terminate();
+      std::abort();
     };
 
     visit(opponentKingSquareVisitor);
@@ -279,7 +272,7 @@ namespace bgg
 
       BOOST_ASSERT_MSG(
           false, "The move detail must have the 'opponentKingStatus' member");
-      std::terminate();
+      std::abort();
     };
 
     visit(opponentKingStateVisitor);
@@ -424,24 +417,4 @@ namespace bgg
         Position{},
         Side::Status::UNDEFINED};
   }
-
-  // auto ChessMove::getErrorMessage(ChessMove::ChessMove::Detail const &moveDetail) noexcept
-  //     -> std::string
-  // {
-  //   auto errorMessageVisitor = []<typename T>(T const &concreteDetail)
-  //       -> std::string const &
-  //   {
-  //     if constexpr (requires {
-  //         { concreteDetail.errorMessage } -> std::same_as<std::string const &>; })
-  //     {
-  //       return concreteDetail.errorMessage;
-  //     }
-
-  //     BOOST_ASSERT_MSG(
-  //         false, "The move detail must have the 'errorMessage' member");
-  //     std::terminate();
-  //   };
-
-  //   return visit(errorMessageVisitor);
-  // }
 } // namespace bgg

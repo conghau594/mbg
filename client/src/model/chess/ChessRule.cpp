@@ -198,15 +198,22 @@ namespace bgg
 
     Side opponentColor = chess::getOpponentColor(move.color);
     ChessRule cloneRule(*this);
-    cloneRule.commitMove(moveDetail);
     Piece const &allyKing = cloneRule.getKing(move.color);
     Piece const &opponentKing = cloneRule.getKing(opponentColor);
+
+    cloneRule.commitMove(moveDetail);
 
     auto allyKingAttackers = cloneRule.findAttackers(allyKing, true);
     if (!allyKingAttackers.empty())
     {
       auto &attacker = allyKingAttackers.back();
-      if (allyKing.getPosition() == move.toSquare)
+      auto allyKingStatusBefore = Side::Status::SAFE;
+      if (auto lastMove = getLastMove())
+      {
+        allyKingStatusBefore = lastMove->getOpponentKingStatus();
+      }
+
+      if (moveDetail.getMovedPieceType() == chess::KING)
       {
         throw std::logic_error(std::format(
             "{} King cannot do this move because the destination is under "
@@ -215,10 +222,19 @@ namespace bgg
             attacker->getType().toString(),
             attacker->getPosition().toString()));
       }
+      else if (allyKingStatusBefore == Side::Status::SAFE)
+      {
+        throw std::logic_error(std::format(
+            "{} cannot do this move because their king will be under attack "
+            "by the opponent's {} from '{}'",
+            move.color.toString(),
+            attacker->getType().toString(),
+            attacker->getPosition().toString()));
+      }
       else
       {
         throw std::logic_error(std::format(
-            "{} cannot do this move because their king is in check "
+            "{} cannot do this move because their king is still under attack "
             "by the opponent's {} from '{}'",
             move.color.toString(),
             attacker->getType().toString(),
@@ -433,11 +449,11 @@ namespace bgg
       -> ChessMove::Detail
   {
     chess::validateStandardChessMove(move);
-    SPDLOG_DEBUG(
-        "Trying to parse move: {} from {} to {}",
-        move.color.toString(),
-        move.fromSquare.toString(),
-        move.toSquare.toString());
+    // SPDLOG_DEBUG(
+    //     "Trying to parse move: {} from {} to {}",
+    //     move.color.toString(),
+    //     move.fromSquare.toString(),
+    //     move.toSquare.toString());
 
     Side opponentColor = chess::getOpponentColor(move.color);
     auto movedPiece = findPiece(move.fromSquare);
@@ -445,7 +461,7 @@ namespace bgg
     if (!movedPiece)
     {
       throw std::logic_error(std::format(
-          "There is no ally piece at the square {}",
+          "There is no ally piece on {}",
           move.fromSquare.toString()));
     }
 
@@ -453,7 +469,7 @@ namespace bgg
     if (move.color == opponentColor)
     {
       throw std::logic_error(std::format(
-          "Cannot move opponent's {} at square {}",
+          "Cannot move opponent's {} on {}",
           movedPieceType.toString(),
           move.fromSquare.toString()));
     }
@@ -625,7 +641,7 @@ namespace bgg
           std::abs(dFile) == 1)
       {
         throw std::logic_error(std::format(
-            "{} seems to capture en passant by the pawn at square '{}', "
+            "{} seems to capture en passant by the pawn on '{}', "
             "but it's not a legal move",
             move.color.toString(),
             move.toSquare.toString()));
@@ -687,7 +703,7 @@ namespace bgg
           {
             throw std::logic_error(std::format(
                 "{} cannot castle because there is a {} {} blocking "
-                "their king's path at square '{}'",
+                "their king's path on '{}'",
                 move.color.toString(),
                 blockingPiece->getSide().toString(),
                 blockingPiece->getType().toString(),

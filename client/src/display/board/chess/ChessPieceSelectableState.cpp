@@ -30,9 +30,6 @@ namespace bgg
         int(ChessTextureCell::CHOICE_HIGHLIGHTER),
         utils::toString(ChessTextureCell::CHOICE_HIGHLIGHTER),
         false);
-
-    SPDLOG_DEBUG("There are {} selectable tiles from '{}'",
-                 selectableTiles_.size(), gameRule_->getAllyColor().toString());
   }
 
   ChessPieceSelectableState::~ChessPieceSelectableState() noexcept
@@ -45,6 +42,8 @@ namespace bgg
     selectableTiles_ = gameRule_->collectSelectableTiles();
     onMouseMoved(mousePos);
 
+    // SPDLOG_DEBUG("There are {} selectable tiles from '{}'",
+    //              selectableTiles_.size(), gameRule_->getAllyColor().toString());
     // SPDLOG_INFO("Entered '{}'", typeid(*this).name());
   }
 

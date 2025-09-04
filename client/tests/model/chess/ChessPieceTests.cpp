@@ -16,7 +16,10 @@ namespace bgg
     auto king = chessRule.findPiece(initialPosition);
     ASSERT_TRUE(king != nullptr);
 
+    // TC01: INPUT: right adjacent empty square
     EXPECT_TRUE(king->canMoveTo(Position{"b1"}));
+
+    // TC02: INPUT: top right adjacent occupied square
     EXPECT_TRUE(king->canMoveTo(Position{"b2"}));
 
     EXPECT_FALSE(king->canMoveTo(Position{"a0"}));

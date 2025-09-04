@@ -128,7 +128,7 @@ namespace bgg
     auto responseText = parseResponse(response);
     if (responseText)
     {
-      SPDLOG_DEBUG("Gemini response: {}", *responseText);
+      SPDLOG_INFO("Gemini response: {}", *responseText);
     }
     return responseText;
   }

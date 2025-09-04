@@ -74,6 +74,7 @@ En passant:
 Remember:
 - Use pastFailureMessages to avoid repeating previous mistakes.
 - Output only one JSON object — no explanations outside of JSON.
+- Don't overthink, you must make a move after all.
 
 <EXAMPLE>
   INPUT: 

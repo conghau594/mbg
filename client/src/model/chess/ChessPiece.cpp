@@ -238,7 +238,7 @@ namespace bgg
 
   King::King(King const &other, IChessRule const *rule) noexcept
       : NormalChessPiece(other, rule),
-        initialRookSquares_(other.initialRookSquares_)
+        initialRookSquares_{other.initialRookSquares_[0], other.initialRookSquares_[1]}
   {
   }
 
