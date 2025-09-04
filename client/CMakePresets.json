@@ -11,7 +11,7 @@
       "displayName": "MSVC 2022",
       "description": "Use MSVC for Debug and Release builds",
       "generator": "Visual Studio 17 2022",
-      "binaryDir": "$env{BUILD_ROOT}/bgg/client/msvc2022",
+      "binaryDir": "${sourceDir}/build/msvc2022",
       "cacheVariables": {
         "CMAKE_CONFIGURATION_TYPES": "Debug;Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "YES"
@@ -22,7 +22,7 @@
       "displayName": "GCC Debug",
       "description": "Use GCC in Debug mode with debug info",
       "generator": "Ninja",
-      "binaryDir": "$env{BUILD_ROOT}/bgg/client/gcc-debug",
+      "binaryDir": "${sourceDir}/build/gcc-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "gcc",
@@ -34,7 +34,7 @@
       "displayName": "GCC Release",
       "description": "Use GCC in Release mode with optimizations",
       "generator": "Ninja",
-      "binaryDir": "$env{BUILD_ROOT}/bgg/client/gcc-release",
+      "binaryDir": "${sourceDir}/build/gcc-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_C_COMPILER": "gcc",

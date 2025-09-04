@@ -51,6 +51,18 @@ gtest_discover_tests(chessRuleTest
 )
 
 ###############################################################################
+# Flags for sanitizer                                                         #
+###############################################################################
+if (MSVC)
+    # MSVC uses /fsanitize=address since Visual Studio 2019 16.9+
+    #target_compile_options(chessRuleTest PRIVATE /fsanitize=address /Zi /Od)
+else()
+    # GCC / Clang
+    target_compile_options(chessRuleTest PRIVATE -fsanitize=address -fsanitize=leak -fno-omit-frame-pointer -g)
+    target_link_options(chessRuleTest PRIVATE -fsanitize=address -fsanitize=leak)
+endif()
+
+###############################################################################
 # Add necessary macros                                                        #
 ###############################################################################
 target_compile_definitions(chessRuleTest PRIVATE

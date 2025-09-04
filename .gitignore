@@ -1,7 +1,7 @@
 # .gitignore for C++ + CMake + VS Code project
 
 # Ignore build output folders
-/build/
+build/
 /out/
 CMakeFiles/
 CMakeCache.txt
@@ -22,9 +22,7 @@ compile_commands.json
 *.o
 
 # Ignore VS Code settings except essentials
-.vscode/*
-client/.vscode/c_cpp_properties.json
-client/.vscode/settings.json
+.vscode/
 !.vscode/tasks.json
 !.vscode/launch.json
 

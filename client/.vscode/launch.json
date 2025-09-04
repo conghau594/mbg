@@ -11,7 +11,7 @@
       "name": "launch:bggclient build:vs2022-debug",
       "type": "cppvsdbg", // for Visual Studio debugger
       "request": "launch",
-      "program": "${env:BUILD_ROOT}/bgg/client/msvc2022/bin/DEBUG/bggclient.exe", // <-- full path to binary
+      "program": "${workspaceFolder}/build/msvc2022/bin/DEBUG/bggclient.exe", // <-- full path to binary
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -24,7 +24,7 @@
       "name": "launch:bggclient build:vs2022-release",
       "type": "cppvsdbg", // for Visual Studio debugger
       "request": "launch",
-      "program": "${env:BUILD_ROOT}/bgg/client/msvc2022/bin/RELEASE/bggclient.exe", // <-- full path to binary
+      "program": "${workspaceFolder}/build/msvc2022/bin/RELEASE/bggclient.exe", // <-- full path to binary
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -37,7 +37,7 @@
       "name": "launch:bggclient rebuild:vs2022-debug",
       "type": "cppvsdbg", // for Visual Studio debugger
       "request": "launch",
-      "program": "${env:BUILD_ROOT}/bgg/client/msvc2022/bin/DEBUG/bggclient.exe", // <-- full path to binary
+      "program": "${workspaceFolder}/build/msvc2022/bin/DEBUG/bggclient.exe", // <-- full path to binary
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -50,7 +50,7 @@
       "name": "launch:bggclient rebuild:vs2022-release",
       "type": "cppvsdbg", // for Visual Studio debugger
       "request": "launch",
-      "program": "${env:BUILD_ROOT}/bgg/client/msvc2022/bin/RELEASE/bggclient.exe", // <-- full path to binary
+      "program": "${workspaceFolder}/build/msvc2022/bin/RELEASE/bggclient.exe", // <-- full path to binary
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -66,7 +66,7 @@
       "name": "launch:chessRuleTest build:vs2022-debug",
       "type": "cppvsdbg", // for Visual Studio debugger
       "request": "launch",
-      "program": "${env:BUILD_ROOT}/bgg/client/msvc2022/bin/DEBUG/chessRuleTest.exe", // <-- full path to binary
+      "program": "${workspaceFolder}/build/msvc2022/bin/DEBUG/chessRuleTest.exe", // <-- full path to binary
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -79,7 +79,7 @@
       "name": "launch:chessRuleTest rebuild:vs2022-debug",
       "type": "cppvsdbg", // for Visual Studio debugger
       "request": "launch",
-      "program": "${env:BUILD_ROOT}/bgg/client/msvc2022/bin/DEBUG/chessRuleTest.exe", // <-- full path to binary
+      "program": "${workspaceFolder}/build/msvc2022/bin/DEBUG/chessRuleTest.exe", // <-- full path to binary
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -95,7 +95,7 @@
       "name": "launch:bggclient build:gcc-debug",
       "type": "cppdbg", // for GCC debugger
       "request": "launch",
-      "program": "${env:BUILD_ROOT}/bgg/client/gcc-debug/bin/bggclient.exe", // <-- full path to binary
+      "program": "${workspaceFolder}/build/gcc-debug/bin/bggclient.exe", // <-- full path to binary
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -111,7 +111,7 @@
       "name": "launch:bggclient build:gcc-release",
       "type": "cppdbg", // for GCC debugger
       "request": "launch",
-      "program": "${env:BUILD_ROOT}/bgg/client/gcc-release/bin/bggclient.exe", // <-- full path to binary
+      "program": "${workspaceFolder}/build/gcc-release/bin/bggclient.exe", // <-- full path to binary
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -127,7 +127,7 @@
       "name": "launch:bggclient rebuild:gcc-debug",
       "type": "cppdbg", // for GCC debugger
       "request": "launch",
-      "program": "${env:BUILD_ROOT}/bgg/client/gcc-debug/bin/bggclient.exe", // <-- full path to binary
+      "program": "${workspaceFolder}/build/gcc-debug/bin/bggclient.exe", // <-- full path to binary
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -143,7 +143,7 @@
       "name": "launch:bggclient rebuild:gcc-release",
       "type": "cppdbg", // for GCC debugger
       "request": "launch",
-      "program": "${env:BUILD_ROOT}/bgg/client/gcc-release/bin/bggclient.exe", // <-- full path to binary
+      "program": "${workspaceFolder}/build/gcc-release/bin/bggclient.exe", // <-- full path to binary
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
