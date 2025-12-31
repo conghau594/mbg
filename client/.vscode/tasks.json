@@ -6,7 +6,7 @@
     {
       "label": "build:vs2022-debug",
       "type": "shell",
-      "command": "cmake --build --preset build-vs2022-debug",
+      "command": "cmake --build -DBUILD_TESTING=OFF --preset build-vs2022-debug",
       "group": "build",
       "problemMatcher": []
     },

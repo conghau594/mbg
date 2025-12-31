@@ -11,12 +11,17 @@ message(STATUS "CMakeLists.txt for 'bggclientTest' in ${CMAKE_CURRENT_SOURCE_DIR
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE CACHE BOOL "")
-set(BOOST_SUPERPROJECT_VERSION "1.88.0")
 
 include(FetchContent)
 
 ###############################################################################
-# FetchContent for Google Test                                               #
+# Find Boost                                                                  #
+###############################################################################
+find_package(Boost 1.75 REQUIRED)
+message(STATUS "+ Boost found: ${Boost_FOUND}")
+
+###############################################################################
+# Find or Fetch Google Test                                                   #
 ###############################################################################
 find_package(GTest QUIET)
 
@@ -25,30 +30,24 @@ if (GTest_FOUND)
 else()
   message(STATUS "GTest not found, fetching from GitHub...")
 
-FetchContent_Declare(googletest
-  GIT_REPOSITORY https://github.com/google/googletest
-  GIT_TAG v1.17.0
-  GIT_SHALLOW ON
-  EXCLUDE_FROM_ALL
-  SYSTEM
-)     
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+  FetchContent_Declare(googletest
+    GIT_REPOSITORY https://github.com/google/googletest
+    GIT_TAG v1.17.0
+    GIT_SHALLOW ON
+    EXCLUDE_FROM_ALL
+    SYSTEM
+  )
+  # For Windows: Prevent overriding the parent project's compiler/linker settings
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(googletest)
 
-FetchContent_GetProperties(googletest POPULATED GOOGLETEST_POPULATED)
-message(STATUS "+ googletest populated: ${GOOGLETEST_POPULATED}")
+  FetchContent_GetProperties(googletest POPULATED GOOGLETEST_POPULATED)
+  message(STATUS "+ googletest populated: ${GOOGLETEST_POPULATED}")
 
-# # Install GTest (create GTestConfig.cmake)
-# set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/_install" CACHE PATH "" FORCE)
-# execute_process(
-#   COMMAND "${CMAKE_COMMAND}" --build "${googletest_BINARY_DIR}" --target install
-# )
-# list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/_install" CACHE PATH "" FORCE)
-
-# message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
-# message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-
+  # Create aliases to match find_package target names
+  if(NOT TARGET GTest::gtest_main)
+    add_library(GTest::gtest_main ALIAS gtest_main)
+  endif()
 endif()
 
 

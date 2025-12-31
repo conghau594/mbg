@@ -1,111 +1,44 @@
 # CMakeLists.txt
 cmake_minimum_required(VERSION 3.28)
-project(bggclient LANGUAGES CXX)
+project(bggserver LANGUAGES CXX)
 
 message(STATUS "############################################################")
-message(STATUS "CMakeLists.txt for 'bggclient' in ${CMAKE_CURRENT_SOURCE_DIR}")
+message(STATUS "CMakeLists.txt for 'bggserver' in ${CMAKE_CURRENT_SOURCE_DIR}")
 
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE CACHE BOOL "")
+#set(BOOST_SUPERPROJECT_VERSION "1.89.0")
 
 include(FetchContent)
 
 ###############################################################################
-# FetchContent for SFML                                                       #
+# Fetching Libraries  		                                                  #
 ###############################################################################
-FetchContent_Declare(SFML
-    GIT_REPOSITORY https://github.com/SFML/SFML.git
-    GIT_TAG 3.0.1
-    GIT_SHALLOW ON
-    EXCLUDE_FROM_ALL
-    SYSTEM
-  )
-  FetchContent_MakeAvailable(SFML)
-  FetchContent_GetProperties(SFML POPULATED SFML_POPULATED)
-  message(STATUS "+ SFML populated: ${SFML_POPULATED}")
 
-###############################################################################
-# FetchContent for ImGui                                                      #
-###############################################################################
-FetchContent_Declare(ImGui
-  GIT_REPOSITORY https://github.com/ocornut/imgui
-  GIT_TAG v1.91.1
-  GIT_SHALLOW ON
-  EXCLUDE_FROM_ALL
-  SYSTEM
+message(STATUS "CMake system prefix path: ${CMAKE_SYSTEM_PREFIX_PATH}")
+message(STATUS "CMake prefix path: ${CMAKE_PREFIX_PATH}")
+
+
+cmake_policy(SET CMP0167 NEW)
+find_package(Boost 1.89.0 REQUIRED COMPONENTS 
+  json
+  fiber
 )
-set(IMGUI_SFML_FIND_SFML OFF)
-FetchContent_MakeAvailable(ImGui)
-FetchContent_GetProperties(ImGui SOURCE_DIR IMGUI_DIR)
 
-FetchContent_GetProperties(ImGui POPULATED ImGui_POPULATED)
-message(STATUS "+ ImGui populated: ${ImGui_POPULATED}")
+if(Boost_FOUND)
+  message(STATUS "Boost found: ${Boost_VERSION}")
+endif()
 
-###############################################################################
-# FetchContent for spdlog                                                      #
-###############################################################################
-FetchContent_Declare(SpdLog
-  GIT_REPOSITORY https://github.com/gabime/spdlog
-  GIT_TAG v1.15.3
-  GIT_SHALLOW ON
-  EXCLUDE_FROM_ALL
-  SYSTEM
-)
-FetchContent_MakeAvailable(SpdLog)
-FetchContent_GetProperties(SpdLog POPULATED SpdLog_POPULATED)
-message(STATUS "+ SpdLog populated: ${SpdLog_POPULATED}")
+find_package(GTest REQUIRED)
+if(GTest_FOUND)
+  message(STATUS "GoogleTest found: ${GTest_VERSION}")
+endif()
 
 ###############################################################################
-# FetchContent for ImGui-SFML                                                 #
+# Configure Build Process                                                     #
 ###############################################################################
-FetchContent_Declare(ImGuiSfml
-  GIT_REPOSITORY https://github.com/SFML/imgui-sfml
-  GIT_TAG v3.0
-  GIT_SHALLOW ON
-  EXCLUDE_FROM_ALL
-  SYSTEM
-)
-FetchContent_MakeAvailable(ImGuiSfml)
-FetchContent_GetProperties(ImGuiSfml POPULATED ImGuiSfml_POPULATED)
-message(STATUS "+ ImGuiSfml populated: ${ImGuiSfml_POPULATED}")
-
-###############################################################################
-# Find Boost (>= 1.75 required for Beast and JSON)                            #
-###############################################################################
-find_package(Boost 1.75 REQUIRED COMPONENTS json)
-message(STATUS "+ Boost found: ${Boost_FOUND}")
-message(STATUS "+ Boost version: ${Boost_VERSION}")
-message(STATUS "+ Boost include dirs: ${Boost_INCLUDE_DIRS}")
-
-
-###############################################################################
-# Fetch OpenSSL::SSL OpenSSL::Crypto                                          #
-###############################################################################
-FetchContent_Declare(OpenSSL
-  GIT_REPOSITORY https://github.com/janbar/openssl-cmake.git
-  GIT_TAG        1.1.1w-20250419
-  GIT_SHALLOW    ON
-  EXCLUDE_FROM_ALL
-  SYSTEM
-)
-FetchContent_MakeAvailable(OpenSSL)
-FetchContent_GetProperties(OpenSSL POPULATED OpenSSL_POPULATED)
-message(STATUS "+ OpenSSL populated: ${OpenSSL_POPULATED}")
-
-#add_subdirectory(${openssl_SOURCE_DIR} ${openssl_BINARY_DIR})
-
-# set(OPENSSL_ROOT_DIR ${OpenSSL_BINARY_DIR})
-# set(OPENSSL_INCLUDE_DIR "${OpenSSL_BINARY_DIR}/include")
-# set(OPENSSL_INCLUDE_DIR "${OpenSSL_BINARY_DIR}/lib")
-# set(OPENSSL_USE_STATIC_LIBS TRUE)  # nếu build static
-# message(STATUS "+ OpenSSL_BINARY_DIR: ${OpenSSL_BINARY_DIR}")
-
-###############################################################################
-# Configure Build Process                                           #
-###############################################################################
-message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
 if (MSVC)
   add_compile_options(
@@ -116,7 +49,7 @@ if (MSVC)
     /W4                       # Warning level 4, == -Wall -Wextra. 
                               # Note that: the max warning level is /Wall. It includes unnecessary warnings from system headers, STL, Windows SDK...
     /GS                       # Stack protector, == -fstack-protector-strong
-    /EHsc                     # Exception model (C++)
+    /EHc                     # Exception model (C++)
     /permissive-              # Strict standard conformance, == -Wpedantic
     /external:W0              # Suppress warnings from external headers
     /external:anglebrackets   # Treat headers included with <> as external
@@ -162,18 +95,10 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
   src/*.h
 )
 
-message(STATUS "---------------------")
-message(STATUS "List of source files:")
-message(STATUS "---------------------")
-foreach(src_file ${SRC_FILES})
-  message(STATUS "+ ${src_file}")
-endforeach()
-
-
 ###############################################################################
 # Activate testing if BUILD_TESTING is ON                                     #
 ###############################################################################
-option(BUILD_TESTING "Build tests" ON)
+option(BUILD_TESTING "Build tests" OFF)
 if(BUILD_TESTING)
   include(CTest)
   add_subdirectory(tests)
@@ -184,27 +109,18 @@ endif()
 # Add executable and link libraries                                           #
 ###############################################################################
 
-add_executable(bggclient 
+add_executable(bggserver 
   main.cpp
   ${SRC_FILES}
 )
 
-target_compile_features(bggclient PRIVATE cxx_std_20)
-target_link_libraries(bggclient PRIVATE
-  sfml-graphics
-  sfml-audio
-  sfml-window
-  sfml-system
-  sfml-main
-  ImGui-SFML
-  Boost::headers
+target_compile_features(bggserver PRIVATE cxx_std_20)
+target_link_libraries(bggserver PRIVATE
   Boost::json
-  ssl
-  crypto
-  spdlog
+  Boost::fiber
 )
 
-target_include_directories(bggclient PRIVATE 
+target_include_directories(bggserver PRIVATE 
   ${CMAKE_SOURCE_DIR}/src
 )
 
@@ -226,19 +142,36 @@ function(print_all_targets_recursive dir)
 endfunction()
 
 # Call the recursive funtion
-message(STATUS "----------------")
+message(STATUS "================================================================")
 message(STATUS "List of targets:")
-message(STATUS "----------------")
 print_all_targets_recursive(${CMAKE_SOURCE_DIR})
 
-get_target_property(INCLUDE_DIRS bggclient INCLUDE_DIRECTORIES)
-message(STATUS "Include directories for bggclient: ${INCLUDE_DIRS}")
 
+message(STATUS "================================================================")
+message(STATUS "List of source files:")
+get_target_property(ALL_SRC_FILES bggserver SOURCES)
+foreach(src_file ${ALL_SRC_FILES})
+  message(STATUS "+ ${src_file}")
+endforeach()
+
+message(STATUS "================================================================")
+message(STATUS "List of include directories:")
+get_target_property(INCLUDE_DIRS bggserver INCLUDE_DIRECTORIES)
+foreach(include_dir ${INCLUDE_DIRS})
+  message(STATUS "+ ${include_dir}")
+endforeach()
+
+message(STATUS "================================================================")
+message(STATUS "List of linked libraries:")
+get_target_property(LINK_LIBS bggserver LINK_LIBRARIES)
+foreach(lib ${LINK_LIBS})
+  message(STATUS "+ ${lib}")
+endforeach()
 
 ###############################################################################
 # Add necessary macros                                                        #
 ###############################################################################
-target_compile_definitions(bggclient PRIVATE
+target_compile_definitions(bggserver PRIVATE
   $<$<CONFIG:Debug>:_DEBUG> #Macro _DEBUG
   $<$<CONFIG:Release>:NDEBUG> #Macro NDEBUG for disbleing assert() 
   $<$<PLATFORM_ID:Windows>:_WIN32_WINNT=0x0601> #Macro _WIN32_WINNT
@@ -248,12 +181,6 @@ target_compile_definitions(bggclient PRIVATE
 ###############################################################################
 # Install App                                                                 #
 ###############################################################################
-install(TARGETS bggclient
+install(TARGETS bggserver
   RUNTIME DESTINATION bin
-)
-install(DIRECTORY assets/
-  DESTINATION share/${PROJECT_NAME}/assets
-)
-install(DIRECTORY fonts/
-  DESTINATION share/${PROJECT_NAME}/fonts
 )

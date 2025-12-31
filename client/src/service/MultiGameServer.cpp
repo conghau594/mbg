@@ -116,7 +116,7 @@ namespace bgg
     eventBus_->emit(FindGameAcceptedNotification{ErrorCode{0, "", ""}});
 
     // parse API key from an .env file
-    std::map<std::string, std::string> envMap = utils::parseEnvFile("D:/src/.env");
+    std::map<std::string, std::string> envMap = utils::parseEnvFile(".env");
     envMap.merge(utils::parseEnvFile("./.env"));
 
     auto envIter = envMap.find("GEMINI_API_KEY");
